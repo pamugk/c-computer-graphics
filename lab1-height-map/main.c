@@ -1,8 +1,8 @@
 #include "main.h"
 
 GLFWwindow *g_window;
-ShaderProgram g_shaderProgram;
-model g_model;
+shader_program_struct g_shaderProgram;
+model_struct g_model;
 
 GLuint *allocIndices() {
 	GLuint *indices = calloc(6, sizeof(GLuint));
@@ -12,13 +12,13 @@ GLuint *allocIndices() {
 	return indices;
 }
 
-attribute *allocAttributes() {
-	attribute *attributes = calloc(2, sizeof(attribute));
+attribute_struct *allocAttributes() {
+	attribute_struct *attributes = calloc(2, sizeof(attribute_struct));
 
-	attribute positionAttribute = { 2, GL_FLOAT, GL_FALSE };
+	attribute_struct positionAttribute = { 2, GL_FLOAT, GL_FALSE };
 	attributes[0] = positionAttribute;
 	
-	attribute colorAttribute = { 3, GL_FLOAT, GL_FALSE };
+	attribute_struct colorAttribute = { 3, GL_FLOAT, GL_FALSE };
 	attributes[1] = colorAttribute;
 
 	return attributes;
@@ -27,12 +27,12 @@ attribute *allocAttributes() {
 int init()
 {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	Shader *shaders = calloc(2, sizeof(Shader));
+	shader_struct *shaders = calloc(2, sizeof(shader_struct));
     shaders[0] = loadShader("shaders/vsh.glsl", GL_VERTEX_SHADER);
     shaders[1] = loadShader("shaders/fsh.glsl", GL_FRAGMENT_SHADER);
     g_shaderProgram = createProgram(2, shaders);
 
-	body body = initBodyWithHeightmap("heightmap.png", 6);
+	body_struct body = initBodyWithHeightmap("heightmap.png", 6);
 
 	g_model = createModel(body, 2, allocAttributes(), 6, allocIndices());
 

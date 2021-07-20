@@ -7,13 +7,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct {
+struct shader_program {
     GLuint id;
     int shaderCount;
-    Shader *shaders;
-} ShaderProgram;
+    shader_struct *shaders;
+};
 
-ShaderProgram createProgram(int shaderCount, Shader *shaders);
-void freeProgram(ShaderProgram *program);
+typedef struct shader_program shader_program_struct;
+
+shader_program_struct createProgram(int shaderCount, shader_struct *shaders);
+void freeProgram(shader_program_struct *program);
 
 #endif //SHADERPROGRAM

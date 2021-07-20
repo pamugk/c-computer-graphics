@@ -4,6 +4,6 @@
 #include "model.h"
 #include "image.h"
 
-body initBodyWithHeightmap(const char *heightmapPath, int vertexSize);
+body_struct initBodyWithHeightmap(const char *heightmapPath, int vertexSize);
 
 #endif //UTIL

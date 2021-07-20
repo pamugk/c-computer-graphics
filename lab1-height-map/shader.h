@@ -5,14 +5,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct {
+struct shader {
     GLuint id;
     GLenum type;
     GLchar *code;
-} Shader;
+};
 
-Shader loadShader(const char filePath[], GLenum type);
-void compileShader(Shader *shader);
-void freeShader(Shader *shader);
+typedef struct shader shader_struct;
+
+shader_struct loadShader(const char filePath[], GLenum type);
+void compileShader(shader_struct *shader);
+void freeShader(shader_struct *shader);
 
 #endif //SHADER

@@ -1,6 +1,6 @@
 #include "shader.h"
 
-Shader loadShader(const char filePath[], GLenum type) {
+shader_struct loadShader(const char filePath[], GLenum type) {
     GLchar *code = NULL;
     FILE *file = fopen(filePath, "r");
 
@@ -19,11 +19,11 @@ Shader loadShader(const char filePath[], GLenum type) {
         printf("Shader loading of type %i from path %s failed\n", type, filePath);
     }
     
-    Shader loadedShader = { 0, type, code };
+    shader_struct loadedShader = { 0, type, code };
     return loadedShader;
 }
 
-void compileShader(Shader *shader) {
+void compileShader(shader_struct *shader) {
     shader->id = glCreateShader(shader->type);
 	glShaderSource(shader->id, 1, (const GLchar *const*)&(shader->code), NULL);
 	glCompileShader(shader->id);
@@ -49,7 +49,7 @@ void compileShader(Shader *shader) {
     }
 }
 
-void freeShader(Shader *shader) {
+void freeShader(shader_struct *shader) {
     if (shader->id != 0) {
         glDeleteShader(shader->id);
         printf("Deleted shader №%i\n", shader->id);

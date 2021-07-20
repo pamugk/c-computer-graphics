@@ -1,6 +1,6 @@
 #include "shaderprogram.h"
 
-ShaderProgram createProgram(int shaderCount, Shader *shaders) {
+shader_program_struct createProgram(int shaderCount, shader_struct *shaders) {
     GLuint program_id = glCreateProgram();
     for (int i = 0; i < shaderCount; i += 1) {
         if (shaders[i].id == 0 && shaders[i].code != NULL) {
@@ -33,11 +33,11 @@ ShaderProgram createProgram(int shaderCount, Shader *shaders) {
         printf("Linked program №%i\n", program_id);
     }
 
-    ShaderProgram program = { program_id, shaderCount, shaders };
+    shader_program_struct program = { program_id, shaderCount, shaders };
     return program;
 }
 
-void freeProgram(ShaderProgram *program) {
+void freeProgram(shader_program_struct *program) {
     if (program->id != 0) {
         glDeleteProgram(program->id);
         printf("Deleted program №%i\n", program->id);

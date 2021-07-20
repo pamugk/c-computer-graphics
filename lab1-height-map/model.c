@@ -1,7 +1,7 @@
 #include "model.h"
 
-model createModel(body physicalBody,
-    int attributesCount, attribute attributes[],
+model_struct createModel(body_struct physicalBody,
+    int attributesCount, attribute_struct attributes[],
     int indexCount, GLuint indices[]) {
     
     GLuint vao = 0;
@@ -23,11 +23,11 @@ model createModel(body physicalBody,
         glVertexAttribPointer(i, attributes[i].size, attributes[i].type, attributes[i].normalized, physicalBody.vertexSize * sizeof(GLfloat), (const GLvoid *)0);
     }
 
-    model result = { vbo, physicalBody, ibo, indices, indexCount, vao, attributes };
+    model_struct result = { vbo, physicalBody, ibo, indices, indexCount, vao, attributes };
     return result;
 }
 
-void freeModel(model *model) {
+void freeModel(model_struct *model) {
     if (model->vbo != 0) {
         glDeleteBuffers(1, &model->vbo);
         printf("Deleted vertex buffer object №%i\n", model->vbo);

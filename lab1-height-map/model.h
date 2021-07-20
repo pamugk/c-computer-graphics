@@ -6,13 +6,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct {
+struct attribute{
     GLint size;
     GLenum type;
     GLboolean normalized;
-} attribute;
+};
 
-typedef struct {
+typedef struct attribute attribute_struct;
+
+struct body {
     unsigned int width;
     unsigned int height;
 
@@ -20,23 +22,27 @@ typedef struct {
     unsigned long verticeCount;
 
     GLfloat *vertices;
-} body;
+} ;
 
-typedef struct {
+typedef struct body body_struct;
+
+struct model {
     GLuint vbo; //VertexBufferObject - буфер вершин
-    body body;
+    body_struct body;
 
 	GLuint ibo; //IndexBufferObject - буфер индексов
     GLuint *indices;
 	GLsizei index_count; //Число индексов
 
 	GLuint vao; //VertexArrayObject - настройки модели
-    attribute *attributes;
-} model;
+    attribute_struct *attributes;
+};
 
-model createModel(body physicalBody,
-    int attributesCount, attribute attributes[],
+typedef struct model model_struct;
+
+model_struct createModel(body_struct physicalBody,
+    int attributesCount, attribute_struct attributes[],
     int indexCount, GLuint indices[]);
-void freeModel(model *model);
+void freeModel(model_struct *model);
 
 #endif //MODEL
