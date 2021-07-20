@@ -5,8 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct 
-{
+typedef struct {
     GLuint id;
     GLenum type;
     GLchar *code;
@@ -14,6 +13,6 @@ typedef struct
 
 Shader loadShader(const char filePath[], GLenum type);
 void compileShader(Shader *shader);
-void deleteShader(Shader *shader);
+void freeShader(Shader *shader);
 
 #endif //SHADER

@@ -6,30 +6,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct
-{
+typedef struct {
     GLint size;
     GLenum type;
     GLboolean normalized;
-} Attribute;
+} attribute;
 
-typedef struct
-{
-    GLuint vbo; //VertexBufferObject - буфер вершин
+typedef struct {
+    unsigned int width;
+    unsigned int height;
+
+    unsigned char vertexSize;
+    unsigned long verticeCount;
+
     GLfloat *vertices;
+} body;
+
+typedef struct {
+    GLuint vbo; //VertexBufferObject - буфер вершин
+    body body;
 
 	GLuint ibo; //IndexBufferObject - буфер индексов
     GLuint *indices;
-	GLsizei indexCount; //Число индексов
+	GLsizei index_count; //Число индексов
 
 	GLuint vao; //VertexArrayObject - настройки модели
-    Attribute *attributes;
-} Model;
+    attribute *attributes;
+} model;
 
-Model createModel( int vertexSize,
-    int verticeCount, GLfloat vertices[],
-    int attributesCount, Attribute attributes[],
+model createModel(body physicalBody,
+    int attributesCount, attribute attributes[],
     int indexCount, GLuint indices[]);
-void deleteModel(Model *model);
+void freeModel(model *model);
 
 #endif //MODEL

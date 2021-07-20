@@ -1,43 +1,43 @@
 #include "shaderprogram.h"
 
 ShaderProgram createProgram(int shaderCount, Shader *shaders) {
-    GLuint programId = glCreateProgram();
+    GLuint program_id = glCreateProgram();
     for (int i = 0; i < shaderCount; i += 1) {
         if (shaders[i].id == 0 && shaders[i].code != NULL) {
             compileShader(&shaders[i]);
         }
 
-        glAttachShader(programId, shaders[i].id);
+        glAttachShader(program_id, shaders[i].id);
 
-        printf("Attached shader №%i to program №%i\n", shaders[i].id, programId);
+        printf("Attached shader №%i to program №%i\n", shaders[i].id, program_id);
     }
-    glLinkProgram(programId);
+    glLinkProgram(program_id);
 
     GLint linked;
-    glGetProgramiv(programId, GL_LINK_STATUS, &linked);
+    glGetProgramiv(program_id, GL_LINK_STATUS, &linked);
     if (!linked) {
         GLint infoLen = 0;
-        glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLen);
+        glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &infoLen);
         if (infoLen > 0) {
             char *infoLog = (char *)calloc(infoLen, sizeof(char));
-            glGetProgramInfoLog(programId, infoLen, NULL, infoLog);
-            printf("Shader program №%i linking error:\n%s", programId, infoLog);
+            glGetProgramInfoLog(program_id, infoLen, NULL, infoLog);
+            printf("Shader program №%i linking error:\n%s", program_id, infoLog);
             free(infoLog);
         } else {
-            printf("Shader program №%i linking error:\nUnknown problem", programId);
+            printf("Shader program №%i linking error:\nUnknown problem", program_id);
         }
         
-        glDeleteProgram(programId);
-        programId = 0;
+        glDeleteProgram(program_id);
+        program_id = 0;
     } else {
-        printf("Linked program №%i\n", programId);
+        printf("Linked program №%i\n", program_id);
     }
 
-    ShaderProgram program = { programId, shaderCount, shaders };
+    ShaderProgram program = { program_id, shaderCount, shaders };
     return program;
 }
 
-void deleteProgram(ShaderProgram *program) {
+void freeProgram(ShaderProgram *program) {
     if (program->id != 0) {
         glDeleteProgram(program->id);
         printf("Deleted program №%i\n", program->id);
@@ -46,7 +46,7 @@ void deleteProgram(ShaderProgram *program) {
     
     if (program->shaders != NULL) {
         for (int i = 0; i < program->shaderCount; i += 1) {
-            deleteShader(&program->shaders[i]);
+            freeShader(&program->shaders[i]);
         }
         free(program->shaders);
         program->shaders = NULL;

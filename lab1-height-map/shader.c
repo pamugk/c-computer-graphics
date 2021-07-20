@@ -49,7 +49,7 @@ void compileShader(Shader *shader) {
     }
 }
 
-void deleteShader(Shader *shader) {
+void freeShader(Shader *shader) {
     if (shader->id != 0) {
         glDeleteShader(shader->id);
         printf("Deleted shader №%i\n", shader->id);

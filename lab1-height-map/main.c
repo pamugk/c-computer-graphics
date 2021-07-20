@@ -2,18 +2,7 @@
 
 GLFWwindow *g_window;
 ShaderProgram g_shaderProgram;
-Model g_model;
-
-GLfloat *allocVertices() {
-	GLfloat *vertices = calloc(4 * 5, sizeof(GLfloat));
-
-	vertices[0] = -1.0f, vertices[1] = -1.0f, vertices[2] = -1.0f, vertices[3] = -1.0f, vertices[4] = 0.0f;
-	vertices[5] = 1.0f, vertices[6] = -1.0f, vertices[7] = -1.0f, vertices[8] = 1.0f, vertices[9] = 0.0f;
-	vertices[10] = 1.0f, vertices[11] = 1.0f, vertices[12] = 1.0f, vertices[13] = 1.0f, vertices[14] = 0.0f;
-	vertices[15] = -1.0f, vertices[16] = 1.0f, vertices[17] = 1.0f, vertices[18] = -1.0f, vertices[19] = 0.0f;
-
-	return vertices;
-}
+model g_model;
 
 GLuint *allocIndices() {
 	GLuint *indices = calloc(6, sizeof(GLuint));
@@ -23,13 +12,13 @@ GLuint *allocIndices() {
 	return indices;
 }
 
-Attribute *allocAttributes() {
-	Attribute *attributes = calloc(2, sizeof(Attribute));
+attribute *allocAttributes() {
+	attribute *attributes = calloc(2, sizeof(attribute));
 
-	Attribute positionAttribute = { 2, GL_FLOAT, GL_FALSE };
+	attribute positionAttribute = { 2, GL_FLOAT, GL_FALSE };
 	attributes[0] = positionAttribute;
 	
-	Attribute colorAttribute = { 3, GL_FLOAT, GL_FALSE };
+	attribute colorAttribute = { 3, GL_FLOAT, GL_FALSE };
 	attributes[1] = colorAttribute;
 
 	return attributes;
@@ -43,8 +32,9 @@ int init()
     shaders[1] = loadShader("shaders/fsh.glsl", GL_FRAGMENT_SHADER);
     g_shaderProgram = createProgram(2, shaders);
 
+	body body = initBodyWithHeightmap("heightmap.png", 6);
 
-	g_model = createModel(5, 4, allocVertices(), 2, allocAttributes(), 6, allocIndices());
+	g_model = createModel(body, 2, allocAttributes(), 6, allocIndices());
 
     return g_shaderProgram.id;
 }
@@ -59,7 +49,7 @@ void draw()
     glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram(g_shaderProgram.id);
 	glBindVertexArray(g_model.vao);
-	glDrawElements(GL_TRIANGLES, g_model.indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);
+	glDrawElements(GL_TRIANGLES, g_model.index_count, GL_UNSIGNED_INT, (const GLvoid *)0);
 }
 
 int initOpenGL()
@@ -97,8 +87,8 @@ int initOpenGL()
 
 void cleanup()
 {
-    deleteProgram(&g_shaderProgram);
-	deleteModel(&g_model);
+    freeProgram(&g_shaderProgram);
+	freeModel(&g_model);
 	glfwTerminate();
 }
 
