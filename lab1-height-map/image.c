@@ -1,5 +1,9 @@
 #include "image.h"
 
+#include "bmp.h"
+#include <jpeglib.h>
+#include <png.h>
+
 static const char BMP[] = "bmp";
 
 // JPEG image format
@@ -117,9 +121,31 @@ image_struct readJpeg(const char *filePath, J_COLOR_SPACE requiredFormat) {
    return result;
 }
 
+//BMP
 image_struct readBmp(const char *filePath) {
+   FILE *imageFile = fopen(filePath, "rb");
    unsigned int width = 0, height = 0;
    unsigned char *imageContents = NULL;
+
+   if (imageFile != NULL) {
+      struct bmp_image image;
+      if (startReadingBmp(&image, imageFile)) {
+         image.rawFileContents = NULL;
+
+         if (finishReadingBmp(&image, imageFile)) {
+
+         } else {
+            printf("Error occured while reading BMP image");
+         }
+      } else {
+         printf("Error occured while reading BMP file header\n");
+      }
+      
+      freeBmp(&image);
+      fclose(imageFile);
+   } else {
+      printf("BMP image file can not be opened\n");
+   }
 
    image_struct result = { width, height, imageContents };
    return result;

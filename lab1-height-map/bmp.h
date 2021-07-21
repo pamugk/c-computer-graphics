@@ -1,14 +1,35 @@
 // Based on official Microsoft documentation for wingdi.h: https://docs.microsoft.com/en-us/windows/win32/api/wingdi/
 #ifndef BMP_
 #define BMP_
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static const short BM = 0x424D; //Windows 3.1x, 95, NT, ... etc.
+static const short BA = 0x4241; //OS/2 struct bitmap array
+static const short CI = 0x4349; //OS/2 struct color icon
+static const short CP = 0x4350; //OS/2 const color pointer
+static const short IC = 0x4943; //OS/2 struct icon
+static const short PT = 0x5054; //OS/2 pointer
+
+struct bmp_file_header {
+   __int16_t header;
+   __uint32_t size;
+   __int32_t reserved;
+   __uint32_t offset;
+};
+
 struct bitmap_core_header {
-    unsigned long size;
+    __uint32_t size;
 
-    unsigned short width;
-    unsigned short height;
+    __uint16_t width;
+    __uint16_t height;
 
-    unsigned short colorPlanesCount; // must be 1
-    unsigned short imageColorDepth; // Typical values are 1, 4, 8, 16, 24 and 32
+    __uint16_t colorPlanesCount; // must be 1
+    __uint16_t imageColorDepth; // Typical values are 1, 4, 8, 16, 24 and 32
 };
 
 enum BMP_COMPRESSION_METHOD {
@@ -25,58 +46,58 @@ enum BMP_COMPRESSION_METHOD {
 };
 
 struct os2_2x_bitmap_header16 {
-    unsigned long size;
+    __uint32_t size;
 
-    long imageWidth;
-    long imageHeight;
+    __int32_t imageWidth;
+    __int32_t imageHeight;
 
-    unsigned short colorPlanesCount; // must be 1
-    unsigned short imageColorDepth; // Typical values are 1, 4, 8, 16, 24 and 32
+    __uint16_t colorPlanesCount; // must be 1
+    __uint16_t imageColorDepth; // Typical values are 1, 4, 8, 16, 24 and 32
 };
 
 struct bitmap_info_header {
     struct os2_2x_bitmap_header16 parentHeader;
     
     enum BMP_COMPRESSION_METHOD compression;
-    unsigned long imageSize;
+    __uint32_t imageSize;
 
-    long imageHorizontalResolution;
-    long imageVerticalResolution;
+    __int32_t imageHorizontalResolution;
+    __int32_t imageVerticalResolution;
 
-    unsigned long usedColorCount; // if 0, number of colors defaults to 2^n
-    unsigned long importantColorCount; // 0 when every color is important
+    __uint32_t usedColorCount; // if 0, number of colors defaults to 2^n
+    __uint32_t importantColorCount; // 0 when every color is important
 };
 
 struct os2_2x_bitmap_header {
     struct bitmap_info_header parentHeader;
 
-    short units; // The only defined value is 0, meaning pixels per metre 
-    short padding; // Ignored and should be zero 
-    short direction; // The only defined value is 0, meaning the origin is the lower-left corner
-    unsigned short halftoningAlgorithm; // 0 - none, 1 - error diffusion, 2 - PANDA, 3 - supert-circle
-    long halftoningParameters[2];
-    long colorEncoding; // The only defined value is 0, indicating RGB
-    long applicationDefinedIdentifier; // Not used for image rendering 
+    __int16_t units; // The only defined value is 0, meaning pixels per metre 
+    __int16_t padding; // Ignored and should be zero 
+    __int16_t direction; // The only defined value is 0, meaning the origin is the lower-left corner
+    __uint16_t halftoningAlgorithm; // 0 - none, 1 - error diffusion, 2 - PANDA, 3 - supert-circle
+    __int32_t halftoningParameters[2];
+    __int32_t colorEncoding; // The only defined value is 0, indicating RGB
+    __int32_t applicationDefinedIdentifier; // Not used for image rendering 
 };
 
 struct bitmap_v2_info_header {
     struct bitmap_info_header parentHeader;
 
-    unsigned long redMask;
-    unsigned long greenMask;
-    unsigned long blueMask;
+    __uint32_t redMask;
+    __uint32_t greenMask;
+    __uint32_t blueMask;
 };
 
 struct bitmap_v3_info_header {
     struct bitmap_v2_info_header parentHeader;
 
-    unsigned long alphaMask;
+    __uint32_t alphaMask;
 };
 
 struct CIEXYZ {
-    long x;
-    long y;
-    long z;
+    __int32_t x;
+    __int32_t y;
+    __int32_t z;
 };
 
 struct CIEXYZTRIPLE {
@@ -88,20 +109,20 @@ struct CIEXYZTRIPLE {
 struct bitmap_v4_header {
     struct bitmap_v3_info_header parentHeader;
 
-    unsigned long colorSpaceType;
+    __uint32_t colorSpaceType;
     struct CIEXYZTRIPLE endpoints;
-    unsigned long gammaRed;
-    unsigned long gammaGreen;
-    unsigned long gammaBlue;
+    __uint32_t gammaRed;
+    __uint32_t gammaGreen;
+    __uint32_t gammaBlue;
 };
 
 struct bitmap_v5_header {
     struct bitmap_v4_header parentHeader;
 
-    unsigned long intent;
-    unsigned long profileData;
-    unsigned long profileSize;
-    unsigned long reserved;
+    __uint32_t intent;
+    __uint32_t profileData;
+    __uint32_t profileSize;
+    __uint32_t reserved;
 };
 
 union dib_header {
@@ -115,14 +136,17 @@ union dib_header {
     struct bitmap_v5_header infoHeaderV5;
 };
 
-//BMP
-struct bmp_header {
-   // Bitmap file header
-   char header[2];
-   unsigned long size;
-   long reserved;
-   unsigned long offset;
+struct bmp_image {
+    struct bmp_file_header fileHeader;
 
-   union dib_header dibHeader;
+    unsigned char *rawFileContents;
+    union dib_header *dibHeader;
+    unsigned char *pixelArray;
 };
+
+bool startReadingBmp(struct bmp_image *image, FILE *bmpFile);
+bool finishReadingBmp(struct bmp_image *image, FILE *bmpFile);
+bool extractImage(struct bmp_image *image, unsigned int *out_width, unsigned int *out_height, unsigned char **out_image);
+void freeBmp(struct bmp_image *image);
+
 #endif // BMP

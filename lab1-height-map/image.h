@@ -9,14 +9,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bmp.h"
-#include <jpeglib.h>
-#include <png.h>
+enum IMAGE_FORMATS {
+    GRAYSCALE,
+    RGB,
+    RGBA
+};
 
 struct image
 {
     unsigned int width;
     unsigned int height;
+
     unsigned char *contents;
 };
 
