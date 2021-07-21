@@ -1,5 +1,7 @@
 #include "image.h"
 
+static const char BMP[] = "bmp";
+
 // JPEG image format
 static const char JPG[] = "jpg";
 static const char JPEG[] = "jpeg";
@@ -10,6 +12,7 @@ static const char JFI[] = "jfi";
 
 static const char PNG[] = "png";
 
+// PNG
 image_struct readPng(const char *filePath, unsigned int requiredFormat) {
    png_image loadedImage;
    loadedImage.version = PNG_IMAGE_VERSION;
@@ -43,6 +46,7 @@ image_struct readPng(const char *filePath, unsigned int requiredFormat) {
    return result;
 }
 
+// JPEG
 struct custom_error_mgr {
    struct jpeg_error_mgr pub;
    jmp_buf setjmpBuffer;
@@ -113,6 +117,14 @@ image_struct readJpeg(const char *filePath, J_COLOR_SPACE requiredFormat) {
    return result;
 }
 
+image_struct readBmp(const char *filePath) {
+   unsigned int width = 0, height = 0;
+   unsigned char *imageContents = NULL;
+
+   image_struct result = { width, height, imageContents };
+   return result;
+}
+
 image_struct readHeightmap(const char *filePath) {
    const char *fileExtension = defineFileExtension(fileNameFromPath(filePath));
    if (strcmp(fileExtension, PNG) == 0) {
@@ -124,6 +136,8 @@ image_struct readHeightmap(const char *filePath) {
       || strcmp(fileExtension, JFI) == 0
       || strcmp(fileExtension, JFIF)){
       return readJpeg(filePath, JCS_GRAYSCALE);
+   } else if (strcmp(fileExtension, BMP)) {
+      return readBmp(filePath);
    } else {
       printf("Unknown file extension: %s\n", fileExtension);
    }
