@@ -3,6 +3,7 @@
 GLFWwindow *g_window;
 struct shader_program g_shaderProgram;
 struct model g_model;
+char *pathToHeightmap = NULL;
 
 bool init() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -15,7 +16,7 @@ bool init() {
         return false;
     }
 
-	struct body body = initBodyWithHeightmap("../srtm.world.jpg", 6, 1.0f);
+	struct body body = initBodyWithHeightmap(pathToHeightmap, 6, 1.0f);
     
     int attributeCount = 0;
     struct attribute *attributes = allocDefaultAttributes(&attributeCount);
@@ -70,7 +71,32 @@ void cleanup() {
 	glfwTerminate();
 }
 
+bool handleArguments(int argc, char** argv) {
+    for (int i = 0; i < argc; i += 1) {
+        if (strcmp(argv[i], "-H") == 0 && pathToHeightmap == NULL) {
+            pathToHeightmap = argv[i + 1];
+            i += 1;
+            continue;
+        } else if (strcmp(argv[i], "-h") == 0) {
+            printf("Following flags are supported:\n");
+            printf("\t-H <file to path> - path to heightmap (required), JPEG and PNG files supported\n");
+            printf("\t-h - print help\n");
+            return false;
+        }
+    }
+    
+    if (pathToHeightmap == NULL) {
+        printf("No heightmap was provided\n");
+        return false;
+    }
+    
+    return true;
+}
+
 int main(int argc, char** argv) {
+    if (!handleArguments(argc, argv)) {
+        return 0;
+    }
     if (!initOpenGL()) {
         return -1;
     }
