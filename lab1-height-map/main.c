@@ -1,59 +1,37 @@
 #include "main.h"
 
 GLFWwindow *g_window;
-shader_program_struct g_shaderProgram;
-model_struct g_model;
+struct shader_program g_shaderProgram;
+struct model g_model;
 
-GLuint *allocIndices() {
-	GLuint *indices = calloc(6, sizeof(GLuint));
-
-	indices[0] = 0, indices[1] = 1, indices[2] = 2, indices[3] = 2, indices[4] = 3, indices[5] = 0;
-
-	return indices;
-}
-
-attribute_struct *allocAttributes() {
-	attribute_struct *attributes = calloc(2, sizeof(attribute_struct));
-
-	attribute_struct positionAttribute = { 2, GL_FLOAT, GL_FALSE };
-	attributes[0] = positionAttribute;
-	
-	attribute_struct colorAttribute = { 3, GL_FLOAT, GL_FALSE };
-	attributes[1] = colorAttribute;
-
-	return attributes;
-}
-
-int init()
-{
+int init() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	shader_struct *shaders = calloc(2, sizeof(shader_struct));
+	struct shader *shaders = calloc(2, sizeof(struct shader));
     shaders[0] = loadShader("shaders/vsh.glsl", GL_VERTEX_SHADER);
     shaders[1] = loadShader("shaders/fsh.glsl", GL_FRAGMENT_SHADER);
     g_shaderProgram = createProgram(2, shaders);
 
-	body_struct body = initBodyWithHeightmap("heightmap.png", 6);
-
-	g_model = createModel(body, 2, allocAttributes(), 6, allocIndices());
-
+	struct body body = initBodyWithHeightmap("heightmap.png", 6, 1.0f);
+    
+    int attributeCount = 0;
+    struct attribute *attributes = allocDefaultAttributes(&attributeCount);
+    
+	g_model = createModel(body, attributeCount, attributes, 0, NULL);
     return g_shaderProgram.id;
 }
 
-void reshape(GLFWwindow *window, int width, int height)
-{
+void reshape(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-void draw()
-{
+void draw() {
     glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram(g_shaderProgram.id);
 	glBindVertexArray(g_model.vao);
 	glDrawElements(GL_TRIANGLES, g_model.index_count, GL_UNSIGNED_INT, (const GLvoid *)0);
 }
 
-int initOpenGL()
-{
+int initOpenGL() {
     if (!glfwInit())
 	{
 		printf("Failed to initialize GLFW");
@@ -85,15 +63,13 @@ int initOpenGL()
     return GLFW_TRUE;
 }
 
-void cleanup()
-{
+void cleanup() {
     freeProgram(&g_shaderProgram);
 	freeModel(&g_model);
 	glfwTerminate();
 }
 
-int main(int argc, char** argv) 
-{
+int main(int argc, char** argv) {
     if (!initOpenGL())
 		return -1;
 	

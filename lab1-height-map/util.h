@@ -2,8 +2,7 @@
 #define UTIL
 
 #include "model.h"
-#include "image.h"
 
-body_struct initBodyWithHeightmap(const char *heightmapPath, int vertexSize);
+struct body initBodyWithHeightmap(const char *heightmapPath, int vertexSize, float h);
 
 #endif //UTIL
