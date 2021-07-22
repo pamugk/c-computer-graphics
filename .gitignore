@@ -1,1 +1,2 @@
-/lab1-height-map/.idea/
+*.idea
+*app

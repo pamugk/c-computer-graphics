@@ -2,6 +2,7 @@
 #define MODEL
 
 #include <GL/glew.h>
+#include <stdbool.h>
 
 struct attribute {
     GLint size;
@@ -32,6 +33,7 @@ struct model {
 };
 
 struct attribute *allocDefaultAttributes(int *out_count);
+bool makeIndices(struct body physicalBody, unsigned long *out_indexCount, GLuint **out_indices);
 struct model createModel(struct body physicalBody,
     int attributesCount, struct attribute *attributes,
     unsigned long indexCount, GLuint *indices);

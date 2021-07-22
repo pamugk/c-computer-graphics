@@ -14,14 +14,13 @@ struct body initBodyWithHeightmap(const char *pathToHeightmap, int vertexSize, f
         printf("Provided vertex size is too small - it has to be at least equal 6\n");
     } else {
         struct image image = readHeightmap(pathToHeightmap);
-        
+        printf("Loaded heightmap image: %ix%i\n", image.width, image.height);
         if (image.contents == NULL || image.width == 0 || image.height == 0) {
             printf("Image was not loaded correctly\n");
         } else {
             width = image.width, height = image.height;
             size = width * height;
             contents = calloc(size * vertexSize, sizeof(GLfloat));
-            
             if (contents == NULL) {
                 printf("Not enough memory to hold model's body\n");
             } else {

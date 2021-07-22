@@ -1,6 +1,5 @@
 #include "model.h"
 
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -9,32 +8,42 @@ struct attribute *allocDefaultAttributes(int *out_count) {
     struct attribute *attributes = calloc(*out_count, sizeof(struct attribute));
 	attributes[0].size = 3, attributes[0].type = GL_FLOAT, attributes[0].normalized = GL_FALSE;
 	attributes[1].size = 3, attributes[1].type = GL_FLOAT, attributes[1].normalized = GL_FALSE;
+	printf("Allocated default attributes\n");
 	return attributes;
 }
 
 bool makeIndices(struct body physicalBody, unsigned long *out_indexCount, GLuint **out_indices) {
-    *out_indices = calloc(physicalBody.verticeCount * 6, sizeof(GLuint));
+    if (physicalBody.width == 0 || physicalBody.depth == 0) {
+        printf("Provided physical body is 0D\n");
+        return false;
+    }
+
+    unsigned int indicesWidth = physicalBody.width - 1, indicesDepth = physicalBody.depth - 1;
+    *out_indexCount = indicesWidth * indicesDepth * 6;
+    *out_indices = calloc(*out_indexCount, sizeof(GLuint));
+    printf("Allocated index array\n");
     
     if (*out_indices == NULL) {
         printf("Not enough memory to allocate index array\n");
         return false;
     }
     
-    int i = 0;
-    for (int z = 0; z < physicalBody.depth; z += 1) {
-        int nextZ = z + 1;
-        int zN = z * physicalBody.depth;
-        int nzN = nextZ * (physicalBody.depth + 1);
-        for (int x = 0; x < physicalBody.width; x += 1)
+    unsigned int i = 0;
+    for (unsigned int z = 0; z < indicesDepth; z += 1) {
+        unsigned int nextZ = z + 1;
+        unsigned int zN = z * indicesWidth;
+        unsigned int nzN = nextZ * physicalBody.depth;
+        for (int x = 0; x < indicesWidth; x += 1)
         {
-            *out_indices[i] = zN + x + z, i += 1;
-            *out_indices[i] = zN + x + nextZ, i += 1;
-            *out_indices[i] = nzN + x, i += 1;
-            *out_indices[i] = nzN + x, i += 1;
-            *out_indices[i] = nzN + x + 1, i += 1;
-            *out_indices[i] = zN + x + nextZ, i += 1;
+            (*out_indices)[i] = zN + x + z; i += 1;
+            (*out_indices)[i] = zN + x + nextZ; i += 1;
+            (*out_indices)[i] = nzN + x; i += 1;
+            (*out_indices)[i] = nzN + x; i += 1;
+            (*out_indices)[i] = nzN + x + 1; i += 1;
+            (*out_indices)[i] = zN + x + nextZ; i += 1;
         }
     }
+    printf("Filled index array\n");
     
     return true;
 }
@@ -56,10 +65,18 @@ struct model createModel(struct body physicalBody,
             glGenBuffers(1, &ibo);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(GLuint), indices, GL_STATIC_DRAW);
-            
-            for (int i = 0; i < attributesCount; i += 1) {
-                glEnableVertexAttribArray(i);
-                glVertexAttribPointer(i, attributes[i].size, attributes[i].type, attributes[i].normalized, physicalBody.vertexSize * sizeof(GLfloat), (const GLvoid *)0);
+
+            if (attributes == NULL) {
+                attributes = allocDefaultAttributes(&attributesCount);
+            }
+
+            if (attributes != NULL) {
+                for (int i = 0; i < attributesCount; i += 1) {
+                    glEnableVertexAttribArray(i);
+                    glVertexAttribPointer(i, attributes[i].size, attributes[i].type, attributes[i].normalized, physicalBody.vertexSize * sizeof(GLfloat), (const GLvoid *)0);
+                }
+            } else {
+                printf("No attributes provided\n");
             }
         } else {
             printf("No indices provided\n");
