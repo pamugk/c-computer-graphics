@@ -24,11 +24,12 @@ struct body initBodyWithHeightmap(const char *pathToHeightmap, int vertexSize, f
             if (contents == NULL) {
                 printf("Not enough memory to hold model's body\n");
             } else {
+                srand(123456);
                 for (unsigned long i = 0, j = 0; i < size; i += 1U, j += vertexSize) {
                     contents[j] = i % width;
                     contents[j + 1] = 1.f * image.contents[i] / UCHAR_MAX * h;
                     contents[j + 2] = i / width;
-                    contents[j + 3] = 0.25, contents[j + 4] = 0.5, contents[j + 5] = 0.25;
+                    contents[j + 3] = 1.0 * rand() / RAND_MAX, contents[j + 4] = 1.0 * rand() / RAND_MAX, contents[j + 5] = 1.0 * rand() / RAND_MAX;
                 }
             }
         }

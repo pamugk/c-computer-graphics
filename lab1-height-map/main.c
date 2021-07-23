@@ -8,6 +8,7 @@ char *pathToHeightmap = NULL;
 float v[MVP_MATRIX_SIZE];
 
 struct variable *g_variables;
+float h = 1.0f;
 
 const int countOfSpeeds = 9;
 float degrees[9];
@@ -32,7 +33,7 @@ bool initShaderProgram() {
 }
 
 bool initModel() {
-    struct body body = initBodyWithHeightmap(pathToHeightmap, 6, 1.0f);
+    struct body body = initBodyWithHeightmap(pathToHeightmap, 6, h);
     
     int attributeCount = 0;
     struct attribute *attributes = allocDefaultAttributes(&attributeCount);
@@ -125,17 +126,20 @@ void cleanup() {
 
 bool handleArguments(int argc, char** argv) {
     for (int i = 0; i < argc; i += 1) {
-        if (strcmp(argv[i], "-H") == 0 && pathToHeightmap == NULL) {
+        if (strcmp(argv[i], "--heightmap") == 0 && pathToHeightmap == NULL) {
             pathToHeightmap = argv[i + 1];
             i += 1;
             continue;
-        } else if (strcmp(argv[i], "-h") == 0) {
+        } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
             printf("Following flags are supported:\n");
-            printf("\t-H <file to path> - path to heightmap (required), JPEG and PNG files supported\n");
+            printf("\t--heightmap <file to path> - path to heightmap (required), JPEG and PNG files supported\n");
             printf("\t-h - print help\n");
             printf("Controls:\n\tLeft/Right Arrows: rotate about Y axis;\n\tUp/Down Arrows: rotate about X axis;\n\tW/S Keys: rotate about Z axis;\n");
             printf("\t1-9: rotatin speed selection.\n");
             return false;
+        } else if (strcmp(argv[i], "--h") == 0 && abs(h - 1.0f) < 0.0001f) {
+            sscanf(argv[i + 1], "%f", &h);
+            i += 1;
         }
     }
     
