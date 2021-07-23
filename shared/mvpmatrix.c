@@ -1,7 +1,8 @@
 #include "mvpmatrix.h"
 
 #include <math.h>
-
+#include <stdlib.h>
+#include <string.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -10,6 +11,11 @@
 #ifndef M_PI_2
 #define M_PI_2 1.57079632679489661923
 #endif
+
+//Метод для формирования единичной матрицы
+void getIdentityMatrix(float (*out_matrix)[16]) {
+    memcpy(*out_matrix, E, sizeof(float) * MVP_MATRIX_SIZE);
+}
 
 //Метод извлечения данных для N-матрицы
 void buildNMatrix(float matrix[MVP_MATRIX_SIZE], float (*out_matrix)[9]) {

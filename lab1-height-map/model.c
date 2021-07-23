@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct attribute *allocDefaultAttributes(int *out_count) {
     *out_count = 2;
@@ -86,7 +87,38 @@ struct model createModel(struct body physicalBody,
     }
 
     struct model result = { vbo, physicalBody, ibo, indices, indexCount, vao, attributes };
+    getIdentityMatrix(&result.m);
     return result;
+}
+
+void rotateModelAboutAxis(struct model *model, float degree) {
+    float prevM[MVP_MATRIX_SIZE]; 
+    memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
+    rotate(prevM, 0, 0, 0, degree, &(model->m));
+}
+
+void rotateModel(struct model *model, float x, float y, float z, float degree) {
+    float prevM[MVP_MATRIX_SIZE]; 
+    memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
+    rotate(prevM, x, y, z, degree, &(model->m));
+}
+
+void rotateModelAboutX(struct model *model, float degree) {
+    float prevM[MVP_MATRIX_SIZE]; 
+    memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
+    rotateAboutX(prevM, degree, &(model->m));
+}
+
+void rotateModelAboutY(struct model *model, float degree) {
+    float prevM[MVP_MATRIX_SIZE]; 
+    memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
+    rotateAboutY(prevM, degree, &(model->m));
+}
+
+void rotateModelAboutZ(struct model *model, float degree) {
+    float prevM[MVP_MATRIX_SIZE]; 
+    memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
+    rotateAboutX(prevM, degree, &(model->m));
 }
 
 void freeModel(struct model *model) {

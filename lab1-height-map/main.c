@@ -9,6 +9,11 @@ float v[MVP_MATRIX_SIZE];
 
 struct variable *g_variables;
 
+const int countOfSpeeds = 9;
+float degrees[9];
+int degreeKeys[9];
+float degree;
+
 void initVariables() {
     g_variables = calloc(1, sizeof(struct variable));
     g_variables[0].name = "u_mvp";
@@ -43,6 +48,12 @@ bool init() {
 
 void initOptics() {
     move(E, 0.f, 0.f, 2.0f, &v);
+    
+    for (int i = 0; i < countOfSpeeds; i++) {
+        degrees[i] = (i + 1) * 0.05f;
+        degreeKeys[i] = GLFW_KEY_1 + i;
+    }
+    degree = degrees[1];
 }
 
 void reshape(GLFWwindow *window, int width, int height) {
@@ -112,6 +123,8 @@ bool handleArguments(int argc, char** argv) {
             printf("Following flags are supported:\n");
             printf("\t-H <file to path> - path to heightmap (required), JPEG and PNG files supported\n");
             printf("\t-h - print help\n");
+            printf("Controls:\n\tLeft/Right Arrows: rotate about Y axis;\n\tUp/Down Arrows: rotate about X axis;\n\tW/S Keys: rotate about Z axis;\n");
+            printf("\t1-9: rotatin speed selection.\n");
             return false;
         }
     }
@@ -122,6 +135,40 @@ bool handleArguments(int argc, char** argv) {
     }
     
     return true;
+}
+
+void checkInput() {
+    for (int i = 0; i < countOfSpeeds; i++)
+        if (glfwGetKey(g_window, degreeKeys[i]) == GLFW_PRESS)
+            degree = degrees[i];
+
+    if (glfwGetKey(g_window, GLFW_KEY_UP) == GLFW_PRESS) {
+        rotateModelAboutAxis(&g_model, degree);
+    }
+    if (glfwGetKey(g_window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        rotateModelAboutAxis(&g_model, -degree);
+    }
+    
+    if (glfwGetKey(g_window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+        rotateModelAboutY(&g_model, degree);
+    }
+    if (glfwGetKey(g_window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+        rotateModelAboutY(&g_model, -degree);
+    }
+    
+    if (glfwGetKey(g_window, GLFW_KEY_A) == GLFW_PRESS) {
+        rotateModelAboutX(&g_model, degree);
+    }
+    if (glfwGetKey(g_window, GLFW_KEY_D) == GLFW_PRESS) {
+        rotateModelAboutX(&g_model, -degree);
+    }
+    
+    if (glfwGetKey(g_window, GLFW_KEY_W) == GLFW_PRESS) {
+        rotateModelAboutZ(&g_model, degree);
+    }
+    if (glfwGetKey(g_window, GLFW_KEY_S) == GLFW_PRESS) {
+        rotateModelAboutZ(&g_model, -degree);
+    }
 }
 
 int main(int argc, char** argv) {
@@ -138,6 +185,7 @@ int main(int argc, char** argv) {
         
 		while (glfwGetKey(g_window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(g_window) == 0)
 		{
+            checkInput();
 			draw();
 			glfwSwapBuffers(g_window);
 			glfwPollEvents();

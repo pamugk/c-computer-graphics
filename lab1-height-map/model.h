@@ -1,6 +1,8 @@
 #ifndef MODEL
 #define MODEL
 
+#include "../shared/mvpmatrix.h"
+
 #include <GL/glew.h>
 #include <stdbool.h>
 
@@ -39,6 +41,15 @@ bool makeIndices(struct body physicalBody, unsigned long *out_indexCount, GLuint
 struct model createModel(struct body physicalBody,
     int attributesCount, struct attribute *attributes,
     unsigned long indexCount, GLuint *indices);
+
+void rotateModelAboutAxis(struct model *model, float degree);
+void rotateModel(struct model *model, float x, float y, float z, float degree);
+void rotateModelAboutX(struct model *model, float degree);
+void rotateModelAboutY(struct model *model, float degree);
+void rotateModelAboutZ(struct model *model, float degree);
+
 void freeModel(struct model *model);
+
+
 
 #endif //MODEL

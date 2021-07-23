@@ -18,6 +18,9 @@ static const float E[] = {
         0.f, 0.f, 0.f, 1.f
 };
 
+//Метод для формирования единичной матрицы
+void getIdentityMatrix(float (*out_matrix)[16]);
+
 //Метод извлечения данных для N-матрицы
 void buildNMatrix(float matrix[MVP_MATRIX_SIZE], float (*out_matrix)[9]);
 //Метод для транспонирования матрицы
