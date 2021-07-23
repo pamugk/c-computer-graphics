@@ -20,15 +20,14 @@ struct body initBodyWithHeightmap(const char *pathToHeightmap, int vertexSize, f
         } else {
             width = image.width, height = image.height;
             size = width * height;
-            float halfWidth = width / 2.0f, halfHeight = height / 2.0f;
             contents = calloc(size * vertexSize, sizeof(GLfloat));
             if (contents == NULL) {
                 printf("Not enough memory to hold model's body\n");
             } else {
                 for (unsigned long i = 0, j = 0; i < size; i += 1U, j += vertexSize) {
-                    contents[j] = (i % width - halfWidth) / halfWidth;
-                    contents[j + 1] = 1.0f * image.contents[i] / UCHAR_MAX * h;
-                    contents[j + 2] = (i / width - halfHeight) / halfHeight;
+                    contents[j] = i % width;
+                    contents[j + 1] = 1.f * image.contents[i] / UCHAR_MAX * h;
+                    contents[j + 2] = i / width;
                     contents[j + 3] = 0.25f, contents[j + 4] = 0.5f, contents[j + 5] = 0.25f;
                 }
             }

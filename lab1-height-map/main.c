@@ -30,7 +30,7 @@ bool initShaderProgram() {
 }
 
 bool initModel() {
-    struct body body = initBodyWithHeightmap(pathToHeightmap, 6, 1.0f);
+    struct body body = initBodyWithHeightmap(pathToHeightmap, 6, 0.5f);
     
     int attributeCount = 0;
     struct attribute *attributes = allocDefaultAttributes(&attributeCount);
@@ -41,13 +41,17 @@ bool initModel() {
 }
 
 bool init() {
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(1.f, 1.f, 1.f, 1.f);
     glEnable(GL_DEPTH_TEST);
     return initShaderProgram() && initModel();
 }
 
 void initOptics() {
-    move(E, 0.f, 0.f, 2.0f, &v);
+    float movedMatrix[MVP_MATRIX_SIZE];
+    move(E, g_model.body.width / -2.f, 0.f, g_model.body.depth / -2.f, &movedMatrix);
+    
+    unsigned int scaleFactor = g_model.body.width > g_model.body.depth ? g_model.body.width : g_model.body.depth;
+    scale(movedMatrix, 1.f / scaleFactor, 1.f, 1.f / scaleFactor, &v);
     
     for (int i = 0; i < countOfSpeeds; i++) {
         degrees[i] = (i + 1) * 0.05f;
@@ -69,7 +73,7 @@ void draw() {
     float mv[MVP_MATRIX_SIZE]; multiplyMatrices(v, g_model.m, &mv);
     
     float p[MVP_MATRIX_SIZE];
-    getParallelProjectionMatrix(-1.0f, 1.0f, -1.0f, 1.0f, -3.0f, 3.0f, &p);
+    getParallelProjectionMatrix(-1.f, 1.f, -1.f, 1.f, -3.f, 3.f, &p);
     
     float mvp[MVP_MATRIX_SIZE]; multiplyMatrices(p, mv, &mvp);
     glUniformMatrix4fv(g_variables[0].location, 1, GL_FALSE, mvp);
@@ -142,27 +146,18 @@ void checkInput() {
         if (glfwGetKey(g_window, degreeKeys[i]) == GLFW_PRESS)
             degree = degrees[i];
 
-    if (glfwGetKey(g_window, GLFW_KEY_UP) == GLFW_PRESS) {
-        rotateModelAboutAxis(&g_model, degree);
-    }
-    if (glfwGetKey(g_window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        rotateModelAboutAxis(&g_model, -degree);
-    }
-    
     if (glfwGetKey(g_window, GLFW_KEY_LEFT) == GLFW_PRESS) {
         rotateModelAboutY(&g_model, degree);
     }
     if (glfwGetKey(g_window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
         rotateModelAboutY(&g_model, -degree);
     }
-    
-    if (glfwGetKey(g_window, GLFW_KEY_A) == GLFW_PRESS) {
+    if (glfwGetKey(g_window, GLFW_KEY_UP) == GLFW_PRESS) {
         rotateModelAboutX(&g_model, degree);
     }
-    if (glfwGetKey(g_window, GLFW_KEY_D) == GLFW_PRESS) {
+    if (glfwGetKey(g_window, GLFW_KEY_DOWN) == GLFW_PRESS) {
         rotateModelAboutX(&g_model, -degree);
     }
-    
     if (glfwGetKey(g_window, GLFW_KEY_W) == GLFW_PRESS) {
         rotateModelAboutZ(&g_model, degree);
     }
