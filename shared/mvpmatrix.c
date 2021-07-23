@@ -12,8 +12,8 @@
 #endif
 
 //Метод извлечения данных для N-матрицы
-void buildNMatrix(float matrix[16], float **out_matrix) {
-    float m[9];
+void buildNMatrix(float matrix[MVP_MATRIX_SIZE], float (*out_matrix)[9]) {
+    float m[N_MATRIX_SIZE];
     for (int i = 0; i < N_MATRIX_DIMENSION_SIZE; i += 1) {
         for (int j = 0; j < N_MATRIX_DIMENSION_SIZE; j += 1) {
             m[i * N_MATRIX_DIMENSION_SIZE + j] = matrix[i * MVP_MATRIX_DIMENSION_SIZE + j];
@@ -37,7 +37,7 @@ void buildNMatrix(float matrix[16], float **out_matrix) {
 }
 
 //Метод для транспонирования матрицы
-void transpose(float matrix[16], float **out_matrix) {
+void transpose(float matrix[MVP_MATRIX_SIZE], float (*out_matrix)[16]) {
     for (int i = 0; i < MVP_MATRIX_DIMENSION_SIZE; i += 1) {
         for (int j = 0; j < MVP_MATRIX_DIMENSION_SIZE; j += 1) {
             (*out_matrix)[i * MVP_MATRIX_DIMENSION_SIZE + j] = matrix[j * MVP_MATRIX_DIMENSION_SIZE + i];
@@ -46,7 +46,7 @@ void transpose(float matrix[16], float **out_matrix) {
 }
 
 //Метод для преобразования переноса
-void move(float matrix[16], float x, float y, float z, float **out_matrix) {
+void move(float matrix[MVP_MATRIX_SIZE], float x, float y, float z, float (*out_matrix)[16]) {
     float moveMatrix[] = {
         1.f, 0.f, 0.f, 0.f,
 		0.f, 1.f, 0.f, 0.f,
@@ -57,7 +57,7 @@ void move(float matrix[16], float x, float y, float z, float **out_matrix) {
 }
 
 //Метод для преобразования масштабирования
-void scale(float matrix[16], float sx, float sy, float sz, float **out_matrix) {
+void scale(float matrix[MVP_MATRIX_SIZE], float sx, float sy, float sz, float (*out_matrix)[16]) {
     float moveMatrix[] = { 
         sx, 0.f, 0.f, 0.f,
 		0.f, sy, 0.f, 0.f,
@@ -68,22 +68,22 @@ void scale(float matrix[16], float sx, float sy, float sz, float **out_matrix) {
 }
 
 //Метод для преобразования вращения вокруг X
-void rotateAboutX(float matrix[16], float degree, float **out_matrix) {
+void rotateAboutX(float matrix[MVP_MATRIX_SIZE], float degree, float (*out_matrix)[16]) {
     rotate(matrix, 1.f, 0.f, 0.f, degree, out_matrix);
 }
 
 //Метод для преобразования вращения вокруг Y
-void rotateAboutY(float matrix[16], float degree, float **out_matrix) {
+void rotateAboutY(float matrix[MVP_MATRIX_SIZE], float degree, float (*out_matrix)[16]) {
     rotate(matrix, 0.f, 1.f, 0.f, degree, out_matrix);
 }
 
 //Метод для преобразования вращения вокруг Z
-void rotateAboutZ(float matrix[16], float degree, float **out_matrix) {
+void rotateAboutZ(float matrix[MVP_MATRIX_SIZE], float degree, float (*out_matrix)[16]) {
     rotate(matrix, 0.f, 0.f, 1.f, degree, out_matrix);
 }
 
 //Метод для преобразования вращения (|(x, y, z)| = 1)
-void rotate(float matrix[16], float x, float y, float z, float degree, float **out_matrix) {
+void rotate(float matrix[MVP_MATRIX_SIZE], float x, float y, float z, float degree, float (*out_matrix)[16]) {
     float c = cos(degree);
 	float s = sin(degree);
 	float rotateMatrix[] = {
@@ -96,7 +96,7 @@ void rotate(float matrix[16], float x, float y, float z, float degree, float **o
 }
 
 //Метод для формирования матрицы параллельной проекции
-void getParallelProjectionMatrix(float l, float r, float b, float t, float n, float f, float **out_matrix) {
+void getParallelProjectionMatrix(float l, float r, float b, float t, float n, float f, float (*out_matrix)[16]) {
     (*out_matrix)[0] = 2.f / (r - l);
     (*out_matrix)[1] = 0.f;
     (*out_matrix)[2] = 0.f;
@@ -119,7 +119,7 @@ void getParallelProjectionMatrix(float l, float r, float b, float t, float n, fl
 }
 
 //Метод для формирования матрицы перспективной проекции
-void getPerspectiveProjectionMatrix(float l, float r, float b, float t, float n, float f, float **out_matrix) {
+void getPerspectiveProjectionMatrix(float l, float r, float b, float t, float n, float f, float (*out_matrix)[16]) {
     (*out_matrix)[0] = 2.f * n / (r - l);
     (*out_matrix)[1] = 0.f;
     (*out_matrix)[2] = 0.f;
@@ -142,13 +142,13 @@ void getPerspectiveProjectionMatrix(float l, float r, float b, float t, float n,
 }
 
 //Метод для формирования матрицы перспективной проекции
-void getPerspectiveProjectionMatrixByAngle(float n, float f, float w, float h, float fovAngle, float **out_matrix) {
+void getPerspectiveProjectionMatrixByAngle(float n, float f, float w, float h, float fovAngle, float (*out_matrix)[16]) {
     float tg = tanf(M_PI_2 / 180.f * fovAngle);
 	getPerspectiveProjectionMatrix(-n * tg, n * tg, -n * w / h * tg, n * w / h * tg, n, f, out_matrix);
 }
 
 //Сравнение матриц на равенство
-bool equals(float matrix[16], float otherMatrix[16]) {
+bool equals(float matrix[MVP_MATRIX_SIZE], float otherMatrix[MVP_MATRIX_SIZE]) {
     for (int i = 0; i < MVP_MATRIX_SIZE; i += 1) {
         if (matrix[i] != otherMatrix[i]) {
             return false;
@@ -158,21 +158,21 @@ bool equals(float matrix[16], float otherMatrix[16]) {
 }
 
 //Оператор сложения матриц
-void add(float matrix[16], float otherMatrix[16], float **out_matrix) {
+void add(float matrix[MVP_MATRIX_SIZE], float otherMatrix[MVP_MATRIX_SIZE], float (*out_matrix)[16]) {
     for (int i = 0; i < MVP_MATRIX_SIZE; i += 1) {
         (*out_matrix)[i] = matrix[i] + otherMatrix[i];
     }
 }
 
 //Оператор вычитания матриц
-void substract(float minuend[16], float subtrahend[16], float **out_matrix) {
+void substract(float minuend[MVP_MATRIX_SIZE], float subtrahend[MVP_MATRIX_SIZE], float (*out_matrix)[16]) {
     for (int i = 0; i < MVP_MATRIX_SIZE; i += 1) {
         (*out_matrix)[i] = minuend[i] - subtrahend[i];
     }
 }
 
 //Оператор умножения матриц
-void multiplyMatrices(float matrix[16], float otherMatrix[16], float **out_matrix) {
+void multiplyMatrices(float matrix[MVP_MATRIX_SIZE], float otherMatrix[MVP_MATRIX_SIZE], float (*out_matrix)[16]) {
     for(int i = 0; i < MVP_MATRIX_DIMENSION_SIZE; i += 1) {
         for (int j = 0; j < MVP_MATRIX_DIMENSION_SIZE; j += 1) {
             float sum = 0;
@@ -185,14 +185,14 @@ void multiplyMatrices(float matrix[16], float otherMatrix[16], float **out_matri
 }
 
 //Оператор умножения матрицы на число
-void multiplyByNumber(float matrix[16], float num, float **out_matrix) {
+void multiplyByNumber(float matrix[MVP_MATRIX_SIZE], float num, float (*out_matrix)[16]) {
     for (int i = 0; i < MVP_MATRIX_SIZE; i += 1) {
         (*out_matrix)[i] = matrix[i] * num;
     }
 }
 
 //Оператор деления матрицы на число
-void divideByNumber(float matrix[16], float num, float **out_matrix) {
+void divideByNumber(float matrix[MVP_MATRIX_SIZE], float num, float (*out_matrix)[16]) {
     for (int i = 0; i < MVP_MATRIX_SIZE; i += 1) {
         (*out_matrix)[i] = matrix[i] / num;
     }

@@ -1,5 +1,6 @@
 #include "model.h"
 #include "../shared/shaderprogram.h"
+#include "../shared/mvpmatrix.h"
 #include "util.h"
 
 #include <GL/glew.h>

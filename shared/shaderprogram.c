@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct shader_program createProgram(int shaderCount, struct shader *shaders) {
+struct shader_program createProgram(
+    int shaderCount, struct shader *shaders, 
+    int variableCount, struct variable *variables) {
     GLuint program_id = glCreateProgram();
     for (int i = 0; i < shaderCount; i += 1) {
         if (shaders[i].id == 0 && shaders[i].code != NULL) {
@@ -33,10 +35,22 @@ struct shader_program createProgram(int shaderCount, struct shader *shaders) {
         glDeleteProgram(program_id);
         program_id = 0;
     } else {
+        if (variableCount > 0 && variables == NULL) {
+            printf("No variables were provided, but variable count set to %i\n", variableCount);
+        } else {
+            for (int i = 0; i < variableCount; i += 1) {
+                variables[i].location = glGetUniformLocation(program_id, variables[i].name);
+                
+                if (variables[i].location == -1) {
+                    printf("Variable '%s' not found in program №%i\n", variables[i].name, program_id);
+                }
+            }
+        }
+        
         printf("Linked program №%i\n", program_id);
     }
 
-    struct shader_program program = { program_id, shaderCount, shaders };
+    struct shader_program program = { program_id, shaderCount, shaders, variableCount, variables };
     return program;
 }
 
@@ -53,5 +67,10 @@ void freeProgram(struct shader_program *program) {
         }
         free(program->shaders);
         program->shaders = NULL;
+    }
+    
+    if (program->variables != NULL) {
+        free(program->variables);
+        program->variables = NULL;
     }
 }

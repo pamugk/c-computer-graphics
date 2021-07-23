@@ -30,6 +30,8 @@ struct model {
 
 	GLuint vao; //VertexArrayObject - настройки модели
     struct attribute *attributes;
+    
+    float m[16];
 };
 
 struct attribute *allocDefaultAttributes(int *out_count);

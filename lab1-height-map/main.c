@@ -5,24 +5,44 @@ struct shader_program g_shaderProgram;
 struct model g_model;
 char *pathToHeightmap = NULL;
 
-bool init() {
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	struct shader *shaders = calloc(2, sizeof(struct shader));
+float v[MVP_MATRIX_SIZE];
+
+struct variable *g_variables;
+
+void initVariables() {
+    g_variables = calloc(1, sizeof(struct variable));
+    g_variables[0].name = "u_mvp";
+}
+
+bool initShaderProgram() {
+    initVariables();
+    
+    struct shader *shaders = calloc(2, sizeof(struct shader));
     shaders[0] = loadShader("shaders/vsh.glsl", GL_VERTEX_SHADER);
     shaders[1] = loadShader("shaders/fsh.glsl", GL_FRAGMENT_SHADER);
-    g_shaderProgram = createProgram(2, shaders);
+    g_shaderProgram = createProgram(2, shaders, 1, g_variables);
+    return g_shaderProgram.id != 0U;
+}
 
-    if (g_shaderProgram.id == 0U) {
-        return false;
-    }
-
-	struct body body = initBodyWithHeightmap(pathToHeightmap, 6, 1.0f);
+bool initModel() {
+    struct body body = initBodyWithHeightmap(pathToHeightmap, 6, 1.0f);
     
     int attributeCount = 0;
     struct attribute *attributes = allocDefaultAttributes(&attributeCount);
     
 	g_model = createModel(body, attributeCount, attributes, 0, NULL);
+    
     return g_model.body.vertices != NULL && g_model.indices != NULL;
+}
+
+bool init() {
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
+    return initShaderProgram() && initModel();
+}
+
+void initOptics() {
+    move(E, 0.f, 0.f, 2.0f, &v);
 }
 
 void reshape(GLFWwindow *window, int width, int height) {
@@ -30,9 +50,19 @@ void reshape(GLFWwindow *window, int width, int height) {
 }
 
 void draw() {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
 	glUseProgram(g_shaderProgram.id);
 	glBindVertexArray(g_model.vao);
+    
+    float mv[MVP_MATRIX_SIZE]; multiplyMatrices(v, g_model.m, &mv);
+    
+    float p[MVP_MATRIX_SIZE];
+    getParallelProjectionMatrix(-1.0f, 1.0f, -1.0f, 1.0f, -3.0f, 3.0f, &p);
+    
+    float mvp[MVP_MATRIX_SIZE]; multiplyMatrices(p, mv, &mvp);
+    glUniformMatrix4fv(g_variables[0].location, 1, GL_FALSE, mvp);
+    
 	glDrawElements(GL_TRIANGLES, g_model.index_count, GL_UNSIGNED_INT, (const GLvoid *)0);
 }
 
@@ -41,6 +71,7 @@ bool initOpenGL() {
 		printf("Failed to initialize GLFW");
 		return false;
 	}
+	
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -103,6 +134,8 @@ int main(int argc, char** argv) {
 	
 	int isOk = init();
 	if (isOk) {
+        initOptics();
+        
 		while (glfwGetKey(g_window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(g_window) == 0)
 		{
 			draw();
