@@ -53,7 +53,7 @@ void initOptics() {
     move(E, g_model.body.width / -2.f, 0.f, g_model.body.depth / -2.f, &movedMatrix);
     
     unsigned int scaleFactor = g_model.body.width > g_model.body.depth ? g_model.body.width : g_model.body.depth;
-    scale(movedMatrix, 1.f / scaleFactor, 1.f, 1.f / scaleFactor, &v);
+    scale(movedMatrix, 1.f / g_model.body.width, 1.f, 1.f / g_model.body.depth, &v);
     
     for (int i = 0; i < countOfSpeeds; i++) {
         degrees[i] = (i + 1) * 0.01f;
@@ -78,7 +78,7 @@ void draw() {
     if (parallelProjection) {
         getParallelProjectionMatrix(-1.f, 1.f, -1.f, 1.f, -3.f, 3.f, &p);
     } else {
-        getPerspectiveProjectionMatrixByAngle(-1.f, 2.f, 1.f, 1.f, 90.f, &p);
+        getPerspectiveProjectionMatrixByAngle(-1.f, 1.f, 1.f, 1.f, 90.f, &p);
     }
     
     float mvp[MVP_MATRIX_SIZE]; multiplyMatrices(p, mv, &mvp);
@@ -198,8 +198,7 @@ int main(int argc, char** argv) {
 	if (isOk) {
         initOptics();
         
-		while (glfwGetKey(g_window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(g_window) == 0)
-		{
+		while (glfwGetKey(g_window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(g_window) == 0) {
             checkInput();
 			draw();
 			glfwSwapBuffers(g_window);

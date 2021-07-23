@@ -72,9 +72,11 @@ struct model createModel(struct body physicalBody,
             }
 
             if (attributes != NULL) {
+                unsigned int attributeShift = 0;
                 for (int i = 0; i < attributesCount; i += 1) {
                     glEnableVertexAttribArray(i);
-                    glVertexAttribPointer(i, attributes[i].size, attributes[i].type, attributes[i].normalized, physicalBody.vertexSize * sizeof(GLfloat), (const GLvoid *)0);
+                    glVertexAttribPointer(i, attributes[i].size, attributes[i].type, attributes[i].normalized, physicalBody.vertexSize * sizeof(GLfloat), (const GLvoid *)(attributeShift * sizeof(GLfloat)));
+                    attributeShift += attributes[i].size;
                 }
             } else {
                 printf("No attributes provided\n");

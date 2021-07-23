@@ -28,7 +28,7 @@ struct body initBodyWithHeightmap(const char *pathToHeightmap, int vertexSize, f
                     contents[j] = i % width;
                     contents[j + 1] = 1.f * image.contents[i] / UCHAR_MAX * h;
                     contents[j + 2] = i / width;
-                    contents[j + 3] = 0.25f, contents[j + 4] = 0.5f, contents[j + 5] = 0.25f;
+                    contents[j + 3] = 0.25, contents[j + 4] = 0.5, contents[j + 5] = 0.25;
                 }
             }
         }
