@@ -14,6 +14,8 @@ float degrees[9];
 int degreeKeys[9];
 float degree;
 
+bool parallelProjection = true;
+
 void initVariables() {
     g_variables = calloc(1, sizeof(struct variable));
     g_variables[0].name = "u_mvp";
@@ -30,7 +32,7 @@ bool initShaderProgram() {
 }
 
 bool initModel() {
-    struct body body = initBodyWithHeightmap(pathToHeightmap, 6, 0.5f);
+    struct body body = initBodyWithHeightmap(pathToHeightmap, 6, 1.0f);
     
     int attributeCount = 0;
     struct attribute *attributes = allocDefaultAttributes(&attributeCount);
@@ -54,7 +56,7 @@ void initOptics() {
     scale(movedMatrix, 1.f / scaleFactor, 1.f, 1.f / scaleFactor, &v);
     
     for (int i = 0; i < countOfSpeeds; i++) {
-        degrees[i] = (i + 1) * 0.05f;
+        degrees[i] = (i + 1) * 0.01f;
         degreeKeys[i] = GLFW_KEY_1 + i;
     }
     degree = degrees[1];
@@ -73,7 +75,11 @@ void draw() {
     float mv[MVP_MATRIX_SIZE]; multiplyMatrices(v, g_model.m, &mv);
     
     float p[MVP_MATRIX_SIZE];
-    getParallelProjectionMatrix(-1.f, 1.f, -1.f, 1.f, -3.f, 3.f, &p);
+    if (parallelProjection) {
+        getParallelProjectionMatrix(-1.f, 1.f, -1.f, 1.f, -3.f, 3.f, &p);
+    } else {
+        getPerspectiveProjectionMatrixByAngle(-1.f, 2.f, 1.f, 1.f, 90.f, &p);
+    }
     
     float mvp[MVP_MATRIX_SIZE]; multiplyMatrices(p, mv, &mvp);
     glUniformMatrix4fv(g_variables[0].location, 1, GL_FALSE, mvp);
@@ -142,27 +148,41 @@ bool handleArguments(int argc, char** argv) {
 }
 
 void checkInput() {
-    for (int i = 0; i < countOfSpeeds; i++)
-        if (glfwGetKey(g_window, degreeKeys[i]) == GLFW_PRESS)
+    for (int i = 0; i < countOfSpeeds; i++) {
+        if (glfwGetKey(g_window, degreeKeys[i]) == GLFW_PRESS) {
             degree = degrees[i];
+        }
+    }
 
     if (glfwGetKey(g_window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-        rotateModelAboutY(&g_model, degree);
+        float prevM[MVP_MATRIX_SIZE]; 
+        memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
+        rotateAboutY(prevM, degree, &(v));
     }
     if (glfwGetKey(g_window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        rotateModelAboutY(&g_model, -degree);
+        float prevM[MVP_MATRIX_SIZE]; 
+        memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
+        rotateAboutY(prevM, -degree, &(v));
     }
     if (glfwGetKey(g_window, GLFW_KEY_UP) == GLFW_PRESS) {
-        rotateModelAboutX(&g_model, degree);
+        float prevM[MVP_MATRIX_SIZE]; 
+        memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
+        rotateAboutX(prevM, degree, &(v));
     }
     if (glfwGetKey(g_window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        rotateModelAboutX(&g_model, -degree);
+        float prevM[MVP_MATRIX_SIZE]; 
+        memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
+        rotateAboutX(prevM, -degree, &(v));
     }
     if (glfwGetKey(g_window, GLFW_KEY_W) == GLFW_PRESS) {
-        rotateModelAboutZ(&g_model, degree);
+        float prevM[MVP_MATRIX_SIZE]; 
+        memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
+        rotateAboutZ(prevM, degree, &(v));
     }
     if (glfwGetKey(g_window, GLFW_KEY_S) == GLFW_PRESS) {
-        rotateModelAboutZ(&g_model, -degree);
+        float prevM[MVP_MATRIX_SIZE]; 
+        memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
+        rotateAboutZ(prevM, -degree, &(v));
     }
 }
 
