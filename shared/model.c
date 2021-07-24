@@ -15,11 +15,11 @@ struct attribute *allocDefaultAttributes(int *out_count) {
 }
 
 struct attribute *allocDefaultTexturedAttributes(int *out_count) {
-    *out_count = 1;
+    *out_count = 3;
     struct attribute *attributes = calloc(*out_count, sizeof(struct attribute));
 	attributes[0].size = 3, attributes[0].type = GL_FLOAT, attributes[0].normalized = GL_FALSE;
 	attributes[1].size = 2, attributes[1].type = GL_FLOAT, attributes[1].normalized = GL_FALSE;
-	//attributes[2].size = 1, attributes[2].type = GL_FLOAT, attributes[2].normalized = GL_FALSE;
+	attributes[2].size = 1, attributes[2].type = GL_INT, attributes[2].normalized = GL_FALSE;
 	printf("Allocated default attributes\n");
 	return attributes;
 }
