@@ -8,6 +8,8 @@ struct shader {
     GLchar *code;
 };
 
+GLenum parseShaderKind(const char *shaderKind);
+
 struct shader loadShader(const char filePath[], GLenum type);
 void compileShader(struct shader *shader);
 void freeShader(struct shader *shader);

@@ -16,6 +16,7 @@ struct image
 };
 
 struct image readHeightmap(const char *filePath);
+struct image readTexture(const char *filePath);
 void freeImage(struct image *image);
 
 #endif //IMAGE

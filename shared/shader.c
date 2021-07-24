@@ -2,6 +2,27 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+GLenum parseShaderKind(const char *shaderKind) {
+    if (strcmp(shaderKind, "GL_COMPUTE_SHADER") == 0) {
+        return GL_COMPUTE_SHADER;
+    } else if (strcmp(shaderKind, "GL_VERTEX_SHADER") == 0) {
+        return GL_VERTEX_SHADER;
+    } else if (strcmp(shaderKind, "GL_TESS_CONTROL_SHADER") == 0) {
+        return GL_TESS_CONTROL_SHADER;
+    } else if (strcmp(shaderKind, "GL_TESS_EVALUATION_SHADER") == 0) {
+        return GL_TESS_EVALUATION_SHADER;
+    } else if (strcmp(shaderKind, "GL_GEOMETRY_SHADER") == 0) {
+        return GL_GEOMETRY_SHADER;
+    } else if(strcmp(shaderKind, "GL_FRAGMENT_SHADER") == 0) {
+        return GL_FRAGMENT_SHADER;
+    } else {
+        printf("Unrecognized shader kind: %s\n", shaderKind);
+        printf("Following shader kinds are supported: GL_COMPUTE_SHADER, GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER\n");
+    }
+    return 0;
+}
 
 struct shader loadShader(const char filePath[], GLenum type) {
     GLchar *code = NULL;

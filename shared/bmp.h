@@ -146,4 +146,4 @@ bool finishReadingBmp(struct bmp_image *image, FILE *bmpFile);
 bool extractImage(struct bmp_image *image, unsigned int *out_width, unsigned int *out_height, unsigned char **out_image);
 void freeBmp(struct bmp_image *image);
 
-#endif // BMP
+#endif // BMP_

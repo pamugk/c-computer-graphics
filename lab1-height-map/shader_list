@@ -1,0 +1,3 @@
+2
+shaders/vsh.glsl GL_VERTEX_SHADER
+shaders/fsh.glsl GL_FRAGMENT_SHADER
