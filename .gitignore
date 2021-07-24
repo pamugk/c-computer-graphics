@@ -1,2 +1,7 @@
 *.idea
 *app
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.tif
