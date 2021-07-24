@@ -42,7 +42,7 @@ bool initShaderProgram() {
 }
 
 bool initModel() {
-    struct body body = initBodyWithHeightmap(pathToHeightmap, 6, h, false);
+    struct body body = initBodyWithHeightmap(pathToHeightmap, 5, h, false);
     initBodyTextures(&body, 3);
     
     int attributeCount = 0;

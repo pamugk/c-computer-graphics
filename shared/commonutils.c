@@ -158,7 +158,7 @@ void initBodyTextures(struct body *physicalBody, int offset) {
     for (int i = 0; i < physicalBody->vertexSize * physicalBody->verticeCount; i += physicalBody->vertexSize) {
         physicalBody->vertices[i + offset] = 1.f * physicalBody->vertices[i] / physicalBody->width;
         physicalBody->vertices[i + offset + 1] = 1.f * physicalBody->vertices[i + 2] / physicalBody->depth;
-        physicalBody->vertices[i + offset + 2] = physicalBody->vertices[i + 1] >= 0.01;
+        //((int*)physicalBody->vertices)[i + offset + 2] = physicalBody->vertices[i + 1] >= 0.009;
     }
     printf("Completed texture calculations for provided model\n");
 }
