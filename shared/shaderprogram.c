@@ -14,6 +14,7 @@ struct shader_program createProgram(
             textureCount, textures
     };
 
+    printf("Creating shader program...\n");
     program.id = glCreateProgram();
     for (int i = 0; i < shaderCount; i += 1) {
         if (shaders[i].id == 0 && shaders[i].code != NULL) {

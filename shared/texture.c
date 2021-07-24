@@ -7,7 +7,7 @@
 #include <string.h>
 
 GLenum parseTextureTarget(const char *target) {
-    if (strcmp(target, " GL_TEXTURE_1D") == 0) {
+    if (strcmp(target, "GL_TEXTURE_1D") == 0) {
         return GL_TEXTURE_1D;
     } else if (strcmp(target, "GL_TEXTURE_1D_ARRAY") == 0) {
         return GL_TEXTURE_1D_ARRAY;
@@ -84,14 +84,14 @@ int defineTextureParameterType(GLenum parameterName) {
     if (parameterName == GL_TEXTURE_BASE_LEVEL
         || parameterName == GL_TEXTURE_MAX_LEVEL
     ) {
-        return GL_INT;
+        return OPEN_GL_INT;
     } else if (parameterName == GL_TEXTURE_LOD_BIAS
         || parameterName == GL_TEXTURE_MIN_LOD
         || parameterName == GL_TEXTURE_MAX_LOD
     ) {
-        return GL_FLOAT;
+        return OPEN_GL_FLOAT;
     } else if (parameterName == GL_TEXTURE_BORDER_COLOR) {
-        return GL_COLOR;
+        return OPEN_GL_COLOR;
     }
         
     return OPEN_GL_ENUM;
@@ -183,10 +183,11 @@ struct texture loadTexture(
     const char *filePath, 
     int textureOffset,
     int parametersCount,
+    GLenum target, int generateMipmap,
     struct texture_parameter *parameters) {
     struct image textureImage = readTexture(filePath);
     
-    struct texture result = { 0, -1, "", 0, 0 };
+    struct texture result = { 0, -1, NULL, 0, 0, target };
     if (textureImage.contents == NULL) {
         printf("Some error occurred while reading a texture from %s\n", filePath);
         return result;
@@ -195,28 +196,31 @@ struct texture loadTexture(
     result.width = textureImage.width;
     result.height = textureImage.height;
     
-    glGenTextures(1, &result.id);
-    glActiveTexture(GL_TEXTURE0 + textureOffset);
-    
-    glBindTexture(GL_TEXTURE_2D, result.id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, result.width, result.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
-    
+    glGenTextures(1, &result.id);    
+    glBindTexture(target, result.id);
+    glTexImage2D(target, 0, GL_RGBA, result.width, result.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
     for (int i = 0; i < parametersCount; i += 1) {
         switch (parameters[i].type) {
             case (OPEN_GL_INT): {
-                glTexParameteri(GL_TEXTURE_2D, parameters[i].name, parameters[i].value.intValue);
+                glTexParameteri(target, parameters[i].name, parameters[i].value.intValue);
                 break;
             }
             case (OPEN_GL_ENUM): {
-                glTexParameteri(GL_TEXTURE_2D, parameters[i].name, parameters[i].value.enumValue);
+                glTexParameteri(target, parameters[i].name, parameters[i].value.enumValue);
                 break;
             }
             case (OPEN_GL_FLOAT): {
-                glTexParameterf(GL_TEXTURE_2D, parameters[i].name, parameters[i].value.floatValue);
+                glTexParameterf(target, parameters[i].name, parameters[i].value.floatValue);
                 break;
             }
         }
     }
+    
+    if (generateMipmap) {
+        glGenerateMipmap(target);
+    }
+    
+    printf("Completed texture initialization\n");
     
     freeImage(&textureImage);
     

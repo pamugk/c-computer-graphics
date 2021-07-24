@@ -20,6 +20,7 @@ struct texture {
     GLchar *mapName;
     unsigned int width;
     unsigned int height;
+    GLenum target;
 };
 
 GLenum parseTextureTarget(const char *target);
@@ -34,6 +35,7 @@ struct texture loadTexture(
     const char *filePath,
     int textureOffset,
     int parametersCount,
+    GLenum target, int generateMipmap,
     struct texture_parameter *parameters);
 
 void freeTexture(struct texture *texture);

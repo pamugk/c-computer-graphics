@@ -1,8 +1,6 @@
 #ifndef MODEL
 #define MODEL
 
-#include "../shared/mvpmatrix.h"
-
 #include <GL/glew.h>
 #include <stdbool.h>
 
@@ -28,7 +26,7 @@ struct model {
 
 	GLuint ibo; //IndexBufferObject - буфер индексов
     GLuint *indices;
-	GLsizei index_count; //Число индексов
+	GLsizei indexCount; //Число индексов
 
 	GLuint vao; //VertexArrayObject - настройки модели
     struct attribute *attributes;
@@ -37,6 +35,7 @@ struct model {
 };
 
 struct attribute *allocDefaultAttributes(int *out_count);
+struct attribute *allocDefaultTexturedAttributes(int *out_count);
 bool makeIndices(struct body physicalBody, unsigned long *out_indexCount, GLuint **out_indices);
 struct model createModel(struct body physicalBody,
     int attributesCount, struct attribute *attributes,
@@ -49,7 +48,5 @@ void rotateModelAboutY(struct model *model, float degree);
 void rotateModelAboutZ(struct model *model, float degree);
 
 void freeModel(struct model *model);
-
-
 
 #endif //MODEL

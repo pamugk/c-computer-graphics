@@ -162,13 +162,13 @@ struct image readBmp(const char *filePath) {
 struct image readHeightmap(const char *filePath) {
     const char *fileExtension = defineFileExtension(fileNameFromPath(filePath));
     if (isPng(fileExtension)) {
-        printf("Started reading PNG image\n");
+        printf("Started reading PNG image from %s\n", filePath);
         return readPng(filePath, PNG_FORMAT_GRAY);
     } else if (isJpeg(fileExtension)){
-        printf("Started reading JPEG image\n");
+        printf("Started reading JPEG image from %s\n", filePath);
         return readJpeg(filePath, JCS_GRAYSCALE);
     } else if (isBmp(fileExtension)) {
-        printf("Started reading BMP image\n");
+        printf("Started reading BMP image %s\n", filePath);
         return readBmp(filePath);
     } else {
         printf("Unknown file extension: %s\n", fileExtension);

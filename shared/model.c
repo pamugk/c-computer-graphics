@@ -1,4 +1,5 @@
 #include "model.h"
+#include "mvpmatrix.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,6 +10,16 @@ struct attribute *allocDefaultAttributes(int *out_count) {
     struct attribute *attributes = calloc(*out_count, sizeof(struct attribute));
 	attributes[0].size = 3, attributes[0].type = GL_FLOAT, attributes[0].normalized = GL_FALSE;
 	attributes[1].size = 3, attributes[1].type = GL_FLOAT, attributes[1].normalized = GL_FALSE;
+	printf("Allocated default attributes\n");
+	return attributes;
+}
+
+struct attribute *allocDefaultTexturedAttributes(int *out_count) {
+    *out_count = 1;
+    struct attribute *attributes = calloc(*out_count, sizeof(struct attribute));
+	attributes[0].size = 3, attributes[0].type = GL_FLOAT, attributes[0].normalized = GL_FALSE;
+	attributes[1].size = 2, attributes[1].type = GL_FLOAT, attributes[1].normalized = GL_FALSE;
+	//attributes[2].size = 1, attributes[2].type = GL_FLOAT, attributes[2].normalized = GL_FALSE;
 	printf("Allocated default attributes\n");
 	return attributes;
 }
@@ -66,10 +77,6 @@ struct model createModel(struct body physicalBody,
             glGenBuffers(1, &ibo);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(GLuint), indices, GL_STATIC_DRAW);
-
-            if (attributes == NULL) {
-                attributes = allocDefaultAttributes(&attributesCount);
-            }
 
             if (attributes != NULL) {
                 unsigned int attributeShift = 0;

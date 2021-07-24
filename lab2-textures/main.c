@@ -27,6 +27,7 @@ struct variable *initVariables(int *variablesCount) {
 }
 
 bool initShaderProgram() {
+    printf("Started shader program initialization\n");
     int shadersCount;
     struct shader *shaders = loadShaders(pathToShadersDefinition, &shadersCount);
     
@@ -41,10 +42,11 @@ bool initShaderProgram() {
 }
 
 bool initModel() {
-    struct body body = initBodyWithHeightmap(pathToHeightmap, 6, h);
+    struct body body = initBodyWithHeightmap(pathToHeightmap, 5, h, false);
+    initBodyTextures(&body, 3);
     
     int attributeCount = 0;
-    struct attribute *attributes = allocDefaultAttributes(&attributeCount);
+    struct attribute *attributes = allocDefaultTexturedAttributes(&attributeCount);
     
 	g_model = createModel(body, attributeCount, attributes, 0, NULL);
     
@@ -104,7 +106,7 @@ void draw() {
         glUniform1i(g_program.textures[i].mapLocation, i);
     }
     
-	glDrawElements(GL_TRIANGLES, g_model.index_count, GL_UNSIGNED_INT, (const GLvoid *)0);
+	glDrawElements(GL_TRIANGLES, g_model.indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);
 }
 
 bool initOpenGL() {
@@ -154,14 +156,15 @@ bool handleArguments(int argc, char** argv) {
         } else if (strcmp(argv[i], "--heightmap") == 0 && pathToHeightmap == NULL) {
             pathToHeightmap = argv[i + 1];
             i += 1;
-        } else if (strcmp(argv[i], "--textures") == 0 && pathToShadersDefinition == NULL) {
-            pathToShadersDefinition = argv[i + 1];
+        } else if (strcmp(argv[i], "--textures") == 0 && pathToTexturesDefinition == NULL) {
+            pathToTexturesDefinition = argv[i + 1];
             i += 1;
         } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
             printf("Following flags are supported:\n");
             printf("\t--projection / -p - projection (0 - perspective, 1 - parallel), default is parallel\n");
             printf("\t--shaders <path to file> - path to shader list definition (required)\n");
             printf("\t--heightmap <path to file> - path to heightmap (required), JPEG and PNG files supported\n");
+            printf("\t--textures <path to file> - path to texture definition list\n");
             printf("\t--h - specify height multiplier for a heightmap\n");
             printf("\t--help / -h - print help\n");
             printf("Controls:\n\tLeft/Right Arrows: rotate about Y axis;\n\tUp/Down Arrows: rotate about X axis;\n\tW/S Keys: rotate about Z axis;\n");

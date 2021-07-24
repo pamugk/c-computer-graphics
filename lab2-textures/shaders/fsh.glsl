@@ -1,10 +1,14 @@
 #version 460
 
-in vec3 v_color;
+uniform sampler2D u_map1;
+uniform sampler2D u_map2;
+
+in vec2 v_texCoord;
+flat in int v_texNum;
 
 layout(location = 0) out vec4 o_color;
 
 void main()
 {
-   o_color = vec4(v_color, 1.0);
+   o_color = texture(u_map1, v_texCoord) * (1 - v_texNum) + texture(u_map2, v_texCoord) * (1 - v_texNum) * (0 + v_texNum);
 }
