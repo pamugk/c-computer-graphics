@@ -22,11 +22,12 @@ float degree;
 int projection = 1;
 
 struct attribute *allocDefaultAttributes(int *out_count) {
-    *out_count = 3;
+    *out_count = 4;
     struct attribute *attributes = calloc(*out_count, sizeof(struct attribute));
 	attributes[0] = (struct attribute) { 3, GL_FLOAT, GL_FALSE };
     attributes[1] = (struct attribute) { 2, GL_FLOAT, GL_FALSE };
     attributes[2] = (struct attribute) { 1, GL_INT, GL_FALSE };
+	attributes[3] = (struct attribute) { 3, GL_FLOAT, GL_FALSE };
 	printf("Allocated default attributes\n");
 	return attributes;
 }
