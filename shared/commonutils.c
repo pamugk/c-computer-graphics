@@ -1,5 +1,6 @@
 #include "commonutils.h"
 #include "image.h"
+#include "types.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -45,6 +46,12 @@ struct body initBodyWithHeightmap(const char *pathToHeightmap, int vertexSize, f
 }
 
 struct shader *loadShaders(const char *pathToShadersDefinition,int *out_shadersCount) {
+    if (pathToShadersDefinition == NULL) {
+        printf("No path to shader list definition was provided\n");
+        *out_shadersCount = 0;
+        return NULL;
+    }
+    
     FILE *shadersDefinitionFile = fopen(pathToShadersDefinition, "r");
     
     if (shadersDefinitionFile == NULL) {
@@ -56,6 +63,11 @@ struct shader *loadShaders(const char *pathToShadersDefinition,int *out_shadersC
     printf("Started reading shaders from %s\n", pathToShadersDefinition);
     fscanf(shadersDefinitionFile, "%i", out_shadersCount);
     struct shader *shaders = calloc(*out_shadersCount, sizeof(struct shader));
+    
+    if (shaders == NULL) {
+        printf("Not enought memory to allocate shader list\n");
+        return NULL;
+    }
     
     for (int i = 0; i < *out_shadersCount; i += 1) {
         char *pathToShader = NULL; char *shaderKind = NULL;
@@ -76,6 +88,127 @@ struct shader *loadShaders(const char *pathToShadersDefinition,int *out_shadersC
     return shaders;
 }
 
+void loadIntVector(FILE *inputFile, int vectorSize, GLint **out_vector) {
+    *out_vector = calloc(vectorSize, sizeof(GLint));
+    for (int i = 0; i < vectorSize; i += 1) {
+        fscanf(inputFile, "%i", out_vector[0] + i);
+    }
+}
+
+void loadFloatVector(FILE *inputFile, int vectorSize, GLfloat **out_vector) {
+    *out_vector = calloc(vectorSize, sizeof(GLfloat));
+    for (int i = 0; i < vectorSize; i += 1) {
+        fscanf(inputFile, "%f", out_vector[0] + i);
+    }
+}
+
+struct shader_variable *loadShaderVariables(const char *pathToVariablesDefinition, int reservedVarCount, int *out_variablesCount) {
+    if (pathToVariablesDefinition == NULL) {
+        printf("No path to variable list definition was provided\n");
+        *out_variablesCount = reservedVarCount;
+        return calloc(reservedVarCount, sizeof(struct shader_variable));
+    }
+    
+    FILE *variableDefinitionFile = fopen(pathToVariablesDefinition, "r");
+    
+    if (variableDefinitionFile == NULL) {
+        printf("Variables definition file at path %s can not be opened\n", pathToVariablesDefinition);
+        *out_variablesCount = reservedVarCount;
+        return calloc(reservedVarCount, sizeof(struct shader_variable));
+    }
+    
+    printf("Started reading variables definition at %s\n", pathToVariablesDefinition);
+    int definedVariablesCount;
+    fscanf(variableDefinitionFile, "%i", &definedVariablesCount);
+    *out_variablesCount = (definedVariablesCount > 0) * definedVariablesCount + reservedVarCount;
+    printf("Defined %i additional variables, %i total\n", definedVariablesCount, *out_variablesCount);
+    
+    struct shader_variable *variables = calloc(*out_variablesCount, sizeof(struct shader_variable));
+    if (variables == NULL) {
+        printf("Not enought memory to allocate variable list\n");
+        return NULL;
+    }
+    
+    char *variableName;
+    char variableTypeEnumValue[30];
+    
+    for (int i = reservedVarCount; i < *out_variablesCount; i += 1) {
+        fscanf(variableDefinitionFile, "%ms%s", &variableName, variableTypeEnumValue);
+        variables[i] = (struct shader_variable) { -1, variableName, parseTypename(variableTypeEnumValue), GL_FALSE, NULL };
+        
+        switch (variables[i].type) {
+            case GL_BOOL: {
+                variables[i].value = malloc(sizeof(GLboolean));
+                fscanf(variableDefinitionFile, "%si", (GLboolean *)variables[i].value);
+                break;
+            }
+            
+            case GL_INT: {
+                variables[i].value = malloc(sizeof(GLint));
+                fscanf(variableDefinitionFile, "%i", (GLint *)variables[i].value);
+                break;
+            }
+            case GL_INT_VEC2: {
+                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
+                loadIntVector(variableDefinitionFile, 2, (GLint**)&variables[i].value);
+                break;
+            }
+            case GL_INT_VEC3: {
+                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
+                loadIntVector(variableDefinitionFile, 3, (GLint**)&variables[i].value);
+                break;
+            }
+            case GL_INT_VEC4: {
+                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
+                loadIntVector(variableDefinitionFile, 4, (GLint**)&variables[i].value);
+                break;
+            }
+            
+            case GL_FLOAT: {
+                variables[i].value = malloc(sizeof(GLfloat));
+                fscanf(variableDefinitionFile, "%f", (GLfloat *)variables[i].value);
+                break;
+            }
+            case GL_FLOAT_VEC2: {
+                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
+                loadFloatVector(variableDefinitionFile, 2, (GLfloat**)&variables[i].value);
+                break;
+            }
+            case GL_FLOAT_VEC3: {
+                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
+                loadFloatVector(variableDefinitionFile, 3, (GLfloat**)&variables[i].value);
+                break;
+            }
+            case GL_FLOAT_VEC4: {
+                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
+                loadFloatVector(variableDefinitionFile, 4, (GLfloat**)&variables[i].value);
+                break;
+            }
+            
+            case GL_FLOAT_MAT2: {
+                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
+                loadFloatVector(variableDefinitionFile, 4, (GLfloat**)&variables[i].value);
+                break;
+            }
+            case GL_FLOAT_MAT3: {
+                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
+                loadFloatVector(variableDefinitionFile, 9, (GLfloat**)&variables[i].value);
+                break;
+            }
+            case GL_FLOAT_MAT4: {
+                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
+                loadFloatVector(variableDefinitionFile, 16, (GLfloat**)&variables[i].value);
+                break;
+            }
+        }
+        
+        printf("Parsed variable %s with type %s\n", variableName, variableTypeEnumValue);
+    }
+    printf("Finished parsing variables definition\n");
+    
+    return variables;
+}
+
 struct texture *loadTextures(const char *pathToTexturesDefinition,int *out_textureCount) {
     if (pathToTexturesDefinition == NULL) {
         printf("No path to texture list definition was provided\n");
@@ -85,8 +218,19 @@ struct texture *loadTextures(const char *pathToTexturesDefinition,int *out_textu
     
     FILE *textureDefinitionFile = fopen(pathToTexturesDefinition, "r");
     
+    if (textureDefinitionFile == NULL) {
+        printf("Textures definition can not be loaded\n");
+        *out_textureCount = 0;
+        return NULL;
+    }
+    
     fscanf(textureDefinitionFile, "%i", out_textureCount);
     struct texture *textures = calloc(*out_textureCount, sizeof(struct texture));
+    
+    if (textures == NULL) {
+        printf("Not enought memory to allocate texture list\n");
+        return NULL;
+    }
     
     char parameterName[40];
     char parameterEnumValue[30];

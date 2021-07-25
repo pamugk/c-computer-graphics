@@ -193,8 +193,7 @@ struct image readTexture(const char *filePath) {
         printf("Unknown file extension: %s\n", fileExtension);
     }
 
-    struct image stubResult = { 0, 0, NULL };
-    return stubResult;
+    return (struct image){ 0, 0, NULL };
 }
 
 void freeImage(struct image *image) {

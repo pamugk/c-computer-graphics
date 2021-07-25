@@ -5,6 +5,8 @@ struct shader_program g_program;
 struct model g_model;
 
 char *pathToShadersDefinition = NULL;
+char *pathToVariablesDefinition = NULL;
+
 char *pathToHeightmap = NULL;
 char *pathToTexturesDefinition = NULL;
 
@@ -19,12 +21,6 @@ float degree;
 
 int projection = 1;
 
-// Освещение
-struct light_source sun = { {1.f, 1.f, 1.f}, { 1.f, 1.f, 1.f }, true };
-GLfloat dmin = 0.5f;
-GLfloat sfoc = 4.0f;
-GLfloat eye[3] = { 0.f, 0.f, 0.f };
-
 struct attribute *allocDefaultAttributes(int *out_count) {
     *out_count = 3;
     struct attribute *attributes = calloc(*out_count, sizeof(struct attribute));
@@ -35,18 +31,13 @@ struct attribute *allocDefaultAttributes(int *out_count) {
 	return attributes;
 }
 
-struct variable *initVariables(int *variablesCount) {
-    *variablesCount = 8;
-    struct variable *variables = calloc(*variablesCount, sizeof(struct variable));
-    variables[0].name = "u_mvp"; // MVP-матрица
-    variables[1].name = "u_n"; // Матрица нормалей
+struct shader_variable *initVariables(int *variablesCount) {
+    struct shader_variable *variables = loadShaderVariables(pathToVariablesDefinition, 2, variablesCount);
+    char *mvpVarName = calloc(5 + 1, sizeof(char)); strcpy(mvpVarName, "u_mvp");
+    variables[0] = (struct shader_variable){ -1, mvpVarName, GL_FLOAT_MAT4, GL_FALSE, NULL }; // MVP-матрица
     
-    variables[2].name = "u_olpos"; // Позиция источника света
-    variables[3].name = "u_olcol"; // Цвет света
-    variables[4].name = "u_oeye"; // Позиция наблюдателя
-    variables[5].name = "u_odmin";// Минимально допустимый уровень освещённости объекта в точке P
-    variables[6].name = "u_osfoc"; // сфокусированность зеркального блика на поверхности освещаемого объекта в точке P 
-    variables[7].name = "u_lie"; // Признак использования модели освещения (вкл. / выкл.)
+    char *nVarName = calloc(3 + 1, sizeof(char)); strcpy(nVarName, "u_n");
+    variables[1] = (struct shader_variable){ -1, nVarName, GL_FLOAT_MAT3, GL_TRUE, NULL }; // Матрица нормалей
     
     return variables;
 }
@@ -57,7 +48,7 @@ bool initShaderProgram() {
     struct shader *shaders = loadShaders(pathToShadersDefinition, &shadersCount);
     
     int variablesCount;
-    struct variable *variables = initVariables(&variablesCount);
+    struct shader_variable *variables = initVariables(&variablesCount);
     
     int textureCount;
     struct texture *textures = loadTextures(pathToTexturesDefinition, &textureCount);
@@ -125,16 +116,13 @@ void draw() {
     float mvp[MVP_MATRIX_SIZE]; multiplyMatrices(p, mv, &mvp);
     float nMatrix[N_MATRIX_SIZE]; buildNMatrix(mv, &nMatrix);
     
+    g_program.variables[0].value = (unsigned char *)mvp;
+    g_program.variables[1].value = (unsigned char *)nMatrix;
     
-    glUniformMatrix4fv(g_program.variables[0].location, 1, GL_FALSE, mvp);
-    glUniformMatrix3fv(g_program.variables[1].location, 1, GL_TRUE, nMatrix);
+    passVariables(&g_program);
     
-    glUniform3fv(g_program.variables[2].location, 1, sun.position);
-    glUniform3fv(g_program.variables[3].location, 1, sun.color);
-    glUniform3fv(g_program.variables[4].location, 1, eye);
-    glUniform1f(g_program.variables[5].location,dmin);
-    glUniform1f(g_program.variables[6].location, sfoc);
-    glUniform1i(g_program.variables[7].location, sun.enabled);
+    g_program.variables[0].value = NULL;
+    g_program.variables[1].value = NULL;
     
     for (int i = 0; i < g_program.textureCount; i += 1) {
         glActiveTexture(GL_TEXTURE0 + i);
@@ -185,25 +173,34 @@ void cleanup() {
 }
 
 bool handleArguments(int argc, char** argv) {
+    printf("Parsing console arguments (total count - %i)\n", argc);
     for (int i = 0; i < argc; i += 1) {
         if (strcmp(argv[i], "--projection") == 0 || strcmp(argv[i], "-p") == 0) {
             sscanf(argv[i + 1], "%i", &projection);
             i += 1;
-        } else if (strcmp(argv[i], "--shaders") == 0 && pathToShadersDefinition == NULL) {
+        } else if ((strcmp(argv[i], "-s") == 0 || (strcmp(argv[i], "--shaders") == 0)) && pathToShadersDefinition == NULL) {
             pathToShadersDefinition = argv[i + 1];
+            printf("Defined path to shaders configuration: %s\n", pathToShadersDefinition);
+            i += 1;
+        } else if (strcmp(argv[i], "-v") == 0 ||(strcmp(argv[i], "--variables") == 0) && pathToVariablesDefinition == NULL) {
+            pathToVariablesDefinition = argv[i + 1];
+            printf("Defined path to variables configuration: %s\n", pathToVariablesDefinition);
             i += 1;
         } else if (strcmp(argv[i], "--heightmap") == 0 && pathToHeightmap == NULL) {
             pathToHeightmap = argv[i + 1];
+            printf("Defined path to heightmap: %s\n", pathToHeightmap);
             i += 1;
-        } else if (strcmp(argv[i], "--textures") == 0 && pathToTexturesDefinition == NULL) {
+        } else if ((strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "--textures") == 0) && pathToTexturesDefinition == NULL) {
             pathToTexturesDefinition = argv[i + 1];
+            printf("Defined path to textures configuration: %s\n", pathToTexturesDefinition);
             i += 1;
         } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
             printf("Following flags are supported:\n");
             printf("\t--projection / -p - projection (0 - perspective, 1 - parallel), default is parallel\n");
-            printf("\t--shaders <path to file> - path to shader list definition (required)\n");
+            printf("\t--shaders / -s <path to file> - path to shader list definition (required)\n");
+            printf("\t--variables / -v <path to file> - path to variable definition list\n");
             printf("\t--heightmap <path to file> - path to heightmap (required), JPEG and PNG files supported\n");
-            printf("\t--textures <path to file> - path to texture definition list\n");
+            printf("\t--textures / -t <path to file> - path to texture definition list\n");
             printf("\t--h - specify height multiplier for a heightmap\n");
             printf("\t--help / -h - print help\n");
             printf("Controls:\n\tLeft/Right Arrows: rotate about Y axis;\n\tUp/Down Arrows: rotate about X axis;\n\tW/S Keys: rotate about Z axis;\n");
@@ -230,7 +227,7 @@ bool handleArguments(int argc, char** argv) {
 
 void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_Q && action != GLFW_RELEASE) {
-        sun.enabled = !sun.enabled;
+        //TODO: switch lighting state
     }
 }
 

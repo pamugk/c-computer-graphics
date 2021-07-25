@@ -7,6 +7,7 @@ struct model g_model;
 char *pathToShadersDefinition = NULL;
 char *pathToHeightmap = NULL;
 char *pathToTexturesDefinition = NULL;
+char *pathToVariablesDefinition = NULL;
 
 float v[MVP_MATRIX_SIZE];
 
@@ -22,17 +23,19 @@ int projection = 1;
 struct attribute *allocDefaultAttributes(int *out_count) {
     *out_count = 3;
     struct attribute *attributes = calloc(*out_count, sizeof(struct attribute));
-	attributes[0].size = 3, attributes[0].type = GL_FLOAT, attributes[0].normalized = GL_FALSE;
-	attributes[1].size = 2, attributes[1].type = GL_FLOAT, attributes[1].normalized = GL_FALSE;
-	attributes[2].size = 1, attributes[2].type = GL_INT, attributes[2].normalized = GL_FALSE;
+    attributes[0] = (struct attribute) { 3, GL_FLOAT, GL_FALSE };
+    attributes[1] = (struct attribute) { 2, GL_FLOAT, GL_FALSE };
+    attributes[2] = (struct attribute) { 1, GL_INT, GL_FALSE };
 	printf("Allocated default attributes\n");
 	return attributes;
 }
 
-struct variable *initVariables(int *variablesCount) {
-    *variablesCount = 1;
-    struct variable *variables = calloc(*variablesCount, sizeof(struct variable));
-    variables[0].name = "u_mvp";
+struct shader_variable *initVariables(int *variablesCount) {
+    struct shader_variable *variables = loadShaderVariables(pathToVariablesDefinition, 1, variablesCount);
+    
+    char *mvpVarName = calloc(5 + 1, sizeof(char)); strcpy(mvpVarName, "u_mvp");
+    variables[0] = (struct shader_variable){ -1, mvpVarName, GL_FLOAT_MAT4, GL_FALSE, NULL };
+    
     return variables;
 }
 
@@ -42,7 +45,7 @@ bool initShaderProgram() {
     struct shader *shaders = loadShaders(pathToShadersDefinition, &shadersCount);
     
     int variablesCount;
-    struct variable *variables = initVariables(&variablesCount);
+    struct shader_variable *variables = initVariables(&variablesCount);
     
     int textureCount;
     struct texture *textures = loadTextures(pathToTexturesDefinition, &textureCount);
@@ -108,7 +111,12 @@ void draw() {
     }
     
     float mvp[MVP_MATRIX_SIZE]; multiplyMatrices(p, mv, &mvp);
-    glUniformMatrix4fv(g_program.variables[0].location, 1, GL_FALSE, mvp);
+    
+    g_program.variables[0].value = (unsigned char *)mvp;
+    
+    passVariables(&g_program);
+    
+    g_program.variables[0].value = NULL;
     
     for (int i = 0; i < g_program.textureCount; i += 1) {
         glActiveTexture(GL_TEXTURE0 + i);
@@ -160,21 +168,29 @@ bool handleArguments(int argc, char** argv) {
         if (strcmp(argv[i], "--projection") == 0 || strcmp(argv[i], "-p") == 0) {
             sscanf(argv[i + 1], "%i", &projection);
             i += 1;
-        } else if (strcmp(argv[i], "--shaders") == 0 && pathToShadersDefinition == NULL) {
+        } else if ((strcmp(argv[i], "-s") == 0 || (strcmp(argv[i], "--shaders") == 0)) && pathToShadersDefinition == NULL) {
             pathToShadersDefinition = argv[i + 1];
+            printf("Defined path to shaders configuration: %s\n", pathToShadersDefinition);
+            i += 1;
+        } else if (strcmp(argv[i], "-v") == 0 ||(strcmp(argv[i], "--variables") == 0) && pathToVariablesDefinition == NULL) {
+            pathToVariablesDefinition = argv[i + 1];
+            printf("Defined path to variables configuration: %s\n", pathToVariablesDefinition);
             i += 1;
         } else if (strcmp(argv[i], "--heightmap") == 0 && pathToHeightmap == NULL) {
             pathToHeightmap = argv[i + 1];
+            printf("Defined path to heightmap: %s\n", pathToHeightmap);
             i += 1;
-        } else if (strcmp(argv[i], "--textures") == 0 && pathToTexturesDefinition == NULL) {
+        } else if ((strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "--textures") == 0) && pathToTexturesDefinition == NULL) {
             pathToTexturesDefinition = argv[i + 1];
+            printf("Defined path to textures configuration: %s\n", pathToTexturesDefinition);
             i += 1;
         } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
             printf("Following flags are supported:\n");
             printf("\t--projection / -p - projection (0 - perspective, 1 - parallel), default is parallel\n");
-            printf("\t--shaders <path to file> - path to shader list definition (required)\n");
+            printf("\t--shaders / -s <path to file> - path to shader list definition (required)\n");
+            printf("\t--variables / -v <path to file> - path to variable definition list\n");
             printf("\t--heightmap <path to file> - path to heightmap (required), JPEG and PNG files supported\n");
-            printf("\t--textures <path to file> - path to texture definition list\n");
+            printf("\t--textures / -t <path to file> - path to texture definition list\n");
             printf("\t--h - specify height multiplier for a heightmap\n");
             printf("\t--help / -h - print help\n");
             printf("Controls:\n\tLeft/Right Arrows: rotate about Y axis;\n\tUp/Down Arrows: rotate about X axis;\n\tW/S Keys: rotate about Z axis;\n");

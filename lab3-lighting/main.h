@@ -1,6 +1,5 @@
 #include "../shared/model.h"
 #include "../shared/commonutils.h"
-#include "../shared/lightsource.h"
 #include "../shared/shaderprogram.h"
 #include "../shared/mvpmatrix.h"
 

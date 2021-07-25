@@ -6,9 +6,12 @@
 
 #include <GL/glew.h>
 
-struct variable {
+struct shader_variable {
     GLint location;
-    const char *name;
+    char *name;
+    GLenum type;
+    GLboolean normalize;
+    unsigned char *value;
 };
 
 struct shader_program {
@@ -18,7 +21,7 @@ struct shader_program {
     struct shader *shaders;
 
     int variablesCount;
-    struct variable *variables;
+    struct shader_variable *variables;
 
     int textureCount;
     struct texture *textures;
@@ -26,8 +29,11 @@ struct shader_program {
 
 struct shader_program createProgram(
     int shaderCount, struct shader *shaders, 
-    int variablesCount, struct variable *variables,
+    int variablesCount, struct shader_variable *variables,
     int textureCount, struct texture *textures);
+
+void passVariables(struct shader_program *program);
+
 void freeProgram(struct shader_program *program);
 
 #endif //SHADER_PROGRAM
