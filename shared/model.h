@@ -34,8 +34,6 @@ struct model {
     float m[16];
 };
 
-struct attribute *allocDefaultAttributes(int *out_count);
-struct attribute *allocDefaultTexturedAttributes(int *out_count);
 bool makeIndices(struct body physicalBody, unsigned long *out_indexCount, GLuint **out_indices);
 struct model createModel(struct body physicalBody,
     int attributesCount, struct attribute *attributes,

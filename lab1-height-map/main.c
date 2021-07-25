@@ -18,6 +18,15 @@ float degree;
 
 int projection = 1;
 
+struct attribute *allocDefaultAttributes(int *out_count) {
+    *out_count = 2;
+    struct attribute *attributes = calloc(*out_count, sizeof(struct attribute));
+	attributes[0].size = 3, attributes[0].type = GL_FLOAT, attributes[0].normalized = GL_FALSE;
+	attributes[1].size = 3, attributes[1].type = GL_FLOAT, attributes[1].normalized = GL_FALSE;
+	printf("Allocated default attributes\n");
+	return attributes;
+}
+
 struct variable *initVariables(int *variablesCount) {
     *variablesCount = 1;
     struct variable *variables = calloc(*variablesCount, sizeof(struct variable));

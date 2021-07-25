@@ -19,6 +19,12 @@ float degree;
 
 int projection = 1;
 
+// Освещение
+struct light_source sun = { {1.f, 1.f, 1.f}, { 1.f, 1.f, 1.f }, true };
+GLfloat dmin = 0.5f;
+GLfloat sfoc = 4.0f;
+GLfloat eye[3] = { 0.f, 0.f, 0.f };
+
 struct attribute *allocDefaultAttributes(int *out_count) {
     *out_count = 3;
     struct attribute *attributes = calloc(*out_count, sizeof(struct attribute));
@@ -30,9 +36,18 @@ struct attribute *allocDefaultAttributes(int *out_count) {
 }
 
 struct variable *initVariables(int *variablesCount) {
-    *variablesCount = 1;
+    *variablesCount = 8;
     struct variable *variables = calloc(*variablesCount, sizeof(struct variable));
-    variables[0].name = "u_mvp";
+    variables[0].name = "u_mvp"; // MVP-матрица
+    variables[1].name = "u_n"; // Матрица нормалей
+    
+    variables[2].name = "u_olpos"; // Позиция источника света
+    variables[3].name = "u_olcol"; // Цвет света
+    variables[4].name = "u_oeye"; // Позиция наблюдателя
+    variables[5].name = "u_odmin";// Минимально допустимый уровень освещённости объекта в точке P
+    variables[6].name = "u_osfoc"; // сфокусированность зеркального блика на поверхности освещаемого объекта в точке P 
+    variables[7].name = "u_lie"; // Признак использования модели освещения (вкл. / выкл.)
+    
     return variables;
 }
 
@@ -108,7 +123,18 @@ void draw() {
     }
     
     float mvp[MVP_MATRIX_SIZE]; multiplyMatrices(p, mv, &mvp);
+    float nMatrix[N_MATRIX_SIZE]; buildNMatrix(mv, &nMatrix);
+    
+    
     glUniformMatrix4fv(g_program.variables[0].location, 1, GL_FALSE, mvp);
+    glUniformMatrix3fv(g_program.variables[1].location, 1, GL_TRUE, nMatrix);
+    
+    glUniform3fv(g_program.variables[2].location, 1, sun.position);
+    glUniform3fv(g_program.variables[3].location, 1, sun.color);
+    glUniform3fv(g_program.variables[4].location, 1, eye);
+    glUniform1f(g_program.variables[5].location,dmin);
+    glUniform1f(g_program.variables[6].location, sfoc);
+    glUniform1i(g_program.variables[7].location, sun.enabled);
     
     for (int i = 0; i < g_program.textureCount; i += 1) {
         glActiveTexture(GL_TEXTURE0 + i);
@@ -118,6 +144,8 @@ void draw() {
     
 	glDrawElements(GL_TRIANGLES, g_model.indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);
 }
+
+void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 bool initOpenGL() {
     if (!glfwInit()) {
@@ -130,7 +158,7 @@ bool initOpenGL() {
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	g_window = glfwCreateWindow(1024, 768, "Textures demonstration", NULL, NULL);
+	g_window = glfwCreateWindow(1024, 768, "Lighting demonstration", NULL, NULL);
     if (g_window == NULL) {
 		printf("Failed to open GLFW window\n");
 		glfwTerminate();
@@ -146,6 +174,7 @@ bool initOpenGL() {
 
     glfwSetFramebufferSizeCallback(g_window, reshape);
     glfwSetInputMode(g_window, GLFW_STICKY_KEYS, GL_TRUE);
+    glfwSetKeyCallback(g_window, onKeyPress);
     return true;
 }
 
@@ -197,6 +226,12 @@ bool handleArguments(int argc, char** argv) {
     }
     
     return true;
+}
+
+void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_Q && action != GLFW_RELEASE) {
+        sun.enabled = !sun.enabled;
+    }
 }
 
 void checkInput() {
