@@ -11,6 +11,7 @@ struct texture_parameter {
         GLenum enumValue;
         GLint intValue;
         GLfloat floatValue;
+        GLfloat floatVec3Value[3];
     } value;
 };
 

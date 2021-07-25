@@ -1,6 +1,5 @@
 #include "commonutils.h"
 #include "image.h"
-#include "types.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -113,17 +112,21 @@ struct texture *loadTextures(const char *pathToTexturesDefinition,int *out_textu
             parameters[j].type = defineTextureParameterType(parameters[j].name);
             
             switch (parameters[j].type) {
-                case (OPEN_GL_INT): {
-                    fscanf(textureDefinitionFile, "%i", &parameters[i].value.intValue);
-                    break;
-                }
-                case (OPEN_GL_ENUM): {
+                case (0): {
                     fscanf(textureDefinitionFile, "%s", parameterEnumValue);
                     parameters[i].value.enumValue = parseTextureParameterEnumValue(parameterEnumValue);
                     break;
                 }
-                case (OPEN_GL_FLOAT): {
+                case (GL_INT): {
+                    fscanf(textureDefinitionFile, "%i", &parameters[i].value.intValue);
+                    break;
+                }
+                case (GL_FLOAT): {
                     fscanf(textureDefinitionFile, "%f", &parameters[i].value.floatValue);
+                    break;
+                }
+                case (GL_FLOAT_VEC3): {
+                    fscanf(textureDefinitionFile, "%f%f%f", parameters[i].value.floatVec3Value, parameters[i].value.floatVec3Value + 1, parameters[i].value.floatVec3Value + 2);
                     break;
                 }
             }

@@ -98,7 +98,7 @@ void draw() {
     float mvp[MVP_MATRIX_SIZE]; multiplyMatrices(p, mv, &mvp);
     glUniformMatrix4fv(g_program.variables[0].location, 1, GL_FALSE, mvp);
     
-	glDrawElements(GL_TRIANGLES, g_model.index_count, GL_UNSIGNED_INT, (const GLvoid *)0);
+	glDrawElements(GL_TRIANGLES, g_model.indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);
 }
 
 bool initOpenGL() {

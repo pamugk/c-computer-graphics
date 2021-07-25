@@ -1,5 +1,4 @@
 #include "texture.h"
-#include "types.h"
 #include "image.h"
 
 #include <stdio.h>
@@ -84,17 +83,17 @@ int defineTextureParameterType(GLenum parameterName) {
     if (parameterName == GL_TEXTURE_BASE_LEVEL
         || parameterName == GL_TEXTURE_MAX_LEVEL
     ) {
-        return OPEN_GL_INT;
+        return GL_INT;
     } else if (parameterName == GL_TEXTURE_LOD_BIAS
         || parameterName == GL_TEXTURE_MIN_LOD
         || parameterName == GL_TEXTURE_MAX_LOD
     ) {
-        return OPEN_GL_FLOAT;
+        return GL_FLOAT;
     } else if (parameterName == GL_TEXTURE_BORDER_COLOR) {
-        return OPEN_GL_COLOR;
+        return GL_FLOAT_VEC3;
     }
         
-    return OPEN_GL_ENUM;
+    return 0;
 }
 
 GLint parseTextureParameterEnumValue(const char *parameterValue) {
@@ -201,16 +200,20 @@ struct texture loadTexture(
     glTexImage2D(target, 0, GL_RGBA, result.width, result.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
     for (int i = 0; i < parametersCount; i += 1) {
         switch (parameters[i].type) {
-            case (OPEN_GL_INT): {
-                glTexParameteri(target, parameters[i].name, parameters[i].value.intValue);
-                break;
-            }
-            case (OPEN_GL_ENUM): {
+            case (0): {
                 glTexParameteri(target, parameters[i].name, parameters[i].value.enumValue);
                 break;
             }
-            case (OPEN_GL_FLOAT): {
+            case (GL_INT): {
+                glTexParameteri(target, parameters[i].name, parameters[i].value.intValue);
+                break;
+            }
+            case (GL_FLOAT): {
                 glTexParameterf(target, parameters[i].name, parameters[i].value.floatValue);
+                break;
+            }
+            case (GL_FLOAT_VEC3): {
+                glTexParameterfv(target, parameters[i].name, parameters[i].value.floatVec3Value);
                 break;
             }
         }
