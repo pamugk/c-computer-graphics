@@ -65,7 +65,7 @@ struct shader *loadShaders(const char *pathToShadersDefinition,int *out_shadersC
     struct shader *shaders = calloc(*out_shadersCount, sizeof(struct shader));
     
     if (shaders == NULL) {
-        printf("Not enought memory to allocate shader list\n");
+        printf("Not enough memory to allocate shader list\n");
         return NULL;
     }
     

@@ -114,7 +114,7 @@ void draw() {
     }
     
     multiplyMatrices(p, mv, &g_program.variables[0].value.floatMat4Val);
-    buildNMatrix(mv, &g_program.variables[0].value.floatMat3Val);
+    buildNMatrix(mv, &g_program.variables[1].value.floatMat3Val);
     
     passVariables(&g_program);
     
