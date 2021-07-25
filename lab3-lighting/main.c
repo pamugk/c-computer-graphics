@@ -24,9 +24,9 @@ int projection = 1;
 struct attribute *allocDefaultAttributes(int *out_count) {
     *out_count = 3;
     struct attribute *attributes = calloc(*out_count, sizeof(struct attribute));
-	attributes[0].size = 3, attributes[0].type = GL_FLOAT, attributes[0].normalized = GL_FALSE;
-	attributes[1].size = 2, attributes[1].type = GL_FLOAT, attributes[1].normalized = GL_FALSE;
-	attributes[2].size = 1, attributes[2].type = GL_INT, attributes[2].normalized = GL_FALSE;
+	attributes[0] = (struct attribute) { 3, GL_FLOAT, GL_FALSE };
+    attributes[1] = (struct attribute) { 2, GL_FLOAT, GL_FALSE };
+    attributes[2] = (struct attribute) { 1, GL_INT, GL_FALSE };
 	printf("Allocated default attributes\n");
 	return attributes;
 }
@@ -34,10 +34,10 @@ struct attribute *allocDefaultAttributes(int *out_count) {
 struct shader_variable *initVariables(int *variablesCount) {
     struct shader_variable *variables = loadShaderVariables(pathToVariablesDefinition, 2, variablesCount);
     char *mvpVarName = calloc(5 + 1, sizeof(char)); strcpy(mvpVarName, "u_mvp");
-    variables[0] = (struct shader_variable){ -1, mvpVarName, GL_FLOAT_MAT4, GL_FALSE, NULL }; // MVP-матрица
+    variables[0] = (struct shader_variable){ -1, mvpVarName, GL_FLOAT_MAT4, GL_FALSE, 0 }; // MVP-матрица
     
     char *nVarName = calloc(3 + 1, sizeof(char)); strcpy(nVarName, "u_n");
-    variables[1] = (struct shader_variable){ -1, nVarName, GL_FLOAT_MAT3, GL_TRUE, NULL }; // Матрица нормалей
+    variables[1] = (struct shader_variable){ -1, nVarName, GL_FLOAT_MAT3, GL_TRUE, 0 }; // Матрица нормалей
     
     return variables;
 }
@@ -113,16 +113,10 @@ void draw() {
         getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1.f, 1.f, 45.f, &p);
     }
     
-    float mvp[MVP_MATRIX_SIZE]; multiplyMatrices(p, mv, &mvp);
-    float nMatrix[N_MATRIX_SIZE]; buildNMatrix(mv, &nMatrix);
-    
-    g_program.variables[0].value = (unsigned char *)mvp;
-    g_program.variables[1].value = (unsigned char *)nMatrix;
+    multiplyMatrices(p, mv, &g_program.variables[0].value.floatMat4Val);
+    buildNMatrix(mv, &g_program.variables[0].value.floatMat3Val);
     
     passVariables(&g_program);
-    
-    g_program.variables[0].value = NULL;
-    g_program.variables[1].value = NULL;
     
     for (int i = 0; i < g_program.textureCount; i += 1) {
         glActiveTexture(GL_TEXTURE0 + i);

@@ -56,8 +56,6 @@ struct shader_program createProgram(
             
             if (variables[i].location == -1) {
                 printf("Variable '%s' not found in program №%i\n", variables[i].name, program.id);
-            } else {
-                printf("Successfully linked variable %s\n", variables[i].name);
             }
         }
     }
@@ -86,52 +84,53 @@ struct shader_program createProgram(
 void passVariable(struct shader_variable *var) {
     switch (var->type) {
         case GL_BOOL: {
-            glUniform1i(var->location, *(const GLboolean *)var->value);
+            glUniform1i(var->location, var->value.intVal);
             break;
         }
         case GL_INT: {
-            glUniform1i(var->location, *(const GLint *)var->value);
+            glUniform1i(var->location, var->value.intVal);
             break;
         }
         case GL_INT_VEC2: {
-            glUniform2iv(var->location, var->normalize, (const GLint *)var->value);
+            glUniform2iv(var->location, var->normalize, var->value.intVec2Val);
             break;
         }
         case GL_INT_VEC3: {
-            glUniform3iv(var->location, var->normalize, (const GLint *)var->value);
+            glUniform3iv(var->location, var->normalize, var->value.intVec3Val);
             break;
         }
         case GL_INT_VEC4: {
-            glUniform4iv(var->location, var->normalize, (const GLint *)var->value);
+            glUniform4iv(var->location, var->normalize, var->value.intVec4Val);
             break;
         }
         
         case GL_FLOAT: {
-            glUniform1f(var->location, *(const GLfloat *)var->value);
+            glUniform1f(var->location, var->value.floatVal);
+            break;
         }
         case GL_FLOAT_VEC2: {
-            glUniform2fv(var->location, var->normalize, (const GLfloat *)var->value);
+            glUniform2fv(var->location, var->normalize, var->value.floatVec2Val);
             break;
         }
         case GL_FLOAT_VEC3: {
-            glUniform3fv(var->location, var->normalize, (const GLfloat *)var->value);
+            glUniform3fv(var->location, var->normalize, var->value.floatVec3Val);
             break;
         }
         case GL_FLOAT_VEC4: {
-            glUniform4fv(var->location, var->normalize, (const GLfloat *)var->value);
+            glUniform4fv(var->location, var->normalize, var->value.floatVec4Val);
             break;
         }
         
         case GL_FLOAT_MAT2: {
-            glUniformMatrix2fv(var->location, 1, var->normalize, (const GLfloat *)var->value);
+            glUniformMatrix2fv(var->location, 1, var->normalize, var->value.floatVec4Val);
             break;
         }
         case GL_FLOAT_MAT3: {
-            glUniformMatrix3fv(var->location, 1, var->normalize, (const GLfloat *)var->value);
+            glUniformMatrix3fv(var->location, 1, var->normalize, var->value.floatMat3Val);
             break;
         }
         case GL_FLOAT_MAT4: {
-            glUniformMatrix4fv(var->location, 1, var->normalize, (const GLfloat *)var->value);
+            glUniformMatrix4fv(var->location, 1, var->normalize, var->value.floatMat4Val);
             break;
         }
     }
@@ -146,9 +145,6 @@ void passVariables(struct shader_program *program) {
 void freeVariable(struct shader_variable *variable) {
     if (variable->name != NULL) {
         free(variable->name);
-    }
-    if (variable->value != NULL) {
-        free(variable->value);
     }
 }
 

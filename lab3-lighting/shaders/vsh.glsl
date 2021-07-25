@@ -16,7 +16,7 @@ void main()
 {
     v_texCoord = a_texCoord;
     v_texNum = a_texNum;
-    v_pos = a_position;
     v_normal = normalize(u_n * vec3(0.0, 1.0, 0.0));
+    v_pos = a_position;
     gl_Position = u_mvp * vec4(a_position, 1.0);
 }

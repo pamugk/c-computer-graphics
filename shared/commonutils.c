@@ -88,17 +88,15 @@ struct shader *loadShaders(const char *pathToShadersDefinition,int *out_shadersC
     return shaders;
 }
 
-void loadIntVector(FILE *inputFile, int vectorSize, GLint **out_vector) {
-    *out_vector = calloc(vectorSize, sizeof(GLint));
+void loadIntVector(FILE *inputFile, int vectorSize, GLint *out_vector) {
     for (int i = 0; i < vectorSize; i += 1) {
-        fscanf(inputFile, "%i", out_vector[0] + i);
+        fscanf(inputFile, "%i", out_vector + i);
     }
 }
 
-void loadFloatVector(FILE *inputFile, int vectorSize, GLfloat **out_vector) {
-    *out_vector = calloc(vectorSize, sizeof(GLfloat));
+void loadFloatVector(FILE *inputFile, int vectorSize, GLfloat *out_vector) {
     for (int i = 0; i < vectorSize; i += 1) {
-        fscanf(inputFile, "%f", out_vector[0] + i);
+        fscanf(inputFile, "%f", out_vector + i);
     }
 }
 
@@ -134,75 +132,71 @@ struct shader_variable *loadShaderVariables(const char *pathToVariablesDefinitio
     
     for (int i = reservedVarCount; i < *out_variablesCount; i += 1) {
         fscanf(variableDefinitionFile, "%ms%s", &variableName, variableTypeEnumValue);
-        variables[i] = (struct shader_variable) { -1, variableName, parseTypename(variableTypeEnumValue), GL_FALSE, NULL };
+        variables[i] = (struct shader_variable) { -1, variableName, parseTypename(variableTypeEnumValue), GL_FALSE, 0 };
         
         switch (variables[i].type) {
             case GL_BOOL: {
-                variables[i].value = malloc(sizeof(GLboolean));
-                fscanf(variableDefinitionFile, "%si", (GLboolean *)variables[i].value);
+                fscanf(variableDefinitionFile, "%i", &variables[i].value.intVal);
                 break;
             }
             
             case GL_INT: {
-                variables[i].value = malloc(sizeof(GLint));
-                fscanf(variableDefinitionFile, "%i", (GLint *)variables[i].value);
+                fscanf(variableDefinitionFile, "%i", &variables[i].value.intVal);
                 break;
             }
             case GL_INT_VEC2: {
-                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
-                loadIntVector(variableDefinitionFile, 2, (GLint**)&variables[i].value);
+                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
+                loadIntVector(variableDefinitionFile, 2,  variables[i].value.intVec2Val);
                 break;
             }
             case GL_INT_VEC3: {
-                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
-                loadIntVector(variableDefinitionFile, 3, (GLint**)&variables[i].value);
+                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
+                loadIntVector(variableDefinitionFile, 3,  variables[i].value.intVec3Val);
                 break;
             }
             case GL_INT_VEC4: {
                 fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
-                loadIntVector(variableDefinitionFile, 4, (GLint**)&variables[i].value);
+                loadIntVector(variableDefinitionFile, 4, variables[i].value.intVec4Val);
                 break;
             }
             
             case GL_FLOAT: {
-                variables[i].value = malloc(sizeof(GLfloat));
-                fscanf(variableDefinitionFile, "%f", (GLfloat *)variables[i].value);
+                fscanf(variableDefinitionFile, "%f", &variables[i].value.floatVal);
                 break;
             }
             case GL_FLOAT_VEC2: {
-                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
-                loadFloatVector(variableDefinitionFile, 2, (GLfloat**)&variables[i].value);
+                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
+                loadFloatVector(variableDefinitionFile, 2, variables[i].value.floatVec2Val);
                 break;
             }
             case GL_FLOAT_VEC3: {
-                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
-                loadFloatVector(variableDefinitionFile, 3, (GLfloat**)&variables[i].value);
+                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
+                loadFloatVector(variableDefinitionFile, 3, variables[i].value.floatVec3Val);
                 break;
             }
             case GL_FLOAT_VEC4: {
-                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
-                loadFloatVector(variableDefinitionFile, 4, (GLfloat**)&variables[i].value);
+                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
+                loadFloatVector(variableDefinitionFile, 4, variables[i].value.floatVec4Val);
                 break;
             }
             
             case GL_FLOAT_MAT2: {
-                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
-                loadFloatVector(variableDefinitionFile, 4, (GLfloat**)&variables[i].value);
+                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
+                loadFloatVector(variableDefinitionFile, 4, variables[i].value.floatVec4Val);
                 break;
             }
             case GL_FLOAT_MAT3: {
-                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
-                loadFloatVector(variableDefinitionFile, 9, (GLfloat**)&variables[i].value);
+                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
+                loadFloatVector(variableDefinitionFile, 9, variables[i].value.floatMat3Val);
                 break;
             }
             case GL_FLOAT_MAT4: {
-                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
-                loadFloatVector(variableDefinitionFile, 16, (GLfloat**)&variables[i].value);
+                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
+                loadFloatVector(variableDefinitionFile, 16, variables[i].value.floatVec4Val);
                 break;
             }
         }
-        
-        printf("Parsed variable %s with type %s\n", variableName, variableTypeEnumValue);
+        variableName = NULL;
     }
     printf("Finished parsing variables definition\n");
     

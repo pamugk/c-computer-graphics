@@ -32,7 +32,7 @@ struct shader_variable *initVariables(int *variablesCount) {
     struct shader_variable *variables = loadShaderVariables(pathToVariablesDefinition, 1, variablesCount);
     
     char *mvpVarName = calloc(5 + 1, sizeof(char)); strcpy(mvpVarName, "u_mvp");
-    variables[0] = (struct shader_variable){ -1, mvpVarName, GL_FLOAT_MAT4, GL_FALSE, NULL };
+    variables[0] = (struct shader_variable){ -1, mvpVarName, GL_FLOAT_MAT4, GL_FALSE, 0 };
     
     return variables;
 }
@@ -98,13 +98,9 @@ void draw() {
         getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1.f, 1.f, 45.f, &p);
     }
     
-    float mvp[MVP_MATRIX_SIZE]; multiplyMatrices(p, mv, &mvp);
-    
-    g_program.variables[0].value = (unsigned char *)mvp;
+    multiplyMatrices(p, mv, &g_program.variables[0].value.floatMat4Val);
     
     passVariables(&g_program);
-    
-    g_program.variables[0].value = NULL;
     
 	glDrawElements(GL_TRIANGLES, g_model.indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);
 }
