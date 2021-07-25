@@ -226,15 +226,25 @@ struct texture *loadTextures(const char *pathToTexturesDefinition,int *out_textu
     printf("Started reading textures from %s\n", pathToTexturesDefinition);
     
     for (int i = 0; i < *out_textureCount; i += 1) {
-        char *pathToTexture = NULL;
+        char **pathsToTextures = NULL;
         GLchar *mapName = NULL;
-        int parametersCount, enableMipmap;
+        int parametersCount, enableMipmap, layersCount, width, height;
         
-        fscanf(textureDefinitionFile, "%ms%ms%s%i%i", &pathToTexture, &mapName, parameterEnumValue, &enableMipmap, &parametersCount);
+        fscanf(textureDefinitionFile, "%ms%s%i%i%i%i", &mapName, parameterEnumValue, &enableMipmap, &layersCount, &width, &height);
         
-        printf("Loading texture from %s with name '%s', kind %s and %i parameters\n", pathToTexture, mapName, parameterEnumValue, parametersCount);
+        printf("Loading texture with name '%s' and kind %s\n", mapName, parameterEnumValue);
         
         GLenum textureTarget = parseTextureTarget(parameterEnumValue);
+        
+        bool isArrayTexture = textureTarget == GL_TEXTURE_2D_ARRAY || textureTarget == GL_TEXTURE_2D_ARRAY;
+        
+        pathsToTextures = calloc(layersCount, sizeof(char*));
+        
+        for (int j = 0; j < layersCount; j += 1) {
+            fscanf(textureDefinitionFile, "%ms", pathsToTextures + j);
+        }
+        
+        fscanf(textureDefinitionFile, "%i", &parametersCount);
         
         struct texture_parameter *parameters = calloc(parametersCount, sizeof(struct texture_parameter));
         
@@ -264,11 +274,14 @@ struct texture *loadTextures(const char *pathToTexturesDefinition,int *out_textu
             }
         }
         
-        textures[i] = loadTexture(pathToTexture, i, parametersCount, textureTarget, enableMipmap, parameters);
+        textures[i] = loadTexture((const char**)pathsToTextures, i, layersCount, width, height, parametersCount, textureTarget, enableMipmap, parameters);
         textures[i].mapName = mapName;
         
-        if (pathToTexture != NULL) {
-            free(pathToTexture);
+        if (pathsToTextures != NULL) {
+            for (int j = 0; j < layersCount; j += 1) {
+                free(pathsToTextures[j]);
+            }
+            free(pathsToTextures);
         }
         
         if (parameters != NULL) {
@@ -291,8 +304,8 @@ void initBodyTextures(struct body *physicalBody, int offset) {
     
     printf("Started texture calculations for provided model\n");
     for (int i = 0; i < physicalBody->vertexSize * physicalBody->verticeCount; i += physicalBody->vertexSize) {
-        physicalBody->vertices[i + offset] = physicalBody->vertices[i];
-        physicalBody->vertices[i + offset + 1] = physicalBody->vertices[i + 2];
+        physicalBody->vertices[i + offset] = physicalBody->vertices[i] / 1024.f;
+        physicalBody->vertices[i + offset + 1] = physicalBody->vertices[i + 2] / 1024.f;
         ((int*)physicalBody->vertices)[i + offset + 2] = physicalBody->vertices[i + 1] >= 0.01;
     }
     printf("Completed texture calculations for provided model\n");

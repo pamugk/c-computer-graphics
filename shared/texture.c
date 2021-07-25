@@ -179,25 +179,88 @@ GLint parseTextureParameterEnumValue(const char *parameterValue) {
 }
 
 struct texture loadTexture(
-    const char *filePath, 
-    int textureOffset,
+    const char **filePath, 
+    int textureOffset, int layersCount,
+    int width, int height,
     int parametersCount,
     GLenum target, int generateMipmap,
     struct texture_parameter *parameters) {
-    struct image textureImage = readTexture(filePath);
     
-    struct texture result = { 0, -1, NULL, 0, 0, target };
-    if (textureImage.contents == NULL) {
-        printf("Some error occurred while reading a texture from %s\n", filePath);
-        return result;
+    struct texture result = { 0, -1, NULL, width, height, layersCount, target };
+    glGenTextures(1, &result.id);
+    glBindTexture(target, result.id);
+    
+    switch (target) {
+        case GL_TEXTURE_1D: {
+            struct image textureImage = readTexture(filePath[0]);
+            if (textureImage.contents == NULL) {
+                printf("Some error occurred while reading a texture from %s\n", filePath[0]);
+                return result;
+            }
+            result.width = textureImage.width; result.height = textureImage.height;
+            glTexImage1D(target, 0, GL_RGBA, result.width, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+            freeImage(&textureImage);
+            break;
+        }
+        case GL_TEXTURE_1D_ARRAY: {
+            glTextureStorage2D(result.id, 0, GL_RGBA16, width, layersCount);
+            
+            for (int i = 0; i < layersCount; i += 1) {
+                struct image textureImage = readTexture(filePath[i]);
+                if (textureImage.contents == NULL) {
+                    printf("Some error occurred while reading a texture from %s\n", filePath[i]);
+                    continue;
+                }
+                glTextureSubImage2D(result.id, 0, 0, i, width, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+                freeImage(&textureImage);
+            }
+            break;
+        }
+        case GL_TEXTURE_2D: {
+            struct image textureImage = readTexture(filePath[0]);
+            if (textureImage.contents == NULL) {
+                printf("Some error occurred while reading a texture from %s\n", filePath[0]);
+                return result;
+            }
+            result.width = textureImage.width; result.height = textureImage.height;
+            glTexImage2D(target, 0, GL_RGBA, result.width, result.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+            freeImage(&textureImage);
+            break;
+        }
+        case GL_TEXTURE_2D_ARRAY: {
+            glTexStorage3D(target, 1, GL_RGBA8, width, height, layersCount);
+            
+            for (int i = 0; i < layersCount; i += 1) {
+                struct image textureImage = readTexture(filePath[i]);
+                if (textureImage.contents == NULL) {
+                    printf("Some error occurred while reading a texture from %s\n", filePath[i]);
+                    continue;
+                }
+                glTextureSubImage3D(result.id, 0, 0, 0, i, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+                freeImage(&textureImage);
+            }
+            break;
+        }
+        case GL_TEXTURE_2D_MULTISAMPLE: {
+            break;
+        }
+        case GL_TEXTURE_2D_MULTISAMPLE_ARRAY: {
+            break;
+        }
+        case GL_TEXTURE_3D: {
+            break;
+        }
+        case GL_TEXTURE_CUBE_MAP: {
+            break;
+        }
+        case GL_TEXTURE_CUBE_MAP_ARRAY: {
+            break;
+        }
+        case GL_TEXTURE_RECTANGLE: {
+            break;
+        }
     }
     
-    result.width = textureImage.width;
-    result.height = textureImage.height;
-    
-    glGenTextures(1, &result.id);    
-    glBindTexture(target, result.id);
-    glTexImage2D(target, 0, GL_RGBA, result.width, result.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
     for (int i = 0; i < parametersCount; i += 1) {
         switch (parameters[i].type) {
             case (0): {
@@ -223,14 +286,11 @@ struct texture loadTexture(
     glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
     glTexParameterf(result.target, GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, fLargest);
 
-    
     if (generateMipmap) {
         glGenerateMipmap(target);
     }
     
     printf("Completed texture initialization\n");
-    
-    freeImage(&textureImage);
     
     return result;
 }

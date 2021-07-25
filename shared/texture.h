@@ -21,6 +21,7 @@ struct texture {
     GLchar *mapName;
     unsigned int width;
     unsigned int height;
+    unsigned int layersCount;
     GLenum target;
 };
 
@@ -33,8 +34,9 @@ int defineTextureParameterType(GLenum parameterName);
 GLint parseTextureParameterEnumValue(const char *parameterValue);
 
 struct texture loadTexture(
-    const char *filePath,
+    const char **filePaths,
     int textureOffset,
+    int layersCount, int width, int height,
     int parametersCount,
     GLenum target, int generateMipmap,
     struct texture_parameter *parameters);

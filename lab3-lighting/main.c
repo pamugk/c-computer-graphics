@@ -121,7 +121,7 @@ void draw() {
     
     for (int i = 0; i < g_program.textureCount; i += 1) {
         glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, g_program.textures[i].id);
+        glBindTexture(g_program.textures[i].target, g_program.textures[i].id);
         glUniform1i(g_program.textures[i].mapLocation, i);
     }
     
