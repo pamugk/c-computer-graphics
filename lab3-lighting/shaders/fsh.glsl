@@ -27,5 +27,11 @@ void main()
     vec3 e = normalize(u_oeye - v_pos); // Ось зрения наблюдателя
     float s = max(pow(dot(r, e), u_osfoc), 0.0) * (int(cosa >= 0.0)); // Коэффициент зеркального блика, при cosa < 0 обнуляется для устранения бликов на обратной источнику света стороне
     vec4 texColor = texture(u_map1, v_texCoord) * (1 - v_texNum) + texture(u_map2, v_texCoord) * (0 + v_texNum);
+    /*vec4 texColor;
+    if (v_texNum == 0) {
+        texColor = texture(u_map1, v_texCoord);
+    } else {
+        texColor = texture(u_map2, v_texCoord);
+    }*/
     o_color = int(u_lie) * vec4(u_olcol * (d * texColor.xyz + s), 1.0) + int(!u_lie) * texColor;
 }
