@@ -145,17 +145,14 @@ struct shader_variable *loadShaderVariables(const char *pathToVariablesDefinitio
                 break;
             }
             case GL_INT_VEC2: {
-                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
                 loadIntVector(variableDefinitionFile, 2,  variables[i].value.intVec2Val);
                 break;
             }
             case GL_INT_VEC3: {
-                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
                 loadIntVector(variableDefinitionFile, 3,  variables[i].value.intVec3Val);
                 break;
             }
             case GL_INT_VEC4: {
-                fscanf(variableDefinitionFile, "%si", &variables[i].normalize);
                 loadIntVector(variableDefinitionFile, 4, variables[i].value.intVec4Val);
                 break;
             }
@@ -165,33 +162,30 @@ struct shader_variable *loadShaderVariables(const char *pathToVariablesDefinitio
                 break;
             }
             case GL_FLOAT_VEC2: {
-                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
                 loadFloatVector(variableDefinitionFile, 2, variables[i].value.floatVec2Val);
                 break;
             }
             case GL_FLOAT_VEC3: {
-                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
                 loadFloatVector(variableDefinitionFile, 3, variables[i].value.floatVec3Val);
                 break;
             }
             case GL_FLOAT_VEC4: {
-                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
                 loadFloatVector(variableDefinitionFile, 4, variables[i].value.floatVec4Val);
                 break;
             }
             
             case GL_FLOAT_MAT2: {
-                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
+                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].transpose);
                 loadFloatVector(variableDefinitionFile, 4, variables[i].value.floatVec4Val);
                 break;
             }
             case GL_FLOAT_MAT3: {
-                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
+                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].transpose);
                 loadFloatVector(variableDefinitionFile, 9, variables[i].value.floatMat3Val);
                 break;
             }
             case GL_FLOAT_MAT4: {
-                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].normalize);
+                fscanf(variableDefinitionFile, "%i", (int*)&variables[i].transpose);
                 loadFloatVector(variableDefinitionFile, 16, variables[i].value.floatVec4Val);
                 break;
             }

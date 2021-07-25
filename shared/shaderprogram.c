@@ -92,15 +92,15 @@ void passVariable(struct shader_variable *var) {
             break;
         }
         case GL_INT_VEC2: {
-            glUniform2iv(var->location, var->normalize, var->value.intVec2Val);
+            glUniform2iv(var->location, 1, var->value.intVec2Val);
             break;
         }
         case GL_INT_VEC3: {
-            glUniform3iv(var->location, var->normalize, var->value.intVec3Val);
+            glUniform3iv(var->location, 1, var->value.intVec3Val);
             break;
         }
         case GL_INT_VEC4: {
-            glUniform4iv(var->location, var->normalize, var->value.intVec4Val);
+            glUniform4iv(var->location, 1, var->value.intVec4Val);
             break;
         }
         
@@ -109,28 +109,28 @@ void passVariable(struct shader_variable *var) {
             break;
         }
         case GL_FLOAT_VEC2: {
-            glUniform2fv(var->location, var->normalize, var->value.floatVec2Val);
+            glUniform2fv(var->location, 1, var->value.floatVec2Val);
             break;
         }
         case GL_FLOAT_VEC3: {
-            glUniform3fv(var->location, var->normalize, var->value.floatVec3Val);
+            glUniform3fv(var->location, 1, var->value.floatVec3Val);
             break;
         }
         case GL_FLOAT_VEC4: {
-            glUniform4fv(var->location, var->normalize, var->value.floatVec4Val);
+            glUniform4fv(var->location, 1, var->value.floatVec4Val);
             break;
         }
         
         case GL_FLOAT_MAT2: {
-            glUniformMatrix2fv(var->location, 1, var->normalize, var->value.floatVec4Val);
+            glUniformMatrix2fv(var->location, 1, var->transpose, var->value.floatVec4Val);
             break;
         }
         case GL_FLOAT_MAT3: {
-            glUniformMatrix3fv(var->location, 1, var->normalize, var->value.floatMat3Val);
+            glUniformMatrix3fv(var->location, 1, var->transpose, var->value.floatMat3Val);
             break;
         }
         case GL_FLOAT_MAT4: {
-            glUniformMatrix4fv(var->location, 1, var->normalize, var->value.floatMat4Val);
+            glUniformMatrix4fv(var->location, 1, var->transpose, var->value.floatMat4Val);
             break;
         }
     }

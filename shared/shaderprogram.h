@@ -10,7 +10,7 @@ struct shader_variable {
     GLint location;
     char *name;
     GLenum type;
-    GLboolean normalize;
+    GLboolean transpose;
     
     union {
         GLint intVal; GLfloat floatVal;
