@@ -310,18 +310,3 @@ void initBodyTextures(struct body *physicalBody, int offset) {
     }
     printf("Completed texture calculations for provided model\n");
 }
-
-void calculateBodyNormals(struct body *physicalBody, int offset) {
-    if (physicalBody->vertices == NULL) {
-        printf("No physical body provided\n");
-        return;
-    }
-    
-    printf("Started normals calculation for provided model\n");
-    for (int i = 0; i < physicalBody->vertexSize * physicalBody->verticeCount; i += physicalBody->vertexSize) {
-        physicalBody->vertices[i + offset] = 0.f;
-        physicalBody->vertices[i + offset + 1] = 1.f;
-        ((int*)physicalBody->vertices)[i + offset + 2] = 0.f;
-    }
-    printf("Completed texture calculation for provided model\n");
-}

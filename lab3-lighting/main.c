@@ -61,6 +61,7 @@ bool initShaderProgram() {
 bool initModel() {
     struct body body = initBodyWithHeightmap(pathToHeightmap, 6, h, false);
     initBodyTextures(&body, 3);
+    calculateModelNormals(&g_model, 6);
     
     int attributeCount = 0;
     struct attribute *attributes = allocDefaultAttributes(&attributeCount);
@@ -265,7 +266,7 @@ void checkInput() {
     }
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) {    
     if (!handleArguments(argc, argv)) {
         return 0;
     }

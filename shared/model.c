@@ -81,6 +81,42 @@ struct model createModel(struct body physicalBody,
     return result;
 }
 
+void calculateNormal(float pointA[3], float pointB[3], float pointC[3], float normal[3]) {
+    float AB[3] = { pointB[0] - pointA[0], pointB[1] - pointA[1], pointB[2] - pointA[2] };
+    float AC[3] = { pointC[0] - pointA[0], pointC[1] - pointA[1], pointC[2] - pointA[2] };
+    
+    normal[0] =  AB[1] * AC[2] - AC[1] * AB[2];
+    normal[1] = -AB[0] * AC[2] + AC[2] * AB[0];
+    normal[2] =  AB[0] * AC[1] - AC[0] * AB[1];
+}
+
+void calculateModelNormals(struct model *model, int offset) {
+    if (model->body.vertices == NULL) {
+        printf("No vertices provided\n");
+        return;
+    }
+    if (model->indices == NULL) {
+        printf("No indices provided\n");
+        return;
+    }
+    
+    printf("Started normals calculation for provided model\n");
+    float normal[3];
+    int pointAIdx, pointBIdx, pointCIdx;
+    for (int i = 0; i < model->indexCount; i += 3) {
+        pointAIdx = model->indices[i] * model->body.vertexSize;
+        pointBIdx = model->indices[i + 1] * model->body.vertexSize;
+        pointCIdx = model->indices[i + 2] * model->body.vertexSize;
+        
+        calculateNormal(model->body.vertices + pointAIdx, model->body.vertices + pointBIdx, model->body.vertices + pointCIdx, normal);
+        
+        model->body.vertices[pointAIdx + offset] += normal[0]; model->body.vertices[pointAIdx + offset + 1] += normal[1]; model->body.vertices[pointAIdx + offset + 2] += normal[2];
+        model->body.vertices[pointBIdx + offset] += normal[0]; model->body.vertices[pointBIdx + offset + 1] += normal[1]; model->body.vertices[pointBIdx + offset + 2] += normal[2];
+        model->body.vertices[pointCIdx + offset] += normal[0]; model->body.vertices[pointCIdx + offset + 1] += normal[1]; model->body.vertices[pointCIdx + offset + 2] += normal[2];
+    }
+    printf("Completed texture calculation for provided model\n");
+}
+
 void rotateModelAboutAxis(struct model *model, float degree) {
     float prevM[MVP_MATRIX_SIZE]; 
     memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);

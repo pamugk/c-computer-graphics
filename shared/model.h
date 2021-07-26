@@ -38,6 +38,7 @@ bool makeIndices(struct body physicalBody, unsigned long *out_indexCount, GLuint
 struct model createModel(struct body physicalBody,
     int attributesCount, struct attribute *attributes,
     unsigned long indexCount, GLuint *indices);
+void calculateModelNormals(struct model *model, int offset);
 
 void rotateModelAboutAxis(struct model *model, float degree);
 void rotateModel(struct model *model, float x, float y, float z, float degree);
