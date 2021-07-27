@@ -35,10 +35,9 @@ GLint parseTextureParameterEnumValue(const char *parameterValue);
 
 struct texture loadTexture(
     const char **filePaths,
-    int textureOffset,
     int layersCount, int width, int height,
-    int parametersCount,
     GLenum target, int generateMipmap,
+    int parametersCount,
     struct texture_parameter *parameters);
 
 void freeTexture(struct texture *texture);

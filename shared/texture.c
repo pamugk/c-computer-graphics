@@ -180,16 +180,16 @@ GLint parseTextureParameterEnumValue(const char *parameterValue) {
 
 struct texture loadTexture(
     const char **filePath, 
-    int textureOffset, int layersCount,
-    int width, int height,
-    int parametersCount,
+    int layersCount, int width, int height,
     GLenum target, int generateMipmap,
+    int parametersCount,
     struct texture_parameter *parameters) {
     
     struct texture result = { 0, -1, NULL, width, height, layersCount, target };
     glGenTextures(1, &result.id);
     glBindTexture(target, result.id);
     
+    printf("Started texture initialization\n");
     switch (target) {
         case GL_TEXTURE_1D: {
             struct image textureImage = readTexture(filePath[0]);
@@ -251,6 +251,16 @@ struct texture loadTexture(
             break;
         }
         case GL_TEXTURE_CUBE_MAP: {
+            printf("Loading cube map...\n");
+            for (int i = 0; i < layersCount; i += 1) {
+                struct image textureImage = readTexture(filePath[i]);
+                if (textureImage.contents == NULL) {
+                    printf("Some error occurred while reading a texture from %s\n", filePath[i]);
+                    continue;
+                }
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, textureImage.width, textureImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+                freeImage(&textureImage);
+            }
             break;
         }
         case GL_TEXTURE_CUBE_MAP_ARRAY: {
@@ -281,7 +291,7 @@ struct texture loadTexture(
             }
         }
     }
-    
+
     GLfloat fLargest;
     glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
     glTexParameterf(result.target, GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, fLargest);

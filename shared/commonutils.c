@@ -274,7 +274,7 @@ struct texture *loadTextures(const char *pathToTexturesDefinition,int *out_textu
             }
         }
         
-        textures[i] = loadTexture((const char**)pathsToTextures, i, layersCount, width, height, parametersCount, textureTarget, enableMipmap, parameters);
+        textures[i] = loadTexture((const char**)pathsToTextures, layersCount, width, height, textureTarget, enableMipmap, parametersCount, parameters);
         textures[i].mapName = mapName;
         
         if (pathsToTextures != NULL) {

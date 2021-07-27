@@ -34,6 +34,8 @@ struct model {
     float m[16];
 };
 
+void makeSkyModel(struct body *skyBody, GLuint **indices, struct attribute **attributes);
+
 bool makeIndices(struct body physicalBody, unsigned long *out_indexCount, GLuint **out_indices);
 struct model createModel(struct body physicalBody,
     int attributesCount, struct attribute *attributes,
