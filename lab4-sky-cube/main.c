@@ -99,7 +99,7 @@ bool initModel() {
     struct body skyBody; struct attribute *skyAttributes; GLuint *indices;
     makeSkyModel(&skyBody, &indices, &skyAttributes);
     g_skyModel = createModel(skyBody, 1, skyAttributes, 36, indices);
-    rotateModelAboutX(&g_skyModel, 45.f);
+    //rotateModelAboutX(&g_skyModel, 45.f);
     
     struct body body = initBodyWithHeightmap(pathToHeightmap, 6, h, false);
     initBodyTextures(&body, 3);
@@ -162,6 +162,7 @@ void draw() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(g_skyProgram.textures[0].target, g_skyProgram.textures[0].id);
     glUniform1i(g_skyProgram.textures[0].mapLocation, 0);
+    glDrawElements(GL_TRIANGLES, g_skyModel.indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);
     
 	glUseProgram(g_program.id);
     glEnable(GL_DEPTH_TEST);
