@@ -32,7 +32,7 @@ void makeSkyModel(struct body *skyBody, GLuint **indices, struct attribute **att
     printf("Initialized skybox\n");
 }
 
-bool makeIndices(struct body physicalBody, unsigned long *out_indexCount, GLuint **out_indices) {
+bool makeIndices(struct body physicalBody, GLsizei *out_indexCount, GLuint **out_indices) {
     if (physicalBody.width == 0 || physicalBody.depth == 0) {
         printf("Provided physical body is 0D\n");
         return false;
@@ -68,42 +68,49 @@ bool makeIndices(struct body physicalBody, unsigned long *out_indexCount, GLuint
     return true;
 }
 
-struct model createModel(struct body physicalBody,
-    int attributesCount, struct attribute *attributes,
-    unsigned long indexCount, GLuint *indices) {
-    GLuint vao = 0, vbo = 0, ibo = 0;
-    
-    if (physicalBody.vertices != NULL) {
-        glGenVertexArrays(1, &vao);
-        glBindVertexArray(vao);
-
-        glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, physicalBody.vertexSize * physicalBody.verticeCount * sizeof(GLfloat), physicalBody.vertices, GL_STATIC_DRAW);
-        
-        if (indices != NULL || makeIndices(physicalBody, &indexCount, &indices)) {
-            glGenBuffers(1, &ibo);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(GLuint), indices, GL_STATIC_DRAW);
-
-            if (attributes != NULL) {
-                unsigned int attributeShift = 0;
-                for (int i = 0; i < attributesCount; i += 1) {
-                    glEnableVertexAttribArray(i);
-                    glVertexAttribPointer(i, attributes[i].size, attributes[i].type, attributes[i].normalized, physicalBody.vertexSize * sizeof(GLfloat), (const GLvoid *)(attributeShift * sizeof(GLfloat)));
-                    attributeShift += attributes[i].size;
-                }
-            } else {
-                printf("No attributes provided\n");
-            }
-        } else {
-            printf("No indices provided\n");
-        }
-    } else {
+bool initModel(struct model *out_model) {
+    if (out_model->body.vertices == NULL) {
         printf("Provided physical body has no vertices, so no model won't be bound with OpenGL\n");
+        return false;
     }
+    
+    glGenVertexArrays(1, &out_model->vao);
+    glBindVertexArray(out_model->vao);
 
-    struct model result = { vbo, physicalBody, ibo, indices, indexCount, vao, attributes };
+    glGenBuffers(1, &out_model->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, out_model->vbo);
+    glBufferData(GL_ARRAY_BUFFER, out_model->body.vertexSize * out_model->body.verticeCount * sizeof(GLfloat), out_model->body.vertices, GL_STATIC_DRAW);
+        
+    if (out_model->indices == NULL && !makeIndices(out_model->body, &out_model->indexCount, &out_model->indices)) {
+        printf("No indices provided\n");
+        return false;
+    }
+    
+    glGenBuffers(1, &out_model->ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, out_model->ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, out_model->indexCount * sizeof(GLuint), out_model->indices, GL_STATIC_DRAW);
+
+    if (out_model->attributes == NULL) {
+        printf("No attributes provided\n");
+        return false;
+    }
+    
+    unsigned int attributeShift = 0;
+    for (int i = 0; i < out_model->attributesCount; i += 1) {
+        glEnableVertexAttribArray(i);
+        glVertexAttribPointer(i, out_model->attributes[i].size, out_model->attributes[i].type, out_model->attributes[i].normalized, out_model->body.vertexSize * sizeof(GLfloat), (const GLvoid *)(attributeShift * sizeof(GLfloat)));
+        attributeShift += out_model->attributes[i].size;
+    }
+    
+    return true;
+}
+
+struct model createModel(struct body physicalBody,
+    GLsizei attributesCount, struct attribute *attributes,
+    unsigned long indexCount, GLuint *indices) {
+    
+    struct model result = { 0, physicalBody, 0, indexCount, indices, 0, attributesCount, attributes };
+    
     getIdentityMatrix(&result.m);
     return result;
 }

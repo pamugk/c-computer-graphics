@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 struct attribute {
-    GLint size;
+    GLsizei size;
     GLenum type;
     GLboolean normalized;
 };
@@ -25,10 +25,11 @@ struct model {
     struct body body;
 
 	GLuint ibo; //IndexBufferObject - буфер индексов
-    GLuint *indices;
 	GLsizei indexCount; //Число индексов
+    GLuint *indices;
 
 	GLuint vao; //VertexArrayObject - настройки модели
+    GLsizei attributesCount;
     struct attribute *attributes;
     
     float m[16];
@@ -36,9 +37,11 @@ struct model {
 
 void makeSkyModel(struct body *skyBody, GLuint **indices, struct attribute **attributes);
 
-bool makeIndices(struct body physicalBody, unsigned long *out_indexCount, GLuint **out_indices);
+bool initModel(struct model *out_model);
+
+bool makeIndices(struct body physicalBody, GLsizei *out_indexCount, GLuint **out_indices);
 struct model createModel(struct body physicalBody,
-    int attributesCount, struct attribute *attributes,
+    GLsizei attributesCount, struct attribute *attributes,
     unsigned long indexCount, GLuint *indices);
 void calculateModelNormals(struct model *model, int offset);
 

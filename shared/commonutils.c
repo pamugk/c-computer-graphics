@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct body initBodyWithHeightmap(const char *pathToHeightmap, int vertexSize, float h, bool initializeColor) {
+struct body initBodyWithHeightmap(const char *pathToHeightmap, unsigned char vertexSize, float h, bool initializeColor) {
     struct body result = { 0U, 0U, vertexSize, 0U, NULL };
     
     if (vertexSize < 3) {
@@ -41,6 +41,52 @@ struct body initBodyWithHeightmap(const char *pathToHeightmap, int vertexSize, f
     }
         
     freeImage(&image);
+    
+    return result;
+}
+
+struct body initBodyWithTextfile(const char *pathToDefinition, unsigned char vertexSize, int *out_indexCount, GLuint **out_indices) {
+    struct body result = { 0U, 0U, vertexSize, 0U, NULL };
+    
+    if (pathToDefinition == NULL) {
+        printf("No path to model definition file was provided\n");
+        return result;
+    }
+    
+    FILE *definitionFile = fopen(pathToDefinition, "r");
+    if (definitionFile == NULL) {
+        printf("Model definition file can not be opened\n");
+        return result;
+    }
+    
+    unsigned char providedVertexSize = 0;
+    fscanf(definitionFile, "%i%i%hhi", &result.width, &result.depth, &providedVertexSize);
+    result.verticeCount = result.width * result.depth;
+    
+    if (providedVertexSize > vertexSize) {
+        printf("Provided via textfile vertex size is larger than provided by default, so some of the vertex data may be unused\n");
+        result.vertexSize = providedVertexSize;
+    }
+    
+    result.vertices = calloc(result.verticeCount * result.vertexSize, sizeof(GLfloat));
+    for (unsigned int i = 0; i < result.verticeCount * result.vertexSize; i += result.vertexSize) {
+        for (int j = 0; j < providedVertexSize; j += 1) {
+            fscanf(definitionFile, "%f", result.vertices + i + j);
+        }
+    }
+    
+    fscanf(definitionFile, "%i", out_indexCount);
+    *out_indices = calloc(*out_indexCount, sizeof(GLuint));
+    
+    if (*out_indexCount > 0 && *out_indices == NULL) {
+        printf("Not enough memory to allocate index array\n");
+    } else {
+        for (int i = 0; i < *out_indexCount; i += 1) {
+            fscanf(definitionFile, "%ui", out_indices[0] + i);
+        }
+    }
+    
+    fclose(definitionFile);
     
     return result;
 }
@@ -88,13 +134,13 @@ struct shader *loadShaders(const char *pathToShadersDefinition,int *out_shadersC
     return shaders;
 }
 
-void loadIntVector(FILE *inputFile, int vectorSize, GLint *out_vector) {
+void loadIntVec(FILE *inputFile, int vectorSize, GLint *out_vector) {
     for (int i = 0; i < vectorSize; i += 1) {
         fscanf(inputFile, "%i", out_vector + i);
     }
 }
 
-void loadFloatVector(FILE *inputFile, int vectorSize, GLfloat *out_vector) {
+void loadFloatVec(FILE *inputFile, int vectorSize, GLfloat *out_vector) {
     for (int i = 0; i < vectorSize; i += 1) {
         fscanf(inputFile, "%f", out_vector + i);
     }
@@ -145,15 +191,15 @@ struct shader_variable *loadShaderVariables(const char *pathToVariablesDefinitio
                 break;
             }
             case GL_INT_VEC2: {
-                loadIntVector(variableDefinitionFile, 2,  variables[i].value.intVec2Val);
+                loadIntVec(variableDefinitionFile, 2,  variables[i].value.intVec2Val);
                 break;
             }
             case GL_INT_VEC3: {
-                loadIntVector(variableDefinitionFile, 3,  variables[i].value.intVec3Val);
+                loadIntVec(variableDefinitionFile, 3,  variables[i].value.intVec3Val);
                 break;
             }
             case GL_INT_VEC4: {
-                loadIntVector(variableDefinitionFile, 4, variables[i].value.intVec4Val);
+                loadIntVec(variableDefinitionFile, 4, variables[i].value.intVec4Val);
                 break;
             }
             
@@ -162,31 +208,31 @@ struct shader_variable *loadShaderVariables(const char *pathToVariablesDefinitio
                 break;
             }
             case GL_FLOAT_VEC2: {
-                loadFloatVector(variableDefinitionFile, 2, variables[i].value.floatVec2Val);
+                loadFloatVec(variableDefinitionFile, 2, variables[i].value.floatVec2Val);
                 break;
             }
             case GL_FLOAT_VEC3: {
-                loadFloatVector(variableDefinitionFile, 3, variables[i].value.floatVec3Val);
+                loadFloatVec(variableDefinitionFile, 3, variables[i].value.floatVec3Val);
                 break;
             }
             case GL_FLOAT_VEC4: {
-                loadFloatVector(variableDefinitionFile, 4, variables[i].value.floatVec4Val);
+                loadFloatVec(variableDefinitionFile, 4, variables[i].value.floatVec4Val);
                 break;
             }
             
             case GL_FLOAT_MAT2: {
                 fscanf(variableDefinitionFile, "%i", (int*)&variables[i].transpose);
-                loadFloatVector(variableDefinitionFile, 4, variables[i].value.floatVec4Val);
+                loadFloatVec(variableDefinitionFile, 4, variables[i].value.floatVec4Val);
                 break;
             }
             case GL_FLOAT_MAT3: {
                 fscanf(variableDefinitionFile, "%i", (int*)&variables[i].transpose);
-                loadFloatVector(variableDefinitionFile, 9, variables[i].value.floatMat3Val);
+                loadFloatVec(variableDefinitionFile, 9, variables[i].value.floatMat3Val);
                 break;
             }
             case GL_FLOAT_MAT4: {
                 fscanf(variableDefinitionFile, "%i", (int*)&variables[i].transpose);
-                loadFloatVector(variableDefinitionFile, 16, variables[i].value.floatVec4Val);
+                loadFloatVec(variableDefinitionFile, 16, variables[i].value.floatVec4Val);
                 break;
             }
         }

@@ -2,21 +2,10 @@
 
 GLFWwindow *g_window;
 
-struct shader_program g_program;
-struct shader_program g_skyProgram;
-
-struct model g_surfaceModel;
-struct model g_skyModel;
-
-char *pathToShadersDefinition = NULL;
-char *pathToVariablesDefinition = NULL;
-
-char *pathToHeightmap = NULL;
-char *pathToTexturesDefinition = NULL;
+struct shader_program *g_programs;
+struct model *g_models;
 
 float v[MVP_MATRIX_SIZE];
-
-float h = 1.0f;
 
 const int countOfSpeeds = 9;
 float degrees[9];
@@ -63,7 +52,7 @@ struct attribute *allocDefaultAttributes(int *out_count) {
 }
 
 struct shader_variable *initVariables(int *variablesCount) {
-    struct shader_variable *variables = loadShaderVariables(pathToVariablesDefinition, 2, variablesCount);
+    struct shader_variable *variables = loadShaderVariables(NULL, 2, variablesCount);
     char *mvpVarName = calloc(5 + 1, sizeof(char)); strcpy(mvpVarName, "u_mvp");
     variables[0] = (struct shader_variable){ -1, mvpVarName, GL_FLOAT_MAT4, GL_FALSE, 0 }; // MVP-матрица
     
@@ -79,54 +68,54 @@ bool initShaderProgram() {
     struct shader_variable *skyVariables = calloc(1, sizeof(struct shader_variable));
     char *skyMVP = calloc(5 + 1, sizeof(char)); strcpy(skyMVP, "u_mvp");
     skyVariables[0] = (struct shader_variable){ 0, skyMVP, GL_FLOAT_MAT4, GL_FALSE };
-    g_skyProgram = createProgram(2, loadSkyShaders(), 1, skyVariables, 1, loadSkyTextures());
+    createProgram(2, loadSkyShaders(), 1, skyVariables, 1, loadSkyTextures());
     
     int shadersCount;
-    struct shader *shaders = loadShaders(pathToShadersDefinition, &shadersCount);
+    struct shader *shaders = loadShaders(NULL, &shadersCount);
     
     int variablesCount;
     struct shader_variable *variables = initVariables(&variablesCount);
     
     int textureCount;
-    struct texture *textures = loadTextures(pathToTexturesDefinition, &textureCount);
+    struct texture *textures = loadTextures(NULL, &textureCount);
     
-    g_program = createProgram(shadersCount, shaders, variablesCount, variables, textureCount, textures);
+    createProgram(shadersCount, shaders, variablesCount, variables, textureCount, textures);
     
-    return g_program.id != 0U;
+    return 0U != 0U;
 }
 
-bool initModel() {
+/*bool initModel() {
     struct body skyBody; struct attribute *skyAttributes; GLuint *indices;
     makeSkyModel(&skyBody, &indices, &skyAttributes);
-    g_skyModel = createModel(skyBody, 1, skyAttributes, 36, indices);
+    //g_skyModel = createModel(skyBody, 1, skyAttributes, 36, indices);
     //rotateModelAboutX(&g_skyModel, 45.f);
     
-    struct body body = initBodyWithHeightmap(pathToHeightmap, 6, h, false);
+    struct body body = initBodyWithHeightmap(NULL, 6, 0.f, false);
     initBodyTextures(&body, 3);
-    calculateModelNormals(&g_surfaceModel, 6);
+    calculateModelNormals(NULL, 6);
     
     int attributeCount = 0;
     struct attribute *attributes = allocDefaultAttributes(&attributeCount);
     
-	g_surfaceModel = createModel(body, attributeCount, attributes, 0, NULL);
+	createModel(body, attributeCount, attributes, 0, NULL);
     float movedMatrix[MVP_MATRIX_SIZE];
-    move(g_surfaceModel.m, g_surfaceModel.body.width / -2.f, 0.f, g_surfaceModel.body.depth / -2.f, &movedMatrix);
+    //move(g_surfaceModel.m, g_surfaceModel.body.width / -2.f, 0.f, g_surfaceModel.body.depth / -2.f, &movedMatrix);
     
-    unsigned int scaleFactor = g_surfaceModel.body.width > g_surfaceModel.body.depth ? g_surfaceModel.body.width : g_surfaceModel.body.depth;
+    //unsigned int scaleFactor = g_surfaceModel.body.width > g_surfaceModel.body.depth ? g_surfaceModel.body.width : g_surfaceModel.body.depth;
     scale(movedMatrix, 1.f / scaleFactor, 1.f, 1.f / scaleFactor, &g_surfaceModel.m);
     
-    return g_surfaceModel.body.vertices != NULL && g_surfaceModel.indices != NULL;
-}
+    return NULL != NULL && g_surfaceModel.indices != NULL;
+}*/
 
 bool init() {
     glClearColor(1.f, 1.f, 1.f, 1.f);
     glEnable(GL_DEPTH_TEST);
     
-    if (pathToTexturesDefinition != NULL) {
+    if (NULL != NULL) {
         glEnable(GL_TEXTURE_2D);
     }
     
-    return initShaderProgram() && initModel();
+    return initShaderProgram();
 }
 
 void initOptics() {
@@ -153,7 +142,7 @@ void draw() {
         getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1.f, 1.f, 45.f, &p);
     }
     
-	glUseProgram(g_skyProgram.id);
+	/*glUseProgram(g_skyProgram.id);
     glDisable(GL_DEPTH_TEST);
 	glBindVertexArray(g_skyModel.vao);
     float mv[MVP_MATRIX_SIZE]; multiplyMatrices(v, g_skyModel.m, &mv);
@@ -180,7 +169,7 @@ void draw() {
         glUniform1i(g_program.textures[i].mapLocation, i);
     }
     
-	glDrawElements(GL_TRIANGLES, g_surfaceModel.indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);
+	glDrawElements(GL_TRIANGLES, g_surfaceModel.indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);*/
 }
 
 void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -217,59 +206,31 @@ bool initOpenGL() {
 }
 
 void cleanup() {
-    freeProgram(&g_skyProgram);
+    /*freeProgram(&g_skyProgram);
     freeModel(&g_skyModel);
     freeProgram(&g_program);
-	freeModel(&g_surfaceModel);
+	freeModel(&g_surfaceModel);*/
 	glfwTerminate();
 }
 
 bool handleArguments(int argc, char** argv) {
     printf("Parsing console arguments (total count - %i)\n", argc);
     for (int i = 0; i < argc; i += 1) {
-        if (strcmp(argv[i], "--projection") == 0 || strcmp(argv[i], "-p") == 0) {
-            sscanf(argv[i + 1], "%i", &projection);
-            i += 1;
-        } else if ((strcmp(argv[i], "-s") == 0 || (strcmp(argv[i], "--shaders") == 0)) && pathToShadersDefinition == NULL) {
-            pathToShadersDefinition = argv[i + 1];
-            printf("Defined path to shaders configuration: %s\n", pathToShadersDefinition);
-            i += 1;
-        } else if (strcmp(argv[i], "-v") == 0 ||(strcmp(argv[i], "--variables") == 0) && pathToVariablesDefinition == NULL) {
-            pathToVariablesDefinition = argv[i + 1];
-            printf("Defined path to variables configuration: %s\n", pathToVariablesDefinition);
-            i += 1;
-        } else if (strcmp(argv[i], "--heightmap") == 0 && pathToHeightmap == NULL) {
-            pathToHeightmap = argv[i + 1];
-            printf("Defined path to heightmap: %s\n", pathToHeightmap);
-            i += 1;
-        } else if ((strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "--textures") == 0) && pathToTexturesDefinition == NULL) {
-            pathToTexturesDefinition = argv[i + 1];
-            printf("Defined path to textures configuration: %s\n", pathToTexturesDefinition);
-            i += 1;
-        } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+        if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
             printf("Following flags are supported:\n");
-            printf("\t--projection / -p - projection (0 - perspective, 1 - parallel), default is parallel\n");
-            printf("\t--shaders / -s <path to file> - path to shader list definition (required)\n");
-            printf("\t--variables / -v <path to file> - path to variable definition list\n");
-            printf("\t--heightmap <path to file> - path to heightmap (required), JPEG and PNG files supported\n");
-            printf("\t--textures / -t <path to file> - path to texture definition list\n");
-            printf("\t--h - specify height multiplier for a heightmap\n");
             printf("\t--help / -h - print help\n");
             printf("Controls:\n\tLeft/Right Arrows: rotate about Y axis;\n\tUp/Down Arrows: rotate about X axis;\n\tW/S Keys: rotate about Z axis;\n");
             printf("\t1-9: rotation speed selection.\n");
             return false;
-        } else if (strcmp(argv[i], "--h") == 0 && fabsf(h - 1.0f) < 0.0001f) {
-            sscanf(argv[i + 1], "%f", &h);
-            i += 1;
         }
     }
     
-    if (pathToShadersDefinition == NULL) {
+    if (NULL == NULL) {
         printf("No shader list definition was provided\n");
         return false;
     }
     
-    if (pathToHeightmap == NULL) {
+    if (NULL == NULL) {
         printf("No heightmap was provided\n");
         return false;
     }
