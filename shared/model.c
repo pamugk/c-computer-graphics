@@ -101,6 +101,7 @@ bool initModel(struct model *out_model) {
         glVertexAttribPointer(i, out_model->attributes[i].size, out_model->attributes[i].type, out_model->attributes[i].normalized, out_model->body.vertexSize * sizeof(GLfloat), (const GLvoid *)(attributeShift * sizeof(GLfloat)));
         attributeShift += out_model->attributes[i].size;
     }
+    getIdentityMatrix(&out_model->m);
     
     return true;
 }
@@ -110,8 +111,8 @@ struct model createModel(struct body physicalBody,
     unsigned long indexCount, GLuint *indices) {
     
     struct model result = { 0, physicalBody, 0, indexCount, indices, 0, attributesCount, attributes };
+    initModel(&result);
     
-    getIdentityMatrix(&result.m);
     return result;
 }
 
