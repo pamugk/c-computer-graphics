@@ -11,7 +11,8 @@ struct shader_program createProgram(
             0,
             shaderCount, shaders,
             variableCount, variables,
-            textureCount, textures
+            textureCount, textures,
+            0, NULL
     };
 
     printf("Creating shader program...\n");
@@ -179,5 +180,10 @@ void freeProgram(struct shader_program *program) {
         
         free(program->textures);
         program->textureCount = 0;
+    }
+    
+    if (program->modelsToRenderIdx != NULL) {
+        free(program->modelsToRenderIdx);
+        program->modelsToRenderCount = 0;
     }
 }

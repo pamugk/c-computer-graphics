@@ -1,6 +1,4 @@
-#include "../shared/model.h"
-#include "../shared/commonutils.h"
-#include "../shared/shaderprogram.h"
+#include "../shared/configuration.h"
 #include "../shared/mvpmatrix.h"
 
 #include <GL/glew.h>

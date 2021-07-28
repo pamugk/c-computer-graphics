@@ -125,14 +125,14 @@ void calculateNormal(float pointA[3], float pointB[3], float pointC[3], float no
 }
 
 void calculateModelNormals(struct model *model, int offset) {
-    /*if (model->body.vertices == NULL) {
+    if (model->body.vertices == NULL) {
         printf("No vertices provided\n");
         return;
     }
     if (model->indices == NULL) {
         printf("No indices provided\n");
         return;
-    }*/
+    }
     
     printf("Started normals calculation for provided model\n");
     float normal[3];

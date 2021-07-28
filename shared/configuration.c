@@ -18,60 +18,84 @@ void loadFloatVector(FILE *inputFile, int vectorSize, GLfloat *out_vector) {
     }
 }
 
-void parseVariableValue(FILE *configurationFile, struct shader_variable *variable) {
+void parseVariableValue(FILE *configurationFile, struct shader_variable *variable, bool readValue) {
     switch (variable->type) {
         case GL_BOOL: {
-            fscanf(configurationFile, "%i", &variable->value.intVal);
+            if (readValue) {
+                fscanf(configurationFile, "%i", &variable->value.intVal);
+            }
             break;
         }
                             
         case GL_INT: {
-            fscanf(configurationFile, "%i", &variable->value.intVal);
+            if (readValue) {
+                fscanf(configurationFile, "%i", &variable->value.intVal);
+            }
             break;
         }
         case GL_INT_VEC2: {
-            loadIntVector(configurationFile, 2, variable->value.intVec2Val);
+            if (readValue) {
+                loadIntVector(configurationFile, 2, variable->value.intVec2Val);
+            }
             break;
         }
         case GL_INT_VEC3: {
-            loadIntVector(configurationFile, 3, variable->value.intVec3Val);
+            if (readValue) {
+                loadIntVector(configurationFile, 3, variable->value.intVec3Val);
+            }
             break;
         }
         case GL_INT_VEC4: {
-            loadIntVector(configurationFile, 4, variable->value.intVec4Val);
+            if (readValue) {
+                loadIntVector(configurationFile, 4, variable->value.intVec4Val);
+            }
             break;
         }
                             
         case GL_FLOAT: {
-            fscanf(configurationFile, "%f", &variable->value.floatVal);
+            if (readValue) {
+                fscanf(configurationFile, "%f", &variable->value.floatVal);
+            }
             break;
         }
         case GL_FLOAT_VEC2: {
-            loadFloatVector(configurationFile, 2, variable->value.floatVec2Val);
+            if (readValue) {
+                loadFloatVector(configurationFile, 2, variable->value.floatVec2Val);
+            }
             break;
         }
         case GL_FLOAT_VEC3: {
-            loadFloatVector(configurationFile, 3, variable->value.floatVec3Val);
+            if (readValue) {
+                loadFloatVector(configurationFile, 3, variable->value.floatVec3Val);
+            }
             break;
         }
         case GL_FLOAT_VEC4: {
-            loadFloatVector(configurationFile, 4, variable->value.floatVec4Val);
+            if (readValue) {
+                loadFloatVector(configurationFile, 4, variable->value.floatVec4Val);
+            }
             break;
         }
                         
         case GL_FLOAT_MAT2: {
             fscanf(configurationFile, "%i", (int*)&variable->transpose);
-            loadFloatVector(configurationFile, 4, variable->value.floatVec4Val);
+            if (readValue) {
+                loadFloatVector(configurationFile, 4, variable->value.floatVec4Val);
+            }
             break;
         }
         case GL_FLOAT_MAT3: {
             fscanf(configurationFile, "%i", (int*)&variable->transpose);
-            loadFloatVector(configurationFile, 9, variable->value.floatMat3Val);
+            if (readValue) {
+                loadFloatVector(configurationFile, 9, variable->value.floatMat3Val);
+            }
             break;
         }
         case GL_FLOAT_MAT4: {
             fscanf(configurationFile, "%i", (int*)&variable->transpose);
-            loadFloatVector(configurationFile, 16, variable->value.floatVec4Val);
+            if (readValue) {
+                loadFloatVector(configurationFile, 16, variable->value.floatVec4Val);
+            }
             break;
         }
     }
@@ -159,7 +183,7 @@ bool parseShaderProgramConfig(FILE *configurationFile, struct shader_program *ou
             fscanf(configurationFile, "%i", &out_program->shaderCount);
             out_program->shaders = calloc(out_program->shaderCount, sizeof(struct shader));
             
-            if (out_program->shaders == NULL) {
+            if (out_program->shaderCount > 0 && out_program->shaders == NULL) {
                 printf("Not enough memory to allocate shaders definition\n");
                 noErrorsOccured = false;
             }
@@ -174,10 +198,12 @@ bool parseShaderProgramConfig(FILE *configurationFile, struct shader_program *ou
                 }
             }
         } else if (strcmp("variables:", section) == 0) {
-            fscanf(configurationFile, "%i", &out_program->variablesCount);
+            int reservedVariablesCount = 0;
+            fscanf(configurationFile, "%i%i", &reservedVariablesCount, &out_program->variablesCount);
+            out_program->variablesCount += reservedVariablesCount;
             out_program->variables = calloc(out_program->variablesCount, sizeof(struct shader_variable));
             
-            if (out_program->variables == NULL) {
+            if (out_program->variablesCount > 0 && out_program->variables == NULL) {
                 printf("Not enough memory to allocate variables definition\n");
                 noErrorsOccured = false;
                 continue;
@@ -187,18 +213,32 @@ bool parseShaderProgramConfig(FILE *configurationFile, struct shader_program *ou
                 fscanf(configurationFile, "%ms%s", &dynamicBuffer, staticBuffer);
                 out_program->variables[i] = (struct shader_variable) { -1, dynamicBuffer, parseTypename(staticBuffer), GL_FALSE, 0 };
                 dynamicBuffer = NULL;
+                parseVariableValue(configurationFile, out_program->variables + i, i >= reservedVariablesCount);
             }
         } else if(strcmp("textures:", section) == 0) {
             fscanf(configurationFile, "%i", &out_program->textureCount);
             out_program->textures = calloc(out_program->textureCount, sizeof(struct texture));
             
-            if (out_program->textures == NULL) {
-                printf("Not enough memory to allocate shaders definition\n");
+            if (out_program->textureCount > 0 && out_program->textures == NULL) {
+                printf("Not enough memory to allocate textures definition\n");
                 noErrorsOccured = false;
                 continue;
             }
             
             parseTexturesDefinition(configurationFile, out_program->textureCount, out_program->textures);
+        } else if (strcmp("models:", section) == 0) {
+            fscanf(configurationFile, "%i", &out_program->modelsToRenderCount);
+            out_program->modelsToRenderIdx = calloc(out_program->modelsToRenderCount, sizeof(int));
+            
+            if (out_program->modelsToRenderCount > 0 && out_program->modelsToRenderIdx == NULL) {
+                printf("Not enough memory to allocate shaders definition\n");
+                noErrorsOccured = false;
+                continue;
+            }
+            
+            for (int i = 0; i < out_program->modelsToRenderCount; i += 1) {
+                fscanf(configurationFile, "%i", out_program->modelsToRenderIdx + i);
+            }
         } else {
             printf("Unrecognized shader program configuration section: %s\n", section);
             noErrorsOccured = false;
@@ -226,6 +266,7 @@ bool parseShaderProgramsConfig(FILE *configurationFile, unsigned int *out_shader
     
     bool noErrorsOccured = true;
     for (int i = 0; i < *out_shaderProgramsCount && noErrorsOccured; i += 1) {
+        (*out_programs)[i] = (struct shader_program) { 0U, 0, NULL, 0, NULL, 0, NULL, 0, NULL };
         noErrorsOccured = parseShaderProgramConfig(configurationFile, *out_programs + i);
     }
     return noErrorsOccured;
@@ -239,6 +280,24 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
     unsigned char vertexSize = 0;
     char *dynamicBuffer = NULL; char staticBuffer[30];
     
+    fscanf(configurationFile, "%hhi%s", &vertexSize, staticBuffer);
+    
+    if (strcmp("heightmap", staticBuffer) == 0) {
+        float h;
+        fscanf(configurationFile, "%ms%f", &dynamicBuffer, &h);
+        out_model->body = initBodyWithHeightmap(dynamicBuffer, vertexSize, h);
+    } else if (strcmp("textfile", staticBuffer) == 0) {
+        fscanf(configurationFile, "%ms", &dynamicBuffer);
+        out_model->body = initBodyWithTextfile(dynamicBuffer, vertexSize, &out_model->indexCount, &out_model->indices);
+        makeIndices(out_model->body, &out_model->indexCount, &out_model->indices);
+    } else {
+        printf("Unrecognized model source: %s", staticBuffer);
+    }
+    
+    if (dynamicBuffer != NULL) {
+        free(dynamicBuffer);
+    }
+    
     fscanf(configurationFile, "%i", &out_model->attributesCount);
     out_model->attributes = calloc(out_model->attributesCount, sizeof(struct attribute));
             
@@ -246,28 +305,90 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
         printf("Not enough memory to allocate attributes array\n");
         return false;
     }
-            
+    
+    unsigned short int attributeShift = 0;
     for (int i = 0; i < out_model->attributesCount; i += 1) {
         fscanf(configurationFile, "%i%s%i", &out_model->attributes[i].size, staticBuffer, (int*)&out_model->attributes[i].normalized);
+        
+        if (attributeShift + out_model->attributes[i].size > out_model->body.vertexSize) {
+            printf("Combined attributes size overflows model vertex size\n");
+            return false;
+        }
+        
         out_model->attributes[i].type = parseTypename(staticBuffer);
-        vertexSize += out_model->attributes[i].size;
-    }
-    
-    fscanf(configurationFile, "%s", staticBuffer);
-    
-    if (strcmp("heightmap", staticBuffer) == 0) {
-        float h;
-        fscanf(configurationFile, "%ms%f", &dynamicBuffer, &h);
-        out_model->body = initBodyWithHeightmap(dynamicBuffer, vertexSize, h, false);
-    } else if (strcmp("textfile", staticBuffer) == 0) {
-        fscanf(configurationFile, "%ms", &dynamicBuffer);
-        out_model->body = initBodyWithTextfile(dynamicBuffer, vertexSize, &out_model->indexCount, &out_model->indices);
-    } else {
-        printf("Unrecognized model source: %s", staticBuffer);
-    }
-    
-    if (dynamicBuffer != NULL) {
-        free(dynamicBuffer);
+        fscanf(configurationFile, "%s", staticBuffer);
+        if (strcmp("coordinates:", staticBuffer) == 0) {
+            if (attributeShift > 0) {
+                printf("Model coordinates have to be placed before any other attribute\n");
+                return false;
+            }
+            if (out_model->attributes[i].size != 3) {
+                printf("Model coordinates attribute has to have size 3\n");
+                return false;
+            }
+            fscanf(configurationFile, "%s", staticBuffer);
+            if (strcmp("predefined", staticBuffer) == 0) {
+                // Do nothing, attribute is already set
+            } else {
+                printf("Unknown coordinates attribute source: %s\n", staticBuffer);
+                return false;
+            }
+        } else if (strcmp("color:", staticBuffer) == 0) {
+            if (out_model->attributes[i].size != 3) {
+                printf("Model color attribute has to have size 3\n");
+                return false;
+            }
+            fscanf(configurationFile, "%s", staticBuffer);
+            if (strcmp("predefined", staticBuffer) == 0) {
+                // Do nothing, attribute is already set
+            } else if (strcmp("generate", staticBuffer) == 0) {
+                setRandomColors(&out_model->body, attributeShift);
+            } else if (strcmp("static", staticBuffer) == 0) {
+                // TODO: statically define color value
+            } else {
+                printf("Unknown color attribute source: %s\n", staticBuffer);
+                return false;
+            }
+        } else if (strcmp("texCoordinates:", staticBuffer) == 0) {
+            fscanf(configurationFile, "%s", staticBuffer);
+            if (strcmp("predefined", staticBuffer) == 0) {
+                // Do nothing, attribute is already set
+            } else if (strcmp("same", staticBuffer) == 0) {
+                initBodyTextures(&out_model->body, attributeShift);
+            } else {
+                printf("Unknown texture coordinates attribute source: %s\n", staticBuffer);
+                return false;
+            }
+        } else if (strcmp("texLayer:", staticBuffer) == 0) {
+            fscanf(configurationFile, "%s", staticBuffer);
+            if (strcmp("predefined", staticBuffer) == 0) {
+                // Do nothing, attribute is already set
+            } else if (strcmp("stub", staticBuffer) == 0) {
+                initBodyStubTextureLayer(&out_model->body, attributeShift);
+            } else if (strcmp("file", staticBuffer) == 0) {
+                // TODO: define texture kind with texmap
+            } else {
+                printf("Unknown texture layer attribute source: %s\n", staticBuffer);
+                return false;
+            }
+        } else if (strcmp("normals:", staticBuffer) == 0) {
+            if (out_model->attributes[i].size != 3) {
+                printf("Model normals attribute has to have size 3\n");
+                return false;
+            }
+            fscanf(configurationFile, "%s", staticBuffer);
+            if (strcmp("predefined", staticBuffer) == 0) {
+                // Do nothing, attribute is already set
+            } else if (strcmp("calculate", staticBuffer) == 0) {
+                calculateModelNormals(out_model, attributeShift);
+            } else {
+                printf("Unknown normals attribute source: %s\n", staticBuffer);
+                return false;
+            }
+        } else {
+            printf("Unknown model attribute label: %s\n", staticBuffer);
+        }
+        attributeShift += out_model->attributes[i].size;
     }
     
     return initModel(out_model);

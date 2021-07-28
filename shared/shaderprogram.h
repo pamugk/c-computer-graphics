@@ -35,6 +35,9 @@ struct shader_program {
 
     int textureCount;
     struct texture *textures;
+    
+    int modelsToRenderCount;
+    int *modelsToRenderIdx;
 };
 
 struct shader_program createProgram(

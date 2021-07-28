@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct body initBodyWithHeightmap(const char *pathToHeightmap, unsigned char vertexSize, float h, bool initializeColor) {
-    struct body result = { 0U, 0U, vertexSize, 0U, NULL };
+struct body initBodyWithHeightmap(const char *pathToHeightmap, unsigned char vertexSize, float h) {
+    struct body result = { 0U, 0U, 1U, vertexSize, 0U, NULL };
     
     if (vertexSize < 3) {
         printf("Provided vertex size is too small - it has to be big enough to store vertex coordinates\n");
@@ -35,9 +35,6 @@ struct body initBodyWithHeightmap(const char *pathToHeightmap, unsigned char ver
         result.vertices[j] = i % result.width;
         result.vertices[j +1] = 1.f * image.contents[i] / UCHAR_MAX * h;
         result.vertices[j + 2] = i / result.width;
-        if (vertexSize >= 6 && initializeColor) {
-            result.vertices[j + 3] = 1.0 * rand() / RAND_MAX, result.vertices[j + 4] = 1.0 * rand() / RAND_MAX, result.vertices[j + 5] = 1.0 * rand() / RAND_MAX;
-        }
     }
         
     freeImage(&image);
@@ -46,7 +43,7 @@ struct body initBodyWithHeightmap(const char *pathToHeightmap, unsigned char ver
 }
 
 struct body initBodyWithTextfile(const char *pathToDefinition, unsigned char vertexSize, int *out_indexCount, GLuint **out_indices) {
-    struct body result = { 0U, 0U, vertexSize, 0U, NULL };
+    struct body result = { 0U, 0U, 0U, vertexSize, 0U, NULL };
     
     if (pathToDefinition == NULL) {
         printf("No path to model definition file was provided\n");
@@ -60,7 +57,7 @@ struct body initBodyWithTextfile(const char *pathToDefinition, unsigned char ver
     }
     
     unsigned char providedVertexSize = 0;
-    fscanf(definitionFile, "%i%i%hhi", &result.width, &result.depth, &providedVertexSize);
+    fscanf(definitionFile, "%i%i%i%hhi", &result.width, &result.depth, &result.height, &providedVertexSize);
     result.verticeCount = result.width * result.depth;
     
     if (providedVertexSize > vertexSize) {
@@ -89,6 +86,14 @@ struct body initBodyWithTextfile(const char *pathToDefinition, unsigned char ver
     fclose(definitionFile);
     
     return result;
+}
+
+void setRandomColors(struct body *paintedBody, int offset) {
+    for (unsigned long i = 0; i < paintedBody->verticeCount * paintedBody->vertexSize; i += 1U) {
+        paintedBody->vertices[i + offset] = 1.0 * rand() / RAND_MAX;
+        paintedBody->vertices[i + offset + 1] = 1.0 * rand() / RAND_MAX;
+        paintedBody->vertices[i + offset + 2] = 1.0 * rand() / RAND_MAX;
+    }
 }
 
 struct shader *loadShaders(const char *pathToShadersDefinition,int *out_shadersCount) {
@@ -355,4 +360,16 @@ void initBodyTextures(struct body *physicalBody, int offset) {
         ((int*)physicalBody->vertices)[i + offset + 2] = physicalBody->vertices[i + 1] >= 0.01;
     }
     printf("Completed texture calculations for provided model\n");
+}
+
+void initBodyStubTextureLayer(struct body *physicalBody, int offset) {
+    if (physicalBody->vertices == NULL) {
+        printf("No physical body provided\n");
+        return;
+    }
+    
+    printf("Started texture calculations for provided model\n");
+    for (int i = 0; i < physicalBody->vertexSize * physicalBody->verticeCount; i += physicalBody->vertexSize) {
+        ((int*)physicalBody->vertices)[i + offset] = physicalBody->vertices[i + 1] >= 0.01;
+    }
 }

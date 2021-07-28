@@ -58,15 +58,15 @@ bool initShaderProgram() {
     return g_program.id != 0U;
 }
 
-bool initModel() {
-    struct body body = initBodyWithHeightmap(pathToHeightmap, 6, h, false);
+bool innerInitModel() {
+    struct body body = initBodyWithHeightmap(pathToHeightmap, 9, h);
     initBodyTextures(&body, 3);
-    calculateModelNormals(&g_surfaceModel, 6);
     
     int attributeCount = 0;
     struct attribute *attributes = allocDefaultAttributes(&attributeCount);
     
 	g_surfaceModel = createModel(body, attributeCount, attributes, 0, NULL);
+    calculateModelNormals(&g_surfaceModel, 6);
     
     return g_surfaceModel.body.vertices != NULL && g_surfaceModel.indices != NULL;
 }
@@ -79,7 +79,7 @@ bool init() {
         glEnable(GL_TEXTURE_2D);
     }
     
-    return initShaderProgram() && initModel();
+    return initShaderProgram() && innerInitModel();
 }
 
 void initOptics() {

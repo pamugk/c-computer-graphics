@@ -13,6 +13,7 @@ struct attribute {
 struct body {
     unsigned int width;
     unsigned int depth;
+    unsigned int height;
 
     unsigned char vertexSize;
     unsigned long verticeCount;

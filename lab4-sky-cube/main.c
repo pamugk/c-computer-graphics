@@ -2,7 +2,12 @@
 
 GLFWwindow *g_window;
 
+char *pathToConfiguration;
+
+unsigned int g_programsCount;
 struct shader_program *g_programs;
+
+unsigned int g_modelsCount;
 struct model *g_models;
 
 float v[MVP_MATRIX_SIZE];
@@ -14,108 +19,12 @@ float degree;
 
 int projection = 1;
 
-struct shader *loadSkyShaders() {
-    struct shader *shaders = calloc(2, sizeof(struct shader));
-    shaders[0] = loadShader("shaders/vsh_skycube.glsl", GL_VERTEX_SHADER);
-    shaders[1] = loadShader("shaders/fsh_skycube.glsl", GL_FRAGMENT_SHADER);
-    return shaders;
-}
-
-struct texture *loadSkyTextures() {
-    struct texture *textures = calloc(1, sizeof(struct texture));
-    const char *skyTexturePaths[] = { 
-        "../textures/skybox/right.jpg", "../textures/skybox/left.jpg", 
-        "../textures/skybox/top.jpg", "../textures/skybox/bottom.jpg",
-        "../textures/skybox/front.jpg", "../textures/skybox/back.jpg" 
-    };
-    struct texture_parameter parameters[] = {
-    (struct texture_parameter){ GL_TEXTURE_MAG_FILTER, defineTextureParameterType(GL_TEXTURE_MAG_FILTER), { GL_LINEAR } },
-    (struct texture_parameter){ GL_TEXTURE_MIN_FILTER, defineTextureParameterType(GL_TEXTURE_MIN_FILTER), { GL_LINEAR } },
-    (struct texture_parameter){ GL_TEXTURE_WRAP_S, defineTextureParameterType(GL_TEXTURE_WRAP_S), { GL_CLAMP_TO_EDGE } },
-    (struct texture_parameter){ GL_TEXTURE_WRAP_T, defineTextureParameterType(GL_TEXTURE_WRAP_T), { GL_CLAMP_TO_EDGE } },
-    (struct texture_parameter){ GL_TEXTURE_WRAP_R, defineTextureParameterType(GL_TEXTURE_WRAP_R), { GL_CLAMP_TO_EDGE } } };
-    textures[0] = loadTexture(skyTexturePaths, 6, 1024, 1024, GL_TEXTURE_CUBE_MAP, false, 5, parameters);
-    textures[0].mapName = calloc(5 + 1, sizeof(char));
-    strcpy(textures[0].mapName, "u_map");
-    return textures;
-}
-
-struct attribute *allocDefaultAttributes(int *out_count) {
-    *out_count = 4;
-    struct attribute *attributes = calloc(*out_count, sizeof(struct attribute));
-	attributes[0] = (struct attribute) { 3, GL_FLOAT, GL_FALSE };
-    attributes[1] = (struct attribute) { 2, GL_FLOAT, GL_FALSE };
-    attributes[2] = (struct attribute) { 1, GL_INT, GL_FALSE };
-	attributes[3] = (struct attribute) { 3, GL_FLOAT, GL_FALSE };
-	printf("Allocated default attributes\n");
-	return attributes;
-}
-
-struct shader_variable *initVariables(int *variablesCount) {
-    struct shader_variable *variables = loadShaderVariables(NULL, 2, variablesCount);
-    char *mvpVarName = calloc(5 + 1, sizeof(char)); strcpy(mvpVarName, "u_mvp");
-    variables[0] = (struct shader_variable){ -1, mvpVarName, GL_FLOAT_MAT4, GL_FALSE, 0 }; // MVP-матрица
-    
-    char *nVarName = calloc(3 + 1, sizeof(char)); strcpy(nVarName, "u_n");
-    variables[1] = (struct shader_variable){ -1, nVarName, GL_FLOAT_MAT3, GL_TRUE, 0 }; // Матрица нормалей
-    
-    return variables;
-}
-
-bool initShaderProgram() {
-    printf("Started shader program initialization\n");
-    
-    struct shader_variable *skyVariables = calloc(1, sizeof(struct shader_variable));
-    char *skyMVP = calloc(5 + 1, sizeof(char)); strcpy(skyMVP, "u_mvp");
-    skyVariables[0] = (struct shader_variable){ 0, skyMVP, GL_FLOAT_MAT4, GL_FALSE };
-    createProgram(2, loadSkyShaders(), 1, skyVariables, 1, loadSkyTextures());
-    
-    int shadersCount;
-    struct shader *shaders = loadShaders(NULL, &shadersCount);
-    
-    int variablesCount;
-    struct shader_variable *variables = initVariables(&variablesCount);
-    
-    int textureCount;
-    struct texture *textures = loadTextures(NULL, &textureCount);
-    
-    createProgram(shadersCount, shaders, variablesCount, variables, textureCount, textures);
-    
-    return 0U != 0U;
-}
-
-/*bool initModel() {
-    struct body skyBody; struct attribute *skyAttributes; GLuint *indices;
-    makeSkyModel(&skyBody, &indices, &skyAttributes);
-    //g_skyModel = createModel(skyBody, 1, skyAttributes, 36, indices);
-    //rotateModelAboutX(&g_skyModel, 45.f);
-    
-    struct body body = initBodyWithHeightmap(NULL, 6, 0.f, false);
-    initBodyTextures(&body, 3);
-    calculateModelNormals(NULL, 6);
-    
-    int attributeCount = 0;
-    struct attribute *attributes = allocDefaultAttributes(&attributeCount);
-    
-	createModel(body, attributeCount, attributes, 0, NULL);
-    float movedMatrix[MVP_MATRIX_SIZE];
-    //move(g_surfaceModel.m, g_surfaceModel.body.width / -2.f, 0.f, g_surfaceModel.body.depth / -2.f, &movedMatrix);
-    
-    //unsigned int scaleFactor = g_surfaceModel.body.width > g_surfaceModel.body.depth ? g_surfaceModel.body.width : g_surfaceModel.body.depth;
-    scale(movedMatrix, 1.f / scaleFactor, 1.f, 1.f / scaleFactor, &g_surfaceModel.m);
-    
-    return NULL != NULL && g_surfaceModel.indices != NULL;
-}*/
-
 bool init() {
     glClearColor(1.f, 1.f, 1.f, 1.f);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
     
-    if (NULL != NULL) {
-        glEnable(GL_TEXTURE_2D);
-    }
-    
-    return initShaderProgram();
+    return applyConfiguration(pathToConfiguration, &g_programsCount, &g_programs, &g_modelsCount, &g_models);
 }
 
 void initOptics() {
@@ -125,6 +34,7 @@ void initOptics() {
         degrees[i] = (i + 1) * 0.01f;
         degreeKeys[i] = GLFW_KEY_1 + i;
     }
+    
     degree = degrees[1];
 }
 
@@ -142,34 +52,41 @@ void draw() {
         getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1.f, 1.f, 45.f, &p);
     }
     
-	/*glUseProgram(g_skyProgram.id);
-    glDisable(GL_DEPTH_TEST);
-	glBindVertexArray(g_skyModel.vao);
-    float mv[MVP_MATRIX_SIZE]; multiplyMatrices(v, g_skyModel.m, &mv);
-    multiplyMatrices(p, mv, &g_skyProgram.variables[0].value.floatMat4Val);
-    passVariables(&g_skyProgram);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(g_skyProgram.textures[0].target, g_skyProgram.textures[0].id);
-    glUniform1i(g_skyProgram.textures[0].mapLocation, 0);
-    glDrawElements(GL_TRIANGLES, g_skyModel.indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);
-    
-	glUseProgram(g_program.id);
-    glEnable(GL_DEPTH_TEST);
-	glBindVertexArray(g_surfaceModel.vao);
-    
-    multiplyMatrices(v, g_surfaceModel.m, &mv);
-    multiplyMatrices(p, mv, &g_program.variables[0].value.floatMat4Val);
-    buildNMatrix(mv, &g_program.variables[1].value.floatMat3Val);
-    
-    passVariables(&g_program);
-    
-    for (int i = 0; i < g_program.textureCount; i += 1) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(g_program.textures[i].target, g_program.textures[i].id);
-        glUniform1i(g_program.textures[i].mapLocation, i);
+    float mv[MVP_MATRIX_SIZE];
+    for (int i = 0; i < g_programsCount; i += i) {
+        glUseProgram(g_programs[i].id);
+            
+        for (int j = 0; j < g_programs[i].textureCount; j += 1) {
+            glActiveTexture(GL_TEXTURE0 + j);
+            glBindTexture(g_programs[i].textures[j].target, g_programs[i].textures[j].id);
+            glUniform1i(g_programs[i].textures[j].mapLocation, j);
+        }
+        
+        bool mvpDefined = g_programs[i].variablesCount > 0 && strcmp("u_mvp", g_programs[i].variables[0].name) == 0;
+        bool normalsDefined = mvpDefined && g_programs[i].variablesCount > 1 && strcmp("u_n", g_programs[i].variables[1].name) == 0;
+        for (int j = 0; j < g_programs[i].modelsToRenderCount; j += 1) {
+            int m = g_programs[i].modelsToRenderIdx[j];
+                
+            if (m > g_modelsCount) {
+                continue;
+            }
+                
+            glBindVertexArray(g_models[m].vao);
+            
+            multiplyMatrices(v, g_models[m].m, &mv);
+            
+            if (mvpDefined) {
+                multiplyMatrices(p, mv, &g_programs[i].variables[0].value.floatMat4Val);
+                if (normalsDefined) {
+                    buildNMatrix(mv, &g_programs[i].variables[1].value.floatMat3Val);
+                }
+            }
+            
+            passVariables(&g_programs[i]);
+                
+            glDrawElements(GL_TRIANGLES, g_models[m].indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);
+        }
     }
-    
-	glDrawElements(GL_TRIANGLES, g_surfaceModel.indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);*/
 }
 
 void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -206,32 +123,36 @@ bool initOpenGL() {
 }
 
 void cleanup() {
-    /*freeProgram(&g_skyProgram);
-    freeModel(&g_skyModel);
-    freeProgram(&g_program);
-	freeModel(&g_surfaceModel);*/
+    for (int i = 0; i < g_programsCount; i += 1) {
+        freeProgram(g_programs + i);
+    }
+    free(g_programs);
+    
+    for (int i = 0; i < g_modelsCount; i += 1) {
+        freeModel(g_models + i);
+    }
+    free(g_models);
+    
 	glfwTerminate();
 }
 
 bool handleArguments(int argc, char** argv) {
-    printf("Parsing console arguments (total count - %i)\n", argc);
     for (int i = 0; i < argc; i += 1) {
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
             printf("Following flags are supported:\n");
             printf("\t--help / -h - print help\n");
+            printf("\t--configuration / -c - set path to configuration file (required)\n");
             printf("Controls:\n\tLeft/Right Arrows: rotate about Y axis;\n\tUp/Down Arrows: rotate about X axis;\n\tW/S Keys: rotate about Z axis;\n");
             printf("\t1-9: rotation speed selection.\n");
             return false;
+        } else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--configuration") == 0) {
+            i += 1;
+            pathToConfiguration = argv[i];
         }
     }
     
-    if (NULL == NULL) {
-        printf("No shader list definition was provided\n");
-        return false;
-    }
-    
-    if (NULL == NULL) {
-        printf("No heightmap was provided\n");
+    if (pathToConfiguration == NULL) {
+        printf("No configuration file was defined\n");
         return false;
     }
     

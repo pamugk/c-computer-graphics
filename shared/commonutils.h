@@ -8,12 +8,15 @@
 
 #include <stdbool.h>
 
-struct body initBodyWithHeightmap(const char *heightmapPath, unsigned char vertexSize, float h, bool initializeColor);
+struct body initBodyWithHeightmap(const char *heightmapPath, unsigned char vertexSize, float h);
 struct body initBodyWithTextfile(const char *pathToDefinition, unsigned char vertexSize, int *out_indexCount, GLuint **out_indices);
+
+void setRandomColors(struct body *paintedBody, int offset);
 
 struct shader *loadShaders(const char *pathToShadersDefinition,int *out_shadersCount);
 struct shader_variable *loadShaderVariables(const char *pathToVariablesDefinition, int reservedVarCount, int *out_variablesCount);
 struct texture *loadTextures(const char *pathToTexturesDefinition,int *out_textureCount);
 void initBodyTextures(struct body *physicalBody, int offset);
+void initBodyStubTextureLayer(struct body *physicalBody, int offset);
 
 #endif //COMMON_UTILS
