@@ -36,7 +36,7 @@ void initOptics() {
     }
     
     float prevMatrix[16]; memcpy(prevMatrix, g_models[1].m, sizeof(float) * MVP_MATRIX_SIZE);
-    move(g_models[1].m, g_models[0].body.width / -2.f, 0.f, g_models[1].body.depth / -2.f, &prevMatrix);
+    move(g_models[1].m, g_models[1].body.width / -2.f, 0.f, g_models[1].body.depth / -2.f, &prevMatrix);
     scale(prevMatrix, 1.f/g_models[1].body.width, 1.f, 1.f/g_models[1].body.depth, &g_models[1].m);
     rotateModelAboutX(g_models, 45.f);
     

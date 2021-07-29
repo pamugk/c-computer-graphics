@@ -6,33 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-void makeSkyModel(struct body *skyBody, GLuint **indices, struct attribute **attributes) {
-    skyBody->vertices = calloc(24, sizeof(GLfloat));
-    skyBody->vertices[0] = -1.f, skyBody->vertices[1] = -1.f, skyBody->vertices[2] = 1.f,
-    skyBody->vertices[3] = 1.f, skyBody->vertices[4] = -1.f, skyBody->vertices[5] = 1.f,
-    skyBody->vertices[6] = 1.f, skyBody->vertices[7] = 1.f, skyBody->vertices[8] = 1.f,
-    skyBody->vertices[9] = -1.f, skyBody->vertices[10] = 1.f, skyBody->vertices[11] = 1.f,
-    skyBody->vertices[12] = -1.f, skyBody->vertices[13] = -1.f, skyBody->vertices[14] = -1.f,
-    skyBody->vertices[15] = 1.f, skyBody->vertices[16] = -1.f, skyBody->vertices[17] = -1.f,
-    skyBody->vertices[18] = 1.f, skyBody->vertices[19] = 1.f, skyBody->vertices[20] = -1.f,
-    skyBody->vertices[21] = -1.f, skyBody->vertices[22] = 1.f, skyBody->vertices[23] = -1.f;
-    skyBody->width = 2.f; skyBody->depth = 2.f;
-    skyBody->vertexSize = 3; skyBody->verticeCount = 8;
-    
-    *indices = calloc(36, sizeof(GLuint));
-    indices[0][0] = 0, indices[0][1] = 3, indices[0][2] = 1, indices[0][3] = 1, indices[0][4] = 3, indices[0][5] = 2,
-    indices[0][6] = 0, indices[0][7] = 4, indices[0][8] = 7, indices[0][9] = 7, indices[0][10] = 3, indices[0][11] = 0,
-    indices[0][12] = 1, indices[0][13] = 2, indices[0][14] = 6, indices[0][15] = 6, indices[0][16] = 5, indices[0][17] = 1,
-    indices[0][18] = 5, indices[0][19] = 6, indices[0][20] = 7, indices[0][21] = 7, indices[0][22] = 4, indices[0][23] = 5,
-    indices[0][24] = 3, indices[0][25] = 7, indices[0][26] = 6, indices[0][27] = 6, indices[0][28] = 2, indices[0][29] = 3,
-    indices[0][30] = 0, indices[0][31] = 1, indices[0][32] = 5, indices[0][33] = 5, indices[0][34] = 4, indices[0][35] = 0;
-    
-    *attributes = calloc(1, sizeof(struct attribute));
-    attributes[0][0] = (struct attribute){ 3, GL_FLOAT, GL_FALSE };
-    
-    printf("Initialized skybox\n");
-}
-
 bool makeIndices(struct body physicalBody, GLsizei *out_indexCount, GLuint **out_indices) {
     if (physicalBody.width == 0 || physicalBody.depth == 0) {
         printf("Provided physical body is 0D\n");
