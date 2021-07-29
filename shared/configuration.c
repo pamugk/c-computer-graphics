@@ -174,18 +174,17 @@ bool parseTexturesDefinition(FILE *configurationFile, int texturesCount, struct 
 }
 
 bool parseShaderProgramConfig(FILE *configurationFile, struct shader_program *out_program) {
-    bool noErrorsOccured = true;
     char section[15];
     
     char *dynamicBuffer = NULL; char staticBuffer[30];
-    while(noErrorsOccured && fscanf(configurationFile, "%s", section) > 0 && strcmp("END", section) != 0) {
+    while(fscanf(configurationFile, "%s", section) > 0 && strcmp("END", section) != 0) {
         if (strcmp("shaders:", section) == 0) {
             fscanf(configurationFile, "%i", &out_program->shaderCount);
             out_program->shaders = calloc(out_program->shaderCount, sizeof(struct shader));
             
             if (out_program->shaderCount > 0 && out_program->shaders == NULL) {
                 printf("Not enough memory to allocate shaders definition\n");
-                noErrorsOccured = false;
+                return false;
             }
             
             for (int i = 0; i < out_program->shaderCount; i += 1) {
@@ -205,8 +204,7 @@ bool parseShaderProgramConfig(FILE *configurationFile, struct shader_program *ou
             
             if (out_program->variablesCount > 0 && out_program->variables == NULL) {
                 printf("Not enough memory to allocate variables definition\n");
-                noErrorsOccured = false;
-                continue;
+                return false;
             }
             
             for (int i = 0; i < out_program->variablesCount; i += 1) {
@@ -221,8 +219,7 @@ bool parseShaderProgramConfig(FILE *configurationFile, struct shader_program *ou
             
             if (out_program->textureCount > 0 && out_program->textures == NULL) {
                 printf("Not enough memory to allocate textures definition\n");
-                noErrorsOccured = false;
-                continue;
+                return false;
             }
             
             parseTexturesDefinition(configurationFile, out_program->textureCount, out_program->textures);
@@ -230,9 +227,11 @@ bool parseShaderProgramConfig(FILE *configurationFile, struct shader_program *ou
             fscanf(configurationFile, "%i", &out_program->modelsToRenderCount);
             out_program->modelsToRenderIdx = calloc(out_program->modelsToRenderCount, sizeof(int));
             
+            printf("Following count of models would be rendered via program: %i\n", out_program->modelsToRenderCount);
+            
             if (out_program->modelsToRenderCount > 0 && out_program->modelsToRenderIdx == NULL) {
-                printf("Not enough memory to allocate shaders definition\n");
-                noErrorsOccured = false;
+                printf("Not enough memory to allocate rendered models definition\n");
+                return false;
                 continue;
             }
             
@@ -241,11 +240,11 @@ bool parseShaderProgramConfig(FILE *configurationFile, struct shader_program *ou
             }
         } else {
             printf("Unrecognized shader program configuration section: %s\n", section);
-            noErrorsOccured = false;
+            return false;
         }
     }
     
-    return noErrorsOccured;
+    return initShaderProgram(out_program);
 }
 
 bool parseShaderProgramsConfig(FILE *configurationFile, unsigned int *out_shaderProgramsCount, struct shader_program **out_programs) {
@@ -282,9 +281,12 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
     
     fscanf(configurationFile, "%hhi%s", &vertexSize, staticBuffer);
     
+    printf("Loading model of type %s with %hhi elements per vertex\n", staticBuffer, vertexSize);
+    
     if (strcmp("heightmap", staticBuffer) == 0) {
         float h;
         fscanf(configurationFile, "%ms%f", &dynamicBuffer, &h);
+        printf("Model is defined via heightmap %s with h=%f\n", dynamicBuffer, h);
         out_model->body = initBodyWithHeightmap(dynamicBuffer, vertexSize, h);
     } else if (strcmp("textfile", staticBuffer) == 0) {
         fscanf(configurationFile, "%ms", &dynamicBuffer);
@@ -300,6 +302,7 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
     
     fscanf(configurationFile, "%i", &out_model->attributesCount);
     out_model->attributes = calloc(out_model->attributesCount, sizeof(struct attribute));
+    printf("Parsed model has %i attributes\n", out_model->attributesCount);
             
     if (out_model->attributes == NULL) {
         printf("Not enough memory to allocate attributes array\n");

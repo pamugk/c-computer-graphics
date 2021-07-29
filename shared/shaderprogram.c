@@ -15,71 +15,75 @@ struct shader_program createProgram(
             0, NULL
     };
 
-    printf("Creating shader program...\n");
-    program.id = glCreateProgram();
-    for (int i = 0; i < shaderCount; i += 1) {
-        if (shaders[i].id == 0 && shaders[i].code != NULL) {
-            compileShader(&shaders[i]);
-        }
-        glAttachShader(program.id, shaders[i].id);
-        printf("Attached shader №%i to program №%i\n", shaders[i].id, program.id);
-    }
-    glLinkProgram(program.id);
-
-    GLint linked;
-    glGetProgramiv(program.id, GL_LINK_STATUS, &linked);
-    if (!linked) {
-        GLint infoLen = 0;
-        glGetProgramiv(program.id, GL_INFO_LOG_LENGTH, &infoLen);
-        if (infoLen > 0) {
-            char *infoLog = (char *)calloc(infoLen, sizeof(char));
-            glGetProgramInfoLog(program.id, infoLen, NULL, infoLog);
-            printf("Shader program №%i linking error:\n%s\n", program.id, infoLog);
-            free(infoLog);
-        } else {
-            printf("Shader program №%i linking error:\nUnknown problem\n", program.id);
-        }
-        
-        glDeleteProgram(program.id);
-        program.id = 0;
-        
-        return program;
-    }
-    
-    printf("Linked program №%i\n", program.id);
-
-    if (variableCount > 0 && variables == NULL) {
-        program.variablesCount = 0;
-        printf("No variables were provided, but variable count set to %i\n", variableCount);
-    } else {
-        for (int i = 0; i < variableCount; i += 1) {
-            variables[i].location = glGetUniformLocation(program.id, variables[i].name);
-            
-            if (variables[i].location == -1) {
-                printf("Variable '%s' not found in program №%i\n", variables[i].name, program.id);
-            }
-        }
-    }
-    printf("Initialized program №%i variables\n", program.id);
-
-    if (textureCount > 0 && textures == NULL) {
-        program.textureCount = 0;
-        printf("No textures were provided, but texture count set to %i\n", variableCount);
-    } else {
-        for (int i = 0; i < textureCount; i += 1) {
-            if (textures[i].id == 0) {
-                printf("Texture '%s' was not initialized\n", textures[i].mapName);
-                continue;
-            }
-            textures[i].mapLocation = glGetUniformLocation(program.id, textures[i].mapName);
-            if (textures[i].mapLocation == -1) {
-                printf("Texture '%s' was not found in program №%i\n", textures[i].mapName, program.id);
-            }
-        }
-    }
-    printf("Initialized program №%i textures\n", program.id);
+    initShaderProgram(&program);
 
     return program;
+}
+bool initShaderProgram(struct shader_program *program) {
+    printf("Initializing shader program...\n");
+    program->id = glCreateProgram();
+    for (int i = 0; i < program->shaderCount; i += 1) {
+        if (program->shaders[i].id == 0 && program->shaders[i].code != NULL) {
+            compileShader(&program->shaders[i]);
+        }
+        glAttachShader(program->id, program->shaders[i].id);
+        printf("Attached shader №%i to program №%i\n", program->shaders[i].id, program->id);
+    }
+    glLinkProgram(program->id);
+
+    GLint linked;
+    glGetProgramiv(program->id, GL_LINK_STATUS, &linked);
+    if (!linked) {
+        GLint infoLen = 0;
+        glGetProgramiv(program->id, GL_INFO_LOG_LENGTH, &infoLen);
+        if (infoLen > 0) {
+            char *infoLog = (char *)calloc(infoLen, sizeof(char));
+            glGetProgramInfoLog(program->id, infoLen, NULL, infoLog);
+            printf("Shader program №%i linking error:\n%s\n", program->id, infoLog);
+            free(infoLog);
+        } else {
+            printf("Shader program №%i linking error:\nUnknown problem\n", program->id);
+        }
+        
+        glDeleteProgram(program->id);
+        program->id = 0;
+        
+        return false;
+    }
+    
+    printf("Linked program №%i\n", program->id);
+
+    if (program->variablesCount > 0 && program->variables == NULL) {
+        program->variablesCount = 0;
+        printf("No variables were provided, but variable count set to %i\n", program->variablesCount);
+    } else {
+        for (int i = 0; i < program->variablesCount; i += 1) {
+            program->variables[i].location = glGetUniformLocation(program->id, program->variables[i].name);
+            
+            if (program->variables[i].location == -1) {
+                printf("Variable '%s' not found in program №%i\n", program->variables[i].name, program->id);
+            }
+        }
+    }
+    printf("Initialized program №%i variables\n", program->id);
+
+    if (program->textureCount > 0 && program->textures == NULL) {
+        program->textureCount = 0;
+        printf("No textures were provided, but texture count set to %i\n", program->textureCount);
+    } else {
+        for (int i = 0; i < program->textureCount; i += 1) {
+            if (program->textures[i].id == 0) {
+                printf("Texture '%s' was not initialized\n", program->textures[i].mapName);
+                continue;
+            }
+            program->textures[i].mapLocation = glGetUniformLocation(program->id, program->textures[i].mapName);
+            if (program->textures[i].mapLocation == -1) {
+                printf("Texture '%s' was not found in program №%i\n", program->textures[i].mapName, program->id);
+            }
+        }
+    }
+    printf("Initialized program №%i textures\n", program->id);
+    return true;
 }
 
 void passVariable(struct shader_variable *var) {

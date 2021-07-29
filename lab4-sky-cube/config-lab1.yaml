@@ -1,0 +1,16 @@
+programs: 1
+    shaders: 2
+        shaders/vsh.glsl GL_VERTEX_SHADER
+        shaders/fsh.glsl GL_FRAGMENT_SHADER
+    variables: 1 0
+        u_mvp GL_FLOAT_MAT4 0
+    models: 1
+        0
+    
+    END
+        
+models: 1
+    6 heightmap ../heightmaps/australia.jpg 0.1
+    2
+        3 GL_FLOAT 0 coordinates: predefined
+        3 GL_FLOAT 0 color: generate

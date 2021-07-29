@@ -17,7 +17,7 @@ float degrees[9];
 int degreeKeys[9];
 float degree;
 
-int projection = 1;
+int projection = 0;
 
 bool init() {
     glClearColor(1.f, 1.f, 1.f, 1.f);
@@ -34,6 +34,11 @@ void initOptics() {
         degrees[i] = (i + 1) * 0.01f;
         degreeKeys[i] = GLFW_KEY_1 + i;
     }
+    
+    float prevMatrix[16]; memcpy(prevMatrix, g_models[1].m, sizeof(float) * MVP_MATRIX_SIZE);
+    move(g_models[1].m, g_models[0].body.width / -2.f, 0.f, g_models[1].body.depth / -2.f, &prevMatrix);
+    scale(prevMatrix, 1.f/g_models[1].body.width, 1.f, 1.f/g_models[1].body.depth, &g_models[1].m);
+    rotateModelAboutX(g_models, 45.f);
     
     degree = degrees[1];
 }
@@ -53,7 +58,7 @@ void draw() {
     }
     
     float mv[MVP_MATRIX_SIZE];
-    for (int i = 0; i < g_programsCount; i += i) {
+    for (int i = 0; i < g_programsCount; i += 1) {
         glUseProgram(g_programs[i].id);
             
         for (int j = 0; j < g_programs[i].textureCount; j += 1) {
@@ -67,20 +72,8 @@ void draw() {
         for (int j = 0; j < g_programs[i].modelsToRenderCount; j += 1) {
             int m = g_programs[i].modelsToRenderIdx[j];
                 
-            if (m > g_modelsCount) {
-                continue;
-            }
-                
-            glBindVertexArray(g_models[m].vao);
-            
             multiplyMatrices(v, g_models[m].m, &mv);
-            
-            if (mvpDefined) {
-                multiplyMatrices(p, mv, &g_programs[i].variables[0].value.floatMat4Val);
-                if (normalsDefined) {
-                    buildNMatrix(mv, &g_programs[i].variables[1].value.floatMat3Val);
-                }
-            }
+            multiplyMatrices(p, mv, &g_programs[i].variables[0].value.floatMat4Val);
             
             passVariables(&g_programs[i]);
                 
@@ -145,7 +138,7 @@ bool handleArguments(int argc, char** argv) {
             printf("Controls:\n\tLeft/Right Arrows: rotate about Y axis;\n\tUp/Down Arrows: rotate about X axis;\n\tW/S Keys: rotate about Z axis;\n");
             printf("\t1-9: rotation speed selection.\n");
             return false;
-        } else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--configuration") == 0) {
+        } else if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--configuration") == 0) {
             i += 1;
             pathToConfiguration = argv[i];
         }
@@ -215,7 +208,6 @@ int main(int argc, char** argv) {
 	int isOk = init();
 	if (isOk) {
         initOptics();
-        
 		while (glfwGetKey(g_window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(g_window) == 0) {
             checkInput();
 			draw();
