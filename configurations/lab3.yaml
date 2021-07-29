@@ -1,7 +1,7 @@
 programs: 1
     shaders: 2
-        shaders/vsh.glsl GL_VERTEX_SHADER
-        shaders/fsh.glsl GL_FRAGMENT_SHADER
+        ../shaders/lab3/vsh.glsl GL_VERTEX_SHADER
+        ../shaders/lab3/fsh.glsl GL_FRAGMENT_SHADER
     textures: 1
         u_surfaceMap GL_TEXTURE_2D_ARRAY 1
         2 2048 2048
@@ -33,7 +33,9 @@ models: 1
         2 GL_FLOAT 0 texCoordinates: same
         1 GL_INT 0 texLayer: stub
         3 GL_FLOAT 0 normals: calculate
-    transformations: 2
+    transformations: 3
         move center 
-        scale fit     
+        scale fit   
+        rotate x 45.0 
+    
     END

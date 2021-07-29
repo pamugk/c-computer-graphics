@@ -1,7 +1,7 @@
 programs: 2
     shaders: 2
-        shaders/vsh.glsl GL_VERTEX_SHADER
-        shaders/fsh.glsl GL_FRAGMENT_SHADER
+        ../shaders/lab4/vsh.glsl GL_VERTEX_SHADER
+        ../shaders/lab4/fsh.glsl GL_FRAGMENT_SHADER
     textures: 1
         u_surfaceMap GL_TEXTURE_2D_ARRAY 1
         2 2048 2048
@@ -27,8 +27,8 @@ programs: 2
     END
     
     shaders: 2
-        shaders/vsh_skycube.glsl GL_VERTEX_SHADER
-        shaders/fsh_skycube.glsl GL_FRAGMENT_SHADER
+        ../shaders/lab4/shaders/vsh_skycube.glsl GL_VERTEX_SHADER
+        ../shaders/lab4/shaders/fsh_skycube.glsl GL_FRAGMENT_SHADER
     textures: 1
         u_map GL_TEXTURE_CUBE_MAP 0 
         6 1024 1024
