@@ -28,8 +28,12 @@ programs: 1
         
 models: 1
     9 heightmap ../heightmaps/australia.jpg 0.1
-    4
+    attributes: 4
         3 GL_FLOAT 0 coordinates: predefined
         2 GL_FLOAT 0 texCoordinates: same
         1 GL_INT 0 texLayer: stub
         3 GL_FLOAT 0 normals: calculate
+    transformations: 2
+        move center 
+        scale fit     
+    END

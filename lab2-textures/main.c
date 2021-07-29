@@ -10,6 +10,8 @@ struct shader_program *g_programs;
 unsigned int g_modelsCount;
 struct model *g_models;
 
+float mv[MVP_MATRIX_SIZE];
+float p[MVP_MATRIX_SIZE];
 float v[MVP_MATRIX_SIZE];
 
 const int countOfSpeeds = 9;
@@ -17,7 +19,7 @@ float degrees[9];
 int degreeKeys[9];
 float degree;
 
-int projection = 1;
+int projection = 0;
 
 bool init() {
     glClearColor(1.f, 1.f, 1.f, 1.f);
@@ -28,17 +30,18 @@ bool init() {
 }
 
 void initOptics() {
-    getIdentityMatrix(&v);
+    getIdentityMatrix(v);
+    
+    if (projection) {
+        getParallelProjectionMatrix(-1.f, 1.f, -1.f, 1.f, -3.f, 3.f, p);
+    } else {
+        getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1.f, 1.f, 45.f, p);
+    }
     
     for (int i = 0; i < countOfSpeeds; i++) {
         degrees[i] = (i + 1) * 0.01f;
         degreeKeys[i] = GLFW_KEY_1 + i;
     }
-    
-    float prevMatrix[16]; memcpy(prevMatrix, g_models[1].m, sizeof(float) * MVP_MATRIX_SIZE);
-    move(g_models[0].m, g_models[0].body.width / -2.f, 0.f, g_models[0].body.depth / -2.f, &prevMatrix);
-    scale(prevMatrix, 1.f/g_models[0].body.width, 1.f, 1.f/g_models[0].body.depth, &g_models[0].m);
-    rotateModelAboutX(g_models, 45.f);
     
     degree = degrees[1];
 }
@@ -50,14 +53,6 @@ void reshape(GLFWwindow *window, int width, int height) {
 void draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    float p[MVP_MATRIX_SIZE];
-    if (projection) {
-        getParallelProjectionMatrix(-1.f, 1.f, -1.f, 1.f, -3.f, 3.f, &p);
-    } else {
-        getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1.f, 1.f, 45.f, &p);
-    }
-    
-    float mv[MVP_MATRIX_SIZE];
     for (int i = 0; i < g_programsCount; i += 1) {
         glUseProgram(g_programs[i].id);
             
@@ -72,8 +67,8 @@ void draw() {
         for (int j = 0; j < g_programs[i].modelsToRenderCount; j += 1) {
             int m = g_programs[i].modelsToRenderIdx[j];
                 
-            multiplyMatrices(v, g_models[m].m, &mv);
-            multiplyMatrices(p, mv, &g_programs[i].variables[0].value.floatMat4Val);
+            multiplyMatrices(v, g_models[m].m, mv);
+            multiplyMatrices(p, mv, g_programs[i].variables[0].value.floatMat4Val);
             
             passVariables(&g_programs[i]);
                 
@@ -168,32 +163,32 @@ void checkInput() {
     if (glfwGetKey(g_window, GLFW_KEY_LEFT) == GLFW_PRESS) {
         float prevM[MVP_MATRIX_SIZE]; 
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
-        rotateAboutY(prevM, degree, &(v));
+        rotateAboutY(prevM, degree, v);
     }
     if (glfwGetKey(g_window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
         float prevM[MVP_MATRIX_SIZE]; 
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
-        rotateAboutY(prevM, -degree, &(v));
+        rotateAboutY(prevM, -degree, v);
     }
     if (glfwGetKey(g_window, GLFW_KEY_UP) == GLFW_PRESS) {
         float prevM[MVP_MATRIX_SIZE]; 
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
-        rotateAboutX(prevM, degree, &(v));
+        rotateAboutX(prevM, degree, v);
     }
     if (glfwGetKey(g_window, GLFW_KEY_DOWN) == GLFW_PRESS) {
         float prevM[MVP_MATRIX_SIZE]; 
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
-        rotateAboutX(prevM, -degree, &(v));
+        rotateAboutX(prevM, -degree, v);
     }
     if (glfwGetKey(g_window, GLFW_KEY_W) == GLFW_PRESS) {
         float prevM[MVP_MATRIX_SIZE]; 
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
-        rotateAboutZ(prevM, degree, &(v));
+        rotateAboutZ(prevM, degree, v);
     }
     if (glfwGetKey(g_window, GLFW_KEY_S) == GLFW_PRESS) {
         float prevM[MVP_MATRIX_SIZE]; 
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
-        rotateAboutZ(prevM, -degree, &(v));
+        rotateAboutZ(prevM, -degree, v);
     }
 }
 

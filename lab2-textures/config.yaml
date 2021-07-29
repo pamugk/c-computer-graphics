@@ -21,7 +21,14 @@ programs: 1
         
 models: 1
     6 heightmap ../heightmaps/australia.jpg 0.1
-    3
-        3 GL_FLOAT 0 coordinates: predefined
-        2 GL_FLOAT 0 texCoordinates: same
-        1 GL_INT 0 texLayer: stub
+    attributes: 3
+        3 GL_FLOAT 0 coordinates: predefined 
+        2 GL_FLOAT 0 texCoordinates: same 
+        1 GL_INT 0 texLayer: stub 
+    
+    transformations: 3
+        move center
+        scale fit
+        rotate x 45.0
+    
+    END

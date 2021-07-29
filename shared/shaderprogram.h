@@ -40,10 +40,6 @@ struct shader_program {
     int *modelsToRenderIdx;
 };
 
-struct shader_program createProgram(
-    int shaderCount, struct shader *shaders, 
-    int variablesCount, struct shader_variable *variables,
-    int textureCount, struct texture *textures);
 bool initShaderProgram(struct shader_program *program);
 
 void passVariables(struct shader_program *program);

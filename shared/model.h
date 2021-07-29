@@ -41,10 +41,11 @@ void makeSkyModel(struct body *skyBody, GLuint **indices, struct attribute **att
 bool initModel(struct model *out_model);
 
 bool makeIndices(struct body physicalBody, GLsizei *out_indexCount, GLuint **out_indices);
-struct model createModel(struct body physicalBody,
-    GLsizei attributesCount, struct attribute *attributes,
-    unsigned long indexCount, GLuint *indices);
 void calculateModelNormals(struct model *model, int offset);
+
+void moveModel(struct model *model, float dx, float dy, float dz);
+
+void scaleModel(struct model *model, float sx, float sy, float sz);
 
 void rotateModelAboutAxis(struct model *model, float degree);
 void rotateModel(struct model *model, float x, float y, float z, float degree);

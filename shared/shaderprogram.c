@@ -3,22 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct shader_program createProgram(
-    int shaderCount, struct shader *shaders, 
-    int variableCount, struct shader_variable *variables,
-    int textureCount, struct texture *textures) {
-    struct shader_program program = {
-            0,
-            shaderCount, shaders,
-            variableCount, variables,
-            textureCount, textures,
-            0, NULL
-    };
-
-    initShaderProgram(&program);
-
-    return program;
-}
 bool initShaderProgram(struct shader_program *program) {
     printf("Initializing shader program...\n");
     program->id = glCreateProgram();

@@ -75,19 +75,8 @@ bool initModel(struct model *out_model) {
         glVertexAttribPointer(i, out_model->attributes[i].size, out_model->attributes[i].type, out_model->attributes[i].normalized, out_model->body.vertexSize * sizeof(GLfloat), (const GLvoid *)(attributeShift * sizeof(GLfloat)));
         attributeShift += out_model->attributes[i].size;
     }
-    getIdentityMatrix(&out_model->m);
     
     return true;
-}
-
-struct model createModel(struct body physicalBody,
-    GLsizei attributesCount, struct attribute *attributes,
-    unsigned long indexCount, GLuint *indices) {
-    
-    struct model result = { 0, physicalBody, 0, indexCount, indices, 0, attributesCount, attributes };
-    initModel(&result);
-    
-    return result;
 }
 
 void calculateNormal(float pointA[3], float pointB[3], float pointC[3], float multiplier, float normal[3]) {
@@ -142,34 +131,46 @@ void calculateModelNormals(struct model *model, int offset) {
     printf("Completed normals calculation for provided model\n");
 }
 
+void moveModel(struct model *model, float dx, float dy, float dz) {
+    float prevM[MVP_MATRIX_SIZE]; 
+    memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
+    move(prevM, dx, dy, dz, model->m);
+}
+
+void scaleModel(struct model *model, float sx, float sy, float sz) {
+    float prevM[MVP_MATRIX_SIZE]; 
+    memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
+    scale(prevM, sx, sy, sz, model->m);
+}
+
 void rotateModelAboutAxis(struct model *model, float degree) {
     float prevM[MVP_MATRIX_SIZE]; 
     memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
-    rotate(prevM, 0, 0, 0, degree, &(model->m));
+    rotate(prevM, 0, 0, 0, degree, model->m);
 }
 
 void rotateModel(struct model *model, float x, float y, float z, float degree) {
     float prevM[MVP_MATRIX_SIZE]; 
     memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
-    rotate(prevM, x, y, z, degree, &(model->m));
+    rotate(prevM, x, y, z, degree, model->m);
 }
 
 void rotateModelAboutX(struct model *model, float degree) {
     float prevM[MVP_MATRIX_SIZE]; 
     memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
-    rotateAboutX(prevM, degree, &(model->m));
+    rotateAboutX(prevM, degree, model->m);
 }
 
 void rotateModelAboutY(struct model *model, float degree) {
     float prevM[MVP_MATRIX_SIZE]; 
     memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
-    rotateAboutY(prevM, degree, &(model->m));
+    rotateAboutY(prevM, degree, model->m);
 }
 
 void rotateModelAboutZ(struct model *model, float degree) {
     float prevM[MVP_MATRIX_SIZE]; 
     memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
-    rotateAboutX(prevM, degree, &(model->m));
+    rotateAboutZ(prevM, degree, model->m);
 }
 
 void freeModel(struct model *model) {

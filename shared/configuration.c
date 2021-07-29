@@ -1,5 +1,6 @@
 #include "configuration.h"
 #include "commonutils.h"
+#include "mvpmatrix.h"
 #include "types.h"
 
 #include <stdio.h>
@@ -271,34 +272,9 @@ bool parseShaderProgramsConfig(FILE *configurationFile, unsigned int *out_shader
     return noErrorsOccured;
 }
 
-bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
-    char section[15];
-    
-    out_model->attributes = NULL;
-    
-    unsigned char vertexSize = 0;
-    char *dynamicBuffer = NULL; char staticBuffer[30];
-    
-    fscanf(configurationFile, "%hhi%s", &vertexSize, staticBuffer);
-    
-    printf("Loading model of type %s with %hhi elements per vertex\n", staticBuffer, vertexSize);
-    
-    if (strcmp("heightmap", staticBuffer) == 0) {
-        float h;
-        fscanf(configurationFile, "%ms%f", &dynamicBuffer, &h);
-        printf("Model is defined via heightmap %s with h=%f\n", dynamicBuffer, h);
-        out_model->body = initBodyWithHeightmap(dynamicBuffer, vertexSize, h);
-    } else if (strcmp("textfile", staticBuffer) == 0) {
-        fscanf(configurationFile, "%ms", &dynamicBuffer);
-        out_model->body = initBodyWithTextfile(dynamicBuffer, vertexSize, &out_model->indexCount, &out_model->indices);
-        makeIndices(out_model->body, &out_model->indexCount, &out_model->indices);
-    } else {
-        printf("Unrecognized model source: %s", staticBuffer);
-    }
-    
-    if (dynamicBuffer != NULL) {
-        free(dynamicBuffer);
-    }
+bool parseModelAttributes(FILE *configurationFile, struct model *out_model) {
+    char staticBuffer[30];
+    unsigned short int attributeShift = 0;
     
     fscanf(configurationFile, "%i", &out_model->attributesCount);
     out_model->attributes = calloc(out_model->attributesCount, sizeof(struct attribute));
@@ -309,7 +285,6 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
         return false;
     }
     
-    unsigned short int attributeShift = 0;
     for (int i = 0; i < out_model->attributesCount; i += 1) {
         fscanf(configurationFile, "%i%s%i", &out_model->attributes[i].size, staticBuffer, (int*)&out_model->attributes[i].normalized);
         
@@ -393,8 +368,107 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
         }
         attributeShift += out_model->attributes[i].size;
     }
+    return true;
+}
+
+bool parseModelTransformations(FILE *configurationFile, struct model *out_model) {
+    char staticBuffer[30];
+    int transformationsCount;
     
-    return initModel(out_model);
+    getIdentityMatrix(out_model->m);
+    fscanf(configurationFile, "%i", &transformationsCount);
+    for (int i = 0; i < transformationsCount; i += 1) {
+        fscanf(configurationFile, "%s", staticBuffer);
+        if (strcmp("move", staticBuffer) == 0) {
+            fscanf(configurationFile, "%s", staticBuffer);
+            if (strcmp("center", staticBuffer) == 0) {
+                printf("Moving model for (%f, %f, %f) points\n", out_model->body.width / -2.f, 0.f, out_model->body.depth / -2.f);
+                moveModel(out_model, out_model->body.width / -2.f, 0.f, out_model->body.depth / -2.f);
+            } else {
+                printf("Unknown movement target: %s\n", staticBuffer);
+                return false;
+            }
+        } else if(strcmp("scale", staticBuffer) == 0) {
+            fscanf(configurationFile, "%s", staticBuffer);
+            if (strcmp("fit", staticBuffer) == 0) {
+                scaleModel(out_model, 1.f / out_model->body.width, 1.f / out_model->body.height, 1.f / out_model->body.height);
+            } else {
+                printf("Unknown scaling target: %s\n", staticBuffer);
+                return false;
+            }
+        } else if(strcmp("rotate", staticBuffer) == 0) {
+            float degree;
+            fscanf(configurationFile, "%s", staticBuffer);
+            if (strcmp("x", staticBuffer) == 0) {
+                fscanf(configurationFile, "%f", &degree);
+                rotateModelAboutX(out_model, degree);
+            } else if (strcmp("y", staticBuffer) == 0) {
+                fscanf(configurationFile, "%f", &degree);
+                rotateModelAboutY(out_model, degree);
+            } else if (strcmp("z", staticBuffer) == 0) {
+                fscanf(configurationFile, "%f", &degree);
+                rotateModelAboutZ(out_model, degree);
+            } else if (strcmp("axis", staticBuffer) == 0) {
+                fscanf(configurationFile, "%f", &degree);
+                rotateModelAboutAxis(out_model, degree);
+            } else {
+                printf("Unknown rotation target: %s\n", staticBuffer);
+                return false;
+            }
+        } else {
+            printf("Unknown model transformation: %s\n", staticBuffer);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
+    char section[15];
+    
+    out_model->attributes = NULL;
+    
+    unsigned char vertexSize = 0;
+    char *dynamicBuffer = NULL; char staticBuffer[30];
+    
+    fscanf(configurationFile, "%hhi%s", &vertexSize, staticBuffer);
+    
+    printf("Loading model of type %s with %hhi elements per vertex\n", staticBuffer, vertexSize);
+    
+    getIdentityMatrix(out_model->m);
+    bool noErrorsOccured = true;
+    if (strcmp("heightmap", staticBuffer) == 0) {
+        float h;
+        fscanf(configurationFile, "%ms%f", &dynamicBuffer, &h);
+        printf("Model is defined via heightmap %s with h=%f\n", dynamicBuffer, h);
+        out_model->body = initBodyWithHeightmap(dynamicBuffer, vertexSize, h);
+    } else if (strcmp("textfile", staticBuffer) == 0) {
+        fscanf(configurationFile, "%ms", &dynamicBuffer);
+        out_model->body = initBodyWithTextfile(dynamicBuffer, vertexSize, &out_model->indexCount, &out_model->indices);
+        makeIndices(out_model->body, &out_model->indexCount, &out_model->indices);
+    } else {
+        printf("Unrecognized model source: %s", staticBuffer);
+        noErrorsOccured = false;
+    }
+    
+    if (dynamicBuffer != NULL) {
+        free(dynamicBuffer);
+    }
+    
+    while(noErrorsOccured && fscanf(configurationFile, "%s", section) > 0 && strcmp("END", section) != 0) {
+        if (strcmp("transformations:", section) == 0) {
+            printf("Applying transformations to model\n");
+            noErrorsOccured = parseModelTransformations(configurationFile, out_model);
+        } else if (strcmp("attributes:", section) == 0) {
+            printf("Parsing model attributes\n");
+            noErrorsOccured = parseModelAttributes(configurationFile, out_model);
+        } else {
+            printf("Unknown model configuration section: %s\n", section);
+            noErrorsOccured = false;
+        }
+    }
+    
+    return noErrorsOccured && initModel(out_model);
 }
 
 bool parseModelsConfig(FILE *configurationFile, unsigned *out_modelsCount, struct model **out_models) {

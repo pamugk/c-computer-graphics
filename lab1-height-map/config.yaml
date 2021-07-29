@@ -11,6 +11,12 @@ programs: 1
         
 models: 1
     6 heightmap ../heightmaps/australia.jpg 0.1
-    2
+    attributes: 2
         3 GL_FLOAT 0 coordinates: predefined
         3 GL_FLOAT 0 color: generate
+    transformations: 3
+        move fit
+        scale fit
+        rotate x 45.0
+    
+    END
