@@ -391,7 +391,8 @@ bool parseModelTransformations(FILE *configurationFile, struct model *out_model)
         } else if(strcmp("scale", staticBuffer) == 0) {
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("fit", staticBuffer) == 0) {
-                scaleModel(out_model, 1.f / out_model->body.width, 1.f / out_model->body.height, 1.f / out_model->body.height);
+                printf("Scaling model for (%f, %f, %f) points\n", 1.f / out_model->body.width, 1.f / out_model->body.height, 1.f / out_model->body.depth);
+                scaleModel(out_model, 1.f / out_model->body.width, 1.f / out_model->body.height, 1.f / out_model->body.depth);
             } else {
                 printf("Unknown scaling target: %s\n", staticBuffer);
                 return false;
