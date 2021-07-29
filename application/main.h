@@ -1,5 +1,5 @@
 #include "../shared/configuration.h"
-#include "../shared/mvpmatrix.h"
+#include "../shared/vectormath.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>

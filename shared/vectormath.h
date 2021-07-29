@@ -1,6 +1,10 @@
-#ifndef MVP_MATRIX
-#define MVP_MATRIX
+#ifndef VECTOR_MATH
+#define VECTOR_MATH
 #include <stdbool.h>
+
+void calculateNormal(float pointA[3], float pointB[3], float pointC[3], float multiplier, float normal[3]);
+
+void normalize(float vector[3]);
 
 // Размерность MVP-матрицы
 #define MVP_MATRIX_DIMENSION_SIZE 4
@@ -60,4 +64,4 @@ void multiplyMatrices(float matrix[MVP_MATRIX_SIZE], float otherMatrix[MVP_MATRI
 void multiplyByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[16]);
 //Оператор сложения матриц
 void divideByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[16]);
-#endif //MVP_MATRIX
+#endif //VECTOR_MATH

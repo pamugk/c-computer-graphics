@@ -1,4 +1,4 @@
-#include "mvpmatrix.h"
+#include "vectormath.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -11,6 +11,27 @@
 #ifndef M_PI_2
 #define M_PI_2 1.57079632679489661923
 #endif
+
+// Вычисление нормали (без нормализации)
+void calculateNormal(float pointA[3], float pointB[3], float pointC[3], float multiplier, float normal[3]) {
+    float AB[3] = { pointB[0] - pointA[0], pointB[1] - pointA[1], pointB[2] - pointA[2] };
+    float lenAB = sqrt(AB[0] * AB[0] + AB[1] * AB[1] + AB[2] * AB[2]);
+    
+    float AC[3] = { pointC[0] - pointA[0], pointC[1] - pointA[1], pointC[2] - pointA[2] };
+    float lenAC = sqrt(AC[0] * AC[0] + AC[1] * AC[1] + AC[2] * AC[2]);
+    
+    float cosV = (AB[0] * AC[0] + AB[1] * AC[1] + AB[2] * AC[2]) / lenAB / lenAC;
+    
+    normal[0] =  multiplier * cosV * (AB[1] * AC[2] - AC[1] * AB[2]);
+    normal[1] = multiplier * cosV * (-AB[0] * AC[2] + AC[2] * AB[0]);
+    normal[2] =  multiplier * cosV * (AB[0] * AC[1] - AC[0] * AB[1]);
+}
+
+// Нормализация
+void normalize(float vector[3]) {
+    float len = sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
+    vector[0] /= len; vector[1] /= len; vector[2] /= len;
+}
 
 //Метод для формирования единичной матрицы
 void getIdentityMatrix(float out_matrix[16]) {
