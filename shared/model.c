@@ -54,7 +54,7 @@ bool initModel(struct model *out_model) {
     glGenBuffers(1, &out_model->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, out_model->vbo);
     glBufferData(GL_ARRAY_BUFFER, out_model->body.vertexSize * out_model->body.verticeCount * sizeof(GLfloat), out_model->body.vertices, GL_STATIC_DRAW);
-        
+         
     if (out_model->indices == NULL && !makeIndices(out_model->body, &out_model->indexCount, &out_model->indices)) {
         printf("No indices provided\n");
         return false;
@@ -75,7 +75,7 @@ bool initModel(struct model *out_model) {
         glVertexAttribPointer(i, out_model->attributes[i].size, out_model->attributes[i].type, out_model->attributes[i].normalized, out_model->body.vertexSize * sizeof(GLfloat), (const GLvoid *)(attributeShift * sizeof(GLfloat)));
         attributeShift += out_model->attributes[i].size;
     }
-    
+        
     return true;
 }
 

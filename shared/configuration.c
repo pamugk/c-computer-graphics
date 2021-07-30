@@ -113,8 +113,6 @@ bool parseTexturesDefinition(FILE *configurationFile, int texturesCount, struct 
                                         
         GLenum textureTarget = parseTextureTarget(staticBuffer);
                     
-        bool isArrayTexture = textureTarget == GL_TEXTURE_2D_ARRAY || textureTarget == GL_TEXTURE_2D_ARRAY;
-                    
         pathsToTextures = calloc(layersCount, sizeof(char*));
                     
         for (int j = 0; j < layersCount; j += 1) {
@@ -191,7 +189,7 @@ bool parseShaderProgramConfig(FILE *configurationFile, struct shader_program *ou
             for (int i = 0; i < out_program->shaderCount; i += 1) {
                 fscanf(configurationFile, "%ms%s", &dynamicBuffer, staticBuffer);
                 out_program->shaders[i] = loadShader(dynamicBuffer, parseShaderKind(staticBuffer));
-                    
+                
                 if (dynamicBuffer != NULL) {
                     free(dynamicBuffer);
                     dynamicBuffer = NULL;
@@ -443,10 +441,10 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
         fscanf(configurationFile, "%ms%f", &dynamicBuffer, &h);
         printf("Model is defined via heightmap %s with h=%f\n", dynamicBuffer, h);
         out_model->body = initBodyWithHeightmap(dynamicBuffer, vertexSize, h);
+        makeIndices(out_model->body, &out_model->indexCount, &out_model->indices);
     } else if (strcmp("textfile", staticBuffer) == 0) {
         fscanf(configurationFile, "%ms", &dynamicBuffer);
         out_model->body = initBodyWithTextfile(dynamicBuffer, vertexSize, &out_model->indexCount, &out_model->indices);
-        makeIndices(out_model->body, &out_model->indexCount, &out_model->indices);
     } else {
         printf("Unrecognized model source: %s", staticBuffer);
         noErrorsOccured = false;

@@ -23,7 +23,7 @@ int projection = 0;
 bool init() {
     glClearColor(1.f, 1.f, 1.f, 1.f);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
+    glDepthFunc(GL_ALWAYS);
     
     return applyConfiguration(pathToConfiguration, &g_programsCount, &g_programs, &g_modelsCount, &g_models);
 }
@@ -54,24 +54,31 @@ void draw() {
     
     float mv[MVP_MATRIX_SIZE];
     for (int i = 0; i < g_programsCount; i += 1) {
-        glUseProgram(g_programs[i].id);
-            
-        for (int j = 0; j < g_programs[i].textureCount; j += 1) {
-            glActiveTexture(GL_TEXTURE0 + j);
-            glBindTexture(g_programs[i].textures[j].target, g_programs[i].textures[j].id);
-            glUniform1i(g_programs[i].textures[j].mapLocation, j);
+        glUseProgram(g_programs[i].id);            
+        for (int t = 0; t < g_programs[i].textureCount; t += 1) {
+            glActiveTexture(GL_TEXTURE0 + t);
+            glBindTexture(g_programs[i].textures[t].target, g_programs[i].textures[t].id);
+            glUniform1i(g_programs[i].textures[t].mapLocation, t);
         }
         
         bool mvpDefined = g_programs[i].variablesCount > 0 && strcmp("u_mvp", g_programs[i].variables[0].name) == 0;
         bool normalsDefined = mvpDefined && g_programs[i].variablesCount > 1 && strcmp("u_n", g_programs[i].variables[1].name) == 0;
         for (int j = 0; j < g_programs[i].modelsToRenderCount; j += 1) {
             int m = g_programs[i].modelsToRenderIdx[j];
+            
+            if (mvpDefined) {
+                multiplyMatrices(v, g_models[m].m, mv);
+                multiplyMatrices(p, mv, g_programs[i].variables[0].value.floatMat4Val);
                 
-            multiplyMatrices(v, g_models[m].m, mv);
-            multiplyMatrices(p, mv, g_programs[i].variables[0].value.floatMat4Val);
+                if (normalsDefined) {
+                    buildNMatrix(g_programs[i].variables[0].value.floatMat4Val, g_programs[i].variables[1].value.floatMat3Val);
+                }
+            }
+            
+            glBindVertexArray(g_models[m].vao);
             
             passVariables(&g_programs[i]);
-                
+            
             glDrawElements(GL_TRIANGLES, g_models[m].indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);
         }
     }
@@ -90,7 +97,7 @@ bool initOpenGL() {
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	g_window = glfwCreateWindow(1024, 768, "Sky cube demonstration", NULL, NULL);
+	g_window = glfwCreateWindow(1024, 768, "CG demonstration", NULL, NULL);
     if (g_window == NULL) {
 		printf("Failed to open GLFW window\n");
 		glfwTerminate();

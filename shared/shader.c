@@ -32,10 +32,11 @@ struct shader loadShader(const char filePath[], GLenum type) {
         fseek(file, 0, SEEK_END);
         size_t size = ftell(file);
 
-        code = calloc(size, sizeof(GLchar));
+        code = calloc(size + 1, sizeof(GLchar));
 
         rewind(file);
         fread(code, sizeof(GLchar), size, file);
+        code[size] = '\0';
         fclose(file);
 
         printf("Loaded shader of type %i from path %s\n", type, filePath);

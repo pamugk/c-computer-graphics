@@ -179,7 +179,7 @@ GLint parseTextureParameterEnumValue(const char *parameterValue) {
 }
 
 struct texture loadTexture(
-    const char **filePath, 
+    const char **filePaths, 
     int layersCount, int width, int height,
     GLenum target, int generateMipmap,
     int parametersCount,
@@ -192,9 +192,9 @@ struct texture loadTexture(
     printf("Started texture initialization\n");
     switch (target) {
         case GL_TEXTURE_1D: {
-            struct image textureImage = readTexture(filePath[0]);
+            struct image textureImage = readTexture(filePaths[0]);
             if (textureImage.contents == NULL) {
-                printf("Some error occurred while reading a texture from %s\n", filePath[0]);
+                printf("Some error occurred while reading a texture from %s\n", filePaths[0]);
                 return result;
             }
             result.width = textureImage.width; result.height = textureImage.height;
@@ -206,9 +206,9 @@ struct texture loadTexture(
             glTextureStorage2D(result.id, 0, GL_RGBA16, width, layersCount);
             
             for (int i = 0; i < layersCount; i += 1) {
-                struct image textureImage = readTexture(filePath[i]);
+                struct image textureImage = readTexture(filePaths[i]);
                 if (textureImage.contents == NULL) {
-                    printf("Some error occurred while reading a texture from %s\n", filePath[i]);
+                    printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
                     continue;
                 }
                 glTextureSubImage2D(result.id, 0, 0, i, width, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
@@ -217,9 +217,9 @@ struct texture loadTexture(
             break;
         }
         case GL_TEXTURE_2D: {
-            struct image textureImage = readTexture(filePath[0]);
+            struct image textureImage = readTexture(filePaths[0]);
             if (textureImage.contents == NULL) {
-                printf("Some error occurred while reading a texture from %s\n", filePath[0]);
+                printf("Some error occurred while reading a texture from %s\n", filePaths[0]);
                 return result;
             }
             result.width = textureImage.width; result.height = textureImage.height;
@@ -231,9 +231,9 @@ struct texture loadTexture(
             glTexStorage3D(target, 1, GL_RGBA8, width, height, layersCount);
             
             for (int i = 0; i < layersCount; i += 1) {
-                struct image textureImage = readTexture(filePath[i]);
+                struct image textureImage = readTexture(filePaths[i]);
                 if (textureImage.contents == NULL) {
-                    printf("Some error occurred while reading a texture from %s\n", filePath[i]);
+                    printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
                     continue;
                 }
                 glTextureSubImage3D(result.id, 0, 0, 0, i, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
@@ -253,9 +253,9 @@ struct texture loadTexture(
         case GL_TEXTURE_CUBE_MAP: {
             printf("Loading cube map...\n");
             for (int i = 0; i < layersCount; i += 1) {
-                struct image textureImage = readTexture(filePath[i]);
+                struct image textureImage = readTexture(filePaths[i]);
                 if (textureImage.contents == NULL) {
-                    printf("Some error occurred while reading a texture from %s\n", filePath[i]);
+                    printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
                     continue;
                 }
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, textureImage.width, textureImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
