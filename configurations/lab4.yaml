@@ -1,5 +1,29 @@
 programs: 2
     shaders: 2
+        ../shaders/lab4/vsh_skycube.glsl GL_VERTEX_SHADER
+        ../shaders/lab4/fsh_skycube.glsl GL_FRAGMENT_SHADER
+    textures: 1
+        u_map GL_TEXTURE_CUBE_MAP 0 
+        6 1024 1024
+            ../textures/skybox/right.jpg
+            ../textures/skybox/left.jpg
+            ../textures/skybox/top.jpg
+            ../textures/skybox/bottom.jpg
+            ../textures/skybox/front.jpg
+            ../textures/skybox/back.jpg
+        5
+            GL_TEXTURE_MAG_FILTER GL_LINEAR
+            GL_TEXTURE_MIN_FILTER GL_LINEAR
+            GL_TEXTURE_WRAP_S GL_CLAMP_TO_EDGE
+            GL_TEXTURE_WRAP_T GL_CLAMP_TO_EDGE
+            GL_TEXTURE_WRAP_R GL_CLAMP_TO_EDGE
+    variables: 1 0
+        u_mvp GL_FLOAT_MAT4 0
+    models: 1
+        0
+    END
+    
+    shaders: 2
         ../shaders/lab4/vsh.glsl GL_VERTEX_SHADER
         ../shaders/lab4/fsh.glsl GL_FRAGMENT_SHADER
     textures: 1
@@ -26,30 +50,6 @@ programs: 2
     
     END
     
-    shaders: 2
-        ../shaders/lab4/shaders/vsh_skycube.glsl GL_VERTEX_SHADER
-        ../shaders/lab4/shaders/fsh_skycube.glsl GL_FRAGMENT_SHADER
-    textures: 1
-        u_map GL_TEXTURE_CUBE_MAP 0 
-        6 1024 1024
-            ../textures/skybox/right.jpg
-            ../textures/skybox/left.jpg
-            ../textures/skybox/top.jpg
-            ../textures/skybox/bottom.jpg
-            ../textures/skybox/front.jpg
-            ../textures/skybox/back.jpg
-        5
-            GL_TEXTURE_MAG_FILTER GL_LINEAR
-            GL_TEXTURE_MIN_FILTER GL_LINEAR
-            GL_TEXTURE_WRAP_S GL_CLAMP_TO_EDGE
-            GL_TEXTURE_WRAP_T GL_CLAMP_TO_EDGE
-            GL_TEXTURE_WRAP_R GL_CLAMP_TO_EDGE
-    variables: 1 0
-        u_mvp GL_FLOAT_MAT4 0
-    models: 1
-        0
-    END
-        
 models: 2
     3 textfile ../models/skybox
     attributes: 1
