@@ -132,11 +132,11 @@ bool parseTexturesDefinition(FILE *configurationFile, int texturesCount, struct 
             fscanf(configurationFile, "%s", staticBuffer);
             parameters[j].name = parseTextureParameterName(staticBuffer);
             parameters[j].type = defineTextureParameterType(parameters[j].name);
-                            
+                                        
             switch (parameters[j].type) {
                 case (0): {
                     fscanf(configurationFile, "%s", staticBuffer);
-                    parameters[i].value.enumValue = parseTextureParameterEnumValue(staticBuffer);
+                    parameters[j].value.enumValue = parseTextureParameterEnumValue(staticBuffer);
                     break;
                 }
                 case (GL_INT): {

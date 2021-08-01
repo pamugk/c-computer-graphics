@@ -249,7 +249,6 @@ struct texture loadTexture(
             break;
         }
         case GL_TEXTURE_CUBE_MAP: {
-            glTexStorage2D(GL_TEXTURE_CUBE_MAP, 6, GL_RGB, width, height);
             printf("Loading cube map...\n");
             for (int i = 0; i < layersCount; i += 1) {
                 struct image textureImage = readTexture(filePaths[i]);
@@ -291,9 +290,9 @@ struct texture loadTexture(
         }
     }
 
-    GLfloat fLargest;
+    /*GLfloat fLargest;
     glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
-    glTexParameterf(result.target, GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, fLargest);
+    glTexParameterf(result.target, GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, fLargest);*/
 
     if (generateMipmap) {
         glGenerateMipmap(target);
