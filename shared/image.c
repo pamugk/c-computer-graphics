@@ -17,7 +17,7 @@ bool isPng(const char *fileExtension) {
     return strcmp(fileExtension, "png") == 0;
 }
 
-unsigned int openGlImageFormatToPngFormat(GLenum glFormat) {
+unsigned int openGlImageFormatToPngFormat(GLenum glFormat, GLboolean useColorMap) {
     switch (glFormat) {
         case GL_LUMINANCE: {
             return PNG_FORMAT_GRAY;
@@ -26,22 +26,22 @@ unsigned int openGlImageFormatToPngFormat(GLenum glFormat) {
             return PNG_FORMAT_GA;
         }
         case GL_BGR: {
-            return PNG_FORMAT_BGR;
+            return useColorMap ? PNG_FORMAT_BGR_COLORMAP : PNG_FORMAT_BGR;
         }
         case GL_RGB: {
-            return PNG_FORMAT_RGB;
+            return useColorMap ? PNG_FORMAT_RGB : PNG_FORMAT_RGB_COLORMAP;
         }
         case GL_BGRA: {
-            return PNG_FORMAT_BGRA;
+            return useColorMap ? PNG_FORMAT_BGRA : PNG_FORMAT_BGRA_COLORMAP;
         }
         case GL_RGBA: {
-            return PNG_FORMAT_RGBA;
+            return useColorMap ? PNG_FORMAT_RGBA : PNG_FORMAT_RGBA_COLORMAP;
         }
     }
     return 0U;
 }
 
-void readPng(const char *filePath, struct image *out_image) {
+void readPng(const char *filePath, struct image *out_image, GLboolean useColorMap) {
     png_image loadedImage;
     loadedImage.version = PNG_IMAGE_VERSION;
     loadedImage.opaque = NULL;
@@ -51,21 +51,28 @@ void readPng(const char *filePath, struct image *out_image) {
         return;
     }
     
+    loadedImage.format = openGlImageFormatToPngFormat(out_image->format, useColorMap);
     out_image->width = loadedImage.width;
     out_image->height = loadedImage.height;
 
-    loadedImage.format = openGlImageFormatToPngFormat(out_image->format);
-    unsigned long imageSize = PNG_IMAGE_SIZE(loadedImage);
-    out_image->contents = malloc(imageSize);
+    out_image->sampleSize = PNG_IMAGE_SAMPLE_SIZE((loadedImage).format);
+    out_image->contentsSize = PNG_IMAGE_SIZE(loadedImage);
+    out_image->contents = malloc(out_image->contentsSize);
+    
+    if (useColorMap) {
+        out_image->colorMapSize = PNG_IMAGE_COLORMAP_SIZE(loadedImage);
+        out_image->colorMapEntriesCount = loadedImage.colormap_entries;
+        out_image->colorMap = malloc(out_image->colorMapSize);
+    }
 
-    if (out_image->contents != NULL) {
-        if (!png_image_finish_read(&loadedImage, NULL, out_image->contents, 0, NULL)) {
+    if (out_image->contents != NULL && (!useColorMap || out_image->colorMap)) {
+        if (!png_image_finish_read(&loadedImage, NULL, out_image->contents, 0, out_image->colorMap)) {
             printf("Error occured while reading PNG from %s: %s\n", filePath, loadedImage.message);
             free(out_image->contents);
             out_image->contents = NULL;
         }
     } else {
-        printf("Not enough memory for a PNG image from %s: %lu bytes required\n", filePath, imageSize);
+        printf("Not enough memory for a PNG image from %s: %u bytes required for image itself, and %u for a color map\n", filePath, out_image->contentsSize, out_image->colorMapSize);
         png_image_free(&loadedImage);
     }
    
@@ -117,7 +124,7 @@ unsigned int openGlImageFormatToJpegFormat(GLenum glFormat) {
     return JCS_UNKNOWN;
 }
 
-void readJpeg(const char *filePath, struct image *out_image) {
+void readJpeg(const char *filePath, struct image *out_image, GLboolean useColorMap) {
     FILE *imageFile = fopen(filePath, "rb");
 
     if (imageFile == NULL) {
@@ -147,20 +154,44 @@ void readJpeg(const char *filePath, struct image *out_image) {
     jpeg_read_header(&decompressor, true);
 
     decompressor.out_color_space = openGlImageFormatToJpegFormat(out_image->format);
-    jpeg_calc_output_dimensions(&decompressor);
+    decompressor.quantize_colors = useColorMap;
+
+    jpeg_start_decompress(&decompressor);
+    
+    out_image->sampleSize = decompressor.out_color_components;
     out_image->width = decompressor.output_width;
     out_image->height = decompressor.output_height;
     
     unsigned int samplesPerRow = out_image->width * decompressor.output_components;
-    out_image->contents = malloc(out_image->height * samplesPerRow);
-    JSAMPARRAY buffer = decompressor.mem->alloc_sarray((j_common_ptr)&decompressor, JPOOL_IMAGE, samplesPerRow, 1);
-
-    jpeg_start_decompress(&decompressor);
-    unsigned long shift = 0;
-    while (decompressor.output_scanline < out_image->height) {
-        jpeg_read_scanlines(&decompressor, buffer, 1);
-        memcpy(out_image->contents + shift, buffer[0], samplesPerRow);
-        shift += samplesPerRow;
+    out_image->contentsSize = out_image->height * samplesPerRow;
+    
+    if (useColorMap) {
+        out_image->colorMapEntriesCount = decompressor.actual_number_of_colors;
+        out_image->colorMapSize = out_image->colorMapEntriesCount * out_image->sampleSize;
+        out_image->colorMap = malloc(out_image->colorMapSize);
+        
+        if (out_image->colorMap == NULL) {
+            printf("Not enough memory to allocate color map\n");
+            out_image->colorMapEntriesCount = 0U;
+            out_image->colorMapSize = 0U;
+        } else {
+            memcpy(out_image->colorMap, decompressor.colormap, out_image->colorMapSize);
+        }
+    }
+    
+    out_image->contents = malloc(out_image->contentsSize);
+    
+    if (out_image->contents == NULL) {
+        printf("Not enough memory to allocate image contents\n");
+    } else {
+        JSAMPARRAY buffer = decompressor.mem->alloc_sarray((j_common_ptr)&decompressor, JPOOL_IMAGE, samplesPerRow, 1);
+        
+        unsigned long shift = 0;
+        while (decompressor.output_scanline < out_image->height) {
+            jpeg_read_scanlines(&decompressor, buffer, 1);
+            memcpy(out_image->contents + shift, buffer[0], samplesPerRow);
+            shift += samplesPerRow;
+        }
     }
 
     jpeg_finish_decompress(&decompressor);
@@ -201,13 +232,13 @@ void readBmp(const char *filePath, struct image* out_image) {
     return;
 }
 
-struct image readImage(const char *filePath, GLenum format) {
-    struct image result = { 0, 0, format, NULL, NULL };
+struct image readImage(const char *filePath, GLenum format, GLboolean useColorMap) {
+    struct image result = { 0, 0, format, 0U, 0U, NULL, 0U, NULL, 0U };
     const char *fileExtension = defineFileExtension(fileNameFromPath(filePath));
     if (isPng(fileExtension)) {
-        readPng(filePath, &result);
+        readPng(filePath, &result, useColorMap);
     } else if (isJpeg(fileExtension)){
-        readJpeg(filePath, &result);
+        readJpeg(filePath, &result, useColorMap);
     } else if (isBmp(fileExtension)) {
         readBmp(filePath, &result);
     } else {

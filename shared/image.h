@@ -5,15 +5,21 @@
 
 struct image
 {
-    unsigned int width;
-    unsigned int height;
+    GLuint width;
+    GLuint height;
+    
     GLenum format;
+    GLubyte sampleSize;
+    GLuint colorMapEntriesCount;
 
-    unsigned char *contents;
-    unsigned char *colorMap;
+    GLubyte *contents;
+    GLuint contentsSize;
+    
+    GLubyte *colorMap;
+    GLuint colorMapSize;
 };
 
-struct image readImage(const char *filePath, GLenum format);
+struct image readImage(const char *filePath, GLenum format, GLboolean useColorMap);
 void freeImage(struct image *image);
 
 #endif //IMAGE
