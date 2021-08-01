@@ -77,7 +77,7 @@ void draw() {
             
             glBindVertexArray(g_models[m].vao);
             
-            passVariables(&g_programs[i]);
+            passVariables(g_programs + i);
             
             glDrawElements(GL_TRIANGLES, g_models[m].indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);
         }
@@ -114,6 +114,10 @@ bool initOpenGL() {
     glfwSetFramebufferSizeCallback(g_window, reshape);
     glfwSetInputMode(g_window, GLFW_STICKY_KEYS, GL_TRUE);
     glfwSetKeyCallback(g_window, onKeyPress);
+    
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(errorCallback, 0);
+    
     return true;
 }
 

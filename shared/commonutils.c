@@ -103,11 +103,19 @@ void initBodyTextures(struct body *physicalBody, int offset) {
     
     printf("Started texture calculations for provided model\n");
     for (int i = 0; i < physicalBody->vertexSize * physicalBody->verticeCount; i += physicalBody->vertexSize) {
-        physicalBody->vertices[i + offset] = physicalBody->vertices[i] / 1024.f;
-        physicalBody->vertices[i + offset + 1] = physicalBody->vertices[i + 2] / 1024.f;
-        ((int*)physicalBody->vertices)[i + offset + 2] = physicalBody->vertices[i + 1] >= 0.01;
+        physicalBody->vertices[i + offset] = physicalBody->vertices[i];
+        physicalBody->vertices[i + offset + 1] = physicalBody->vertices[i + 2];
     }
     printf("Completed texture calculations for provided model\n");
+}
+
+void initBodyTextureMap(struct body *physicalBody, int offset) {
+    if (physicalBody->vertices == NULL) {
+        printf("No physical body provided\n");
+        return;
+    }
+    
+    printf("Started texture layer calculations for provided model\n");
 }
 
 void initBodyStubTextureLayer(struct body *physicalBody, int offset) {
@@ -116,7 +124,7 @@ void initBodyStubTextureLayer(struct body *physicalBody, int offset) {
         return;
     }
     
-    printf("Started texture calculations for provided model\n");
+    printf("Started stub texture layer calculations for provided model\n");
     for (int i = 0; i < physicalBody->vertexSize * physicalBody->verticeCount; i += physicalBody->vertexSize) {
         ((int*)physicalBody->vertices)[i + offset] = physicalBody->vertices[i + 1] >= 0.01;
     }

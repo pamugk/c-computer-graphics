@@ -13,6 +13,7 @@ struct image
     unsigned int height;
 
     unsigned char *contents;
+    unsigned char *colorMap;
 };
 
 struct image readHeightmap(const char *filePath);

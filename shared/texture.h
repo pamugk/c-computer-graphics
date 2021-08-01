@@ -19,9 +19,6 @@ struct texture {
     GLuint id;
     GLint mapLocation;
     GLchar *mapName;
-    unsigned int width;
-    unsigned int height;
-    unsigned int layersCount;
     GLenum target;
 };
 

@@ -1,4 +1,4 @@
-#version 460
+#version 450
 
 uniform vec3 u_olpos; // Позиция источника света
 uniform vec3 u_olcol; // Цвет света

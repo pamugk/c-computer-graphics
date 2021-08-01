@@ -1,4 +1,4 @@
-#version 460
+#version 450
 
 uniform sampler2DArray u_surfaceMap; // Текстуры поверхности
 

@@ -4,7 +4,7 @@ programs: 2
         ../shaders/lab4/fsh_skycube.glsl GL_FRAGMENT_SHADER
     textures: 1
         u_map GL_TEXTURE_CUBE_MAP 0 
-        6 1024 1024
+        6 2048 2048
             ../textures/skybox/right.jpg
             ../textures/skybox/left.jpg
             ../textures/skybox/top.jpg

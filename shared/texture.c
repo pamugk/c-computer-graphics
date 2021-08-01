@@ -185,7 +185,7 @@ struct texture loadTexture(
     int parametersCount,
     struct texture_parameter *parameters) {
     
-    struct texture result = { 0, -1, NULL, width, height, layersCount, target };
+    struct texture result = { 0, -1, NULL, target };
     glGenTextures(1, &result.id);
     glBindTexture(target, result.id);
     
@@ -197,8 +197,7 @@ struct texture loadTexture(
                 printf("Some error occurred while reading a texture from %s\n", filePaths[0]);
                 return result;
             }
-            result.width = textureImage.width; result.height = textureImage.height;
-            glTexImage1D(target, 0, GL_RGBA, result.width, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+            glTexImage1D(target, 0, GL_RGBA, textureImage.width, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
             freeImage(&textureImage);
             break;
         }
@@ -211,7 +210,7 @@ struct texture loadTexture(
                     printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
                     continue;
                 }
-                glTextureSubImage2D(result.id, 0, 0, i, width, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+                glTextureSubImage2D(result.id, 0, 0, i, textureImage.width, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
                 freeImage(&textureImage);
             }
             break;
@@ -222,8 +221,7 @@ struct texture loadTexture(
                 printf("Some error occurred while reading a texture from %s\n", filePaths[0]);
                 return result;
             }
-            result.width = textureImage.width; result.height = textureImage.height;
-            glTexImage2D(target, 0, GL_RGBA, result.width, result.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+            glTexImage2D(target, 0, GL_RGBA, textureImage.width, textureImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
             freeImage(&textureImage);
             break;
         }
@@ -236,7 +234,7 @@ struct texture loadTexture(
                     printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
                     continue;
                 }
-                glTextureSubImage3D(result.id, 0, 0, 0, i, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+                glTextureSubImage3D(result.id, 0, 0, 0, i, textureImage.width, textureImage.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
                 freeImage(&textureImage);
             }
             break;
@@ -251,6 +249,7 @@ struct texture loadTexture(
             break;
         }
         case GL_TEXTURE_CUBE_MAP: {
+            glTexStorage2D(GL_TEXTURE_CUBE_MAP, 6, GL_RGB, width, height);
             printf("Loading cube map...\n");
             for (int i = 0; i < layersCount; i += 1) {
                 struct image textureImage = readTexture(filePaths[i]);

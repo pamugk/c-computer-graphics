@@ -1,4 +1,5 @@
 #include "../shared/configuration.h"
+#include "../shared/error.h"
 #include "../shared/vectormath.h"
 
 #include <GL/glew.h>

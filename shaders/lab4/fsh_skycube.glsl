@@ -1,4 +1,4 @@
-#version 460
+#version 450
 
 uniform samplerCube u_map;
 in vec3 v_texCoord;
