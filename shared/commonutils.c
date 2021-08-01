@@ -14,7 +14,7 @@ struct body initBodyWithHeightmap(const char *pathToHeightmap, unsigned char ver
         return result;
     }
     
-    struct image image = readHeightmap(pathToHeightmap);
+    struct image image = readImage(pathToHeightmap, GL_LUMINANCE);
     printf("Loaded heightmap image: %ix%i\n", image.width, image.height);
     if (image.contents == NULL || image.width == 0 || image.height == 0) {
         printf("Image was not loaded correctly\n");

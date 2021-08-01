@@ -192,7 +192,7 @@ struct texture loadTexture(
     printf("Started texture initialization\n");
     switch (target) {
         case GL_TEXTURE_1D: {
-            struct image textureImage = readTexture(filePaths[0]);
+            struct image textureImage = readImage(filePaths[0], GL_RGBA);
             if (textureImage.contents == NULL) {
                 printf("Some error occurred while reading a texture from %s\n", filePaths[0]);
                 return result;
@@ -205,7 +205,7 @@ struct texture loadTexture(
             glTextureStorage2D(result.id, 0, GL_RGBA16, width, layersCount);
             
             for (int i = 0; i < layersCount; i += 1) {
-                struct image textureImage = readTexture(filePaths[i]);
+                struct image textureImage = readImage(filePaths[i], GL_RGBA);
                 if (textureImage.contents == NULL) {
                     printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
                     continue;
@@ -216,7 +216,7 @@ struct texture loadTexture(
             break;
         }
         case GL_TEXTURE_2D: {
-            struct image textureImage = readTexture(filePaths[0]);
+            struct image textureImage = readImage(filePaths[0], GL_RGBA);
             if (textureImage.contents == NULL) {
                 printf("Some error occurred while reading a texture from %s\n", filePaths[0]);
                 return result;
@@ -229,7 +229,7 @@ struct texture loadTexture(
             glTexStorage3D(target, 1, GL_RGBA8, width, height, layersCount);
             
             for (int i = 0; i < layersCount; i += 1) {
-                struct image textureImage = readTexture(filePaths[i]);
+                struct image textureImage = readImage(filePaths[i], GL_RGBA);
                 if (textureImage.contents == NULL) {
                     printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
                     continue;
@@ -251,7 +251,7 @@ struct texture loadTexture(
         case GL_TEXTURE_CUBE_MAP: {
             printf("Loading cube map...\n");
             for (int i = 0; i < layersCount; i += 1) {
-                struct image textureImage = readTexture(filePaths[i]);
+                struct image textureImage = readImage(filePaths[i], GL_RGBA);
                 if (textureImage.contents == NULL) {
                     printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
                     continue;
