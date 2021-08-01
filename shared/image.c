@@ -252,7 +252,14 @@ void freeImage(struct image *image) {
     if (image->contents != NULL) {
       free(image->contents);
       image->contents = NULL;
-   }
-   image->width = 0;
-   image->height = 0;
+      image->contentsSize = 0;
+    }
+    if (image->colorMap != NULL) {
+        free(image->colorMap);
+        image->colorMap = NULL;
+        image->colorMapSize = 0;
+    }
+    image->width = 0;
+    image->height = 0;
+    image->sampleSize = 0;
 }

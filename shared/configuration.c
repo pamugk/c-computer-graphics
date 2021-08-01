@@ -271,7 +271,7 @@ bool parseShaderProgramsConfig(FILE *configurationFile, unsigned int *out_shader
 }
 
 bool parseModelAttributes(FILE *configurationFile, struct model *out_model) {
-    char staticBuffer[30];
+    char *dynamicBuffer = NULL; char staticBuffer[30];
     unsigned short int attributeShift = 0;
     
     fscanf(configurationFile, "%i", &out_model->attributesCount);
@@ -342,7 +342,25 @@ bool parseModelAttributes(FILE *configurationFile, struct model *out_model) {
             } else if (strcmp("stub", staticBuffer) == 0) {
                 initBodyStubTextureLayer(&out_model->body, attributeShift);
             } else if (strcmp("file", staticBuffer) == 0) {
-                // TODO: define texture kind with texmap
+                int colorsCount; unsigned char *colors = NULL;
+                fscanf(configurationFile, "%ms%i", &dynamicBuffer, &colorsCount);
+                colors = malloc(3 * colorsCount);
+                
+                if (colors != NULL) {
+                    for (int i = 0; i < 3 * colorsCount; i += 3) {
+                        fscanf(configurationFile, "%hhi%hhi%hhi", colors + i, colors + i + 1, colors + 1 + 2);
+                    }
+                }
+                
+                initBodyTextureMap(&out_model->body, attributeShift, dynamicBuffer, colorsCount, colors);
+                
+                if (dynamicBuffer != NULL) {
+                    free(dynamicBuffer);
+                }
+                if (colors != NULL) {
+                    free(colors);
+                }
+                
             } else {
                 printf("Unknown texture layer attribute source: %s\n", staticBuffer);
                 return false;

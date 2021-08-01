@@ -224,3 +224,7 @@ void divideByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[1
         out_matrix[i] = matrix[i] / num;
     }
 }
+
+bool vec3ubEqual(unsigned char thisVector[3], unsigned char thatVector[3]) {
+    return thisVector[0] == thatVector[0] && thisVector[1] == thatVector[1] && thisVector[2] == thatVector[2];
+}

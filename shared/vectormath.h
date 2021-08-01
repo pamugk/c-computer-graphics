@@ -1,5 +1,6 @@
 #ifndef VECTOR_MATH
 #define VECTOR_MATH
+
 #include <stdbool.h>
 
 void calculateNormal(float pointA[3], float pointB[3], float pointC[3], float multiplier, float normal[3]);
@@ -64,4 +65,7 @@ void multiplyMatrices(float matrix[MVP_MATRIX_SIZE], float otherMatrix[MVP_MATRI
 void multiplyByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[16]);
 //Оператор сложения матриц
 void divideByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[16]);
+
+bool vec3ubEqual(unsigned char thisVector[3], unsigned char thatVector[3]);
+
 #endif //VECTOR_MATH

@@ -1,6 +1,7 @@
 #include "commonutils.h"
 #include "image.h"
 #include "types.h"
+#include "vectormath.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -17,7 +18,8 @@ struct body initBodyWithHeightmap(const char *pathToHeightmap, unsigned char ver
     struct image image = readImage(pathToHeightmap, GL_LUMINANCE, GL_FALSE);
     printf("Loaded heightmap image: %ix%i\n", image.width, image.height);
     if (image.contents == NULL || image.width == 0 || image.height == 0) {
-        printf("Image was not loaded correctly\n");
+        printf("Heightmap was not loaded correctly\n");
+        freeImage(&image);
         return result;
     }
     
@@ -109,13 +111,44 @@ void initBodyTextures(struct body *physicalBody, int offset) {
     printf("Completed texture calculations for provided model\n");
 }
 
-void initBodyTextureMap(struct body *physicalBody, int offset) {
+void initBodyTextureMap(struct body *physicalBody, int offset, const char *pathToTextureMap, unsigned int mappedColorsCount, unsigned char *mappedColors) {
     if (physicalBody->vertices == NULL) {
         printf("No physical body provided\n");
         return;
     }
+    if (mappedColorsCount == 0 || mappedColors == NULL) {
+        printf("No mapped colors provided\n");
+        return;
+    }
     
     printf("Started texture layer calculations for provided model\n");
+    struct image texMap = readImage(pathToTextureMap, GL_RGB, GL_TRUE);
+    
+    if (texMap.contents == NULL || texMap.colorMap == NULL || texMap.width == 0 || texMap.height == 0) {
+        printf("Texture map was not loaded correctly\n");
+        freeImage(&texMap);
+        return;
+    }
+    
+    if (texMap.width != physicalBody->width || physicalBody->depth != texMap.height) {
+        printf("Texture map size does not match provided body size\n");
+    } else {
+        for (int i = 0; i < physicalBody->vertexSize * physicalBody->verticeCount; i += physicalBody->vertexSize) {
+            ((int*)physicalBody->vertices)[i + offset] = -1;
+            
+            bool foundTexture = GL_FALSE;
+            for (int mc = 0; !foundTexture && mc < mappedColorsCount * 2; mc += 3) {
+                for (int c = 0; c < texMap.colorMapEntriesCount * 3; c += 3) {
+                    if (vec3ubEqual(mappedColors + mc, texMap.colorMap + c)) {
+                        ((int*)physicalBody->vertices)[i + offset] = mc;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    freeImage(&texMap);
 }
 
 void initBodyStubTextureLayer(struct body *physicalBody, int offset) {
