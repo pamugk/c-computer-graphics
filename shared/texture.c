@@ -290,10 +290,6 @@ struct texture loadTexture(
         }
     }
 
-    /*GLfloat fLargest;
-    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
-    glTexParameterf(result.target, GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, fLargest);*/
-
     if (generateMipmap) {
         glGenerateMipmap(target);
     }
