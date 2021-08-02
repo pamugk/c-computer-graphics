@@ -112,14 +112,14 @@ void rotateAboutZ(float matrix[MVP_MATRIX_SIZE], float degree, float out_matrix[
 //Метод для преобразования вращения (|(x, y, z)| = 1)
 void rotate(float matrix[MVP_MATRIX_SIZE], float x, float y, float z, float degree, float out_matrix[16]) {
     float c = cos(degree);
-	float s = sin(degree);
-	float rotateMatrix[] = {
-		x * x * (1.f - c) + c, y * x * (1.f - c) + z * s, x * z * (1.f - c) - y * s, 0.f,
-		x * y * (1.f - c) - z * s, y * y * (1.f - c) + c, y * z * (1.f - c) + x * s, 0.f,
-		x * z * (1.f - c) + y * s, y * z * (1.f - c) - x * s, z * z * (1.f - c) + c, 0.f,
-		0.f, 0.f, 0.f, 1.f
-	};
-	multiplyMatrices(rotateMatrix, matrix, out_matrix);
+    float s = sin(degree);
+    float rotateMatrix[] = {
+        x * x * (1.f - c) + c, y * x * (1.f - c) + z * s, x * z * (1.f - c) - y * s, 0.f,
+        x * y * (1.f - c) - z * s, y * y * (1.f - c) + c, y * z * (1.f - c) + x * s, 0.f,
+        x * z * (1.f - c) + y * s, y * z * (1.f - c) - x * s, z * z * (1.f - c) + c, 0.f,
+        0.f, 0.f, 0.f, 1.f
+    };
+    multiplyMatrices(rotateMatrix, matrix, out_matrix);
 }
 
 //Метод для формирования матрицы параллельной проекции
@@ -171,7 +171,7 @@ void getPerspectiveProjectionMatrix(float l, float r, float b, float t, float n,
 //Метод для формирования матрицы перспективной проекции
 void getPerspectiveProjectionMatrixByAngle(float n, float f, float w, float h, float fovAngle, float out_matrix[16]) {
     float tg = tanf(M_PI_2 / 180.f * fovAngle);
-	getPerspectiveProjectionMatrix(-n * tg, n * tg, -n * w / h * tg, n * w / h * tg, n, f, out_matrix);
+    getPerspectiveProjectionMatrix(-n * tg, n * tg, -n * w / h * tg, n * w / h * tg, n, f, out_matrix);
 }
 
 //Сравнение матриц на равенство
@@ -207,24 +207,26 @@ void multiplyMatrices(float matrix[MVP_MATRIX_SIZE], float otherMatrix[MVP_MATRI
                 sum += matrix[k * MVP_MATRIX_DIMENSION_SIZE + i] * otherMatrix[j * MVP_MATRIX_DIMENSION_SIZE + k];
             }
             out_matrix[j * MVP_MATRIX_DIMENSION_SIZE + i] = sum;
-		}
+        }
     }
 }
 
 //Оператор умножения матрицы на число
-void multiplyByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[16]) {
+void multiplyMatrixByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[16]) {
     for (int i = 0; i < MVP_MATRIX_SIZE; i += 1) {
         out_matrix[i] = matrix[i] * num;
     }
 }
 
 //Оператор деления матрицы на число
-void divideByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[16]) {
+void divideMatrixByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[16]) {
     for (int i = 0; i < MVP_MATRIX_SIZE; i += 1) {
         out_matrix[i] = matrix[i] / num;
     }
 }
 
 bool vec3ubEqual(unsigned char thisVector[3], unsigned char thatVector[3]) {
-    return thisVector[0] == thatVector[0] && thisVector[1] == thatVector[1] && thisVector[2] == thatVector[2];
+    return thisVector[0] == thatVector[0]
+        && thisVector[1] == thatVector[1]
+        && thisVector[2] == thatVector[2];
 }
