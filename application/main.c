@@ -20,6 +20,9 @@ float degree;
 
 int projection = 0;
 
+const double fpsLimit = 1.0 / 60.0;
+bool fixedFrameRate = false;
+
 bool init() {
     glClearColor(1.f, 1.f, 1.f, 1.f);
     glEnable(GL_DEPTH_TEST);
@@ -162,42 +165,39 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
     if (key == GLFW_KEY_Q && action != GLFW_RELEASE) {
         //TODO: switch lighting state
     }
-}
 
-void checkInput() {
     for (int i = 0; i < countOfSpeeds; i++) {
-        if (glfwGetKey(g_window, degreeKeys[i]) == GLFW_PRESS) {
+        if (key == degreeKeys[i] == GLFW_PRESS) {
             degree = degrees[i];
         }
     }
-
-    if (glfwGetKey(g_window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-        float prevM[MVP_MATRIX_SIZE]; 
+    if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
+        float prevM[MVP_MATRIX_SIZE];
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutY(prevM, degree, v);
     }
-    if (glfwGetKey(g_window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        float prevM[MVP_MATRIX_SIZE]; 
+    if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
+        float prevM[MVP_MATRIX_SIZE];
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutY(prevM, -degree, v);
     }
-    if (glfwGetKey(g_window, GLFW_KEY_UP) == GLFW_PRESS) {
-        float prevM[MVP_MATRIX_SIZE]; 
+    if (key == GLFW_KEY_UP && action != GLFW_RELEASE) {
+        float prevM[MVP_MATRIX_SIZE];
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutX(prevM, degree, v);
     }
-    if (glfwGetKey(g_window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        float prevM[MVP_MATRIX_SIZE]; 
+    if (key == GLFW_KEY_DOWN && action != GLFW_RELEASE) {
+        float prevM[MVP_MATRIX_SIZE];
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutX(prevM, -degree, v);
     }
-    if (glfwGetKey(g_window, GLFW_KEY_W) == GLFW_PRESS) {
-        float prevM[MVP_MATRIX_SIZE]; 
+    if (key ==GLFW_KEY_W && action != GLFW_RELEASE) {
+        float prevM[MVP_MATRIX_SIZE];
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutZ(prevM, degree, v);
     }
-    if (glfwGetKey(g_window, GLFW_KEY_S) == GLFW_PRESS) {
-        float prevM[MVP_MATRIX_SIZE]; 
+    if (key == GLFW_KEY_S && action != GLFW_RELEASE) {
+        float prevM[MVP_MATRIX_SIZE];
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutZ(prevM, -degree, v);
     }
@@ -214,14 +214,20 @@ int main(int argc, char** argv) {
 	int isOk = init();
 	if (isOk) {
         initOptics();
-		while (glfwGetKey(g_window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(g_window) == 0) {
-            checkInput();
-			draw();
-			glfwSwapBuffers(g_window);
-			glfwPollEvents();
-		}
-	}
-	
-	cleanup();
-	return isOk ? 0 : -1;
+
+        double lastFrameTime = 0;
+        while (glfwGetKey(g_window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(g_window) == 0) {
+            glfwPollEvents();
+
+            if (fixedFrameRate && (glfwGetTime() - lastFrameTime) < fpsLimit) {
+                continue;
+            }
+
+            draw();
+            glfwSwapBuffers(g_window);
+        }
+    }
+
+    cleanup();
+    return isOk ? 0 : -1;
 } 
