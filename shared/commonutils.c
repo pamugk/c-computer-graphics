@@ -1,7 +1,7 @@
 #include "commonutils.h"
 #include "image.h"
 #include "types.h"
-#include "vectormath.h"
+#include "vector.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -139,7 +139,7 @@ void initBodyTextureMap(struct body *physicalBody, int offset, const char *pathT
             bool foundTexture = GL_FALSE;
             for (int mc = 0; !foundTexture && mc < mappedColorsCount * 2; mc += 3) {
                 for (int c = 0; c < texMap.colorMapEntriesCount * 3; c += 3) {
-                    if (vec3ubEqual(mappedColors + mc, texMap.colorMap + c)) {
+                    if (vec3ubEqual((const struct vec3ub *)(mappedColors + mc), ((const struct vec3ub *)(texMap.colorMap + c)))) {
                         ((int*)physicalBody->vertices)[i + offset] = mc;
                         break;
                     }

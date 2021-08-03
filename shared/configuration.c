@@ -1,7 +1,7 @@
 #include "configuration.h"
 #include "commonutils.h"
 #include "types.h"
-#include "vectormath.h"
+#include "matrix.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,4 +1,5 @@
 #include "quaternion.h"
+#include "vector.h"
 
 #include <math.h>
 
@@ -10,10 +11,8 @@ float quatMagnitude(const struct quat *q) {
     return sqrtf(quatNorm(q));
 }
 void conjugateQuat(const struct quat *q, struct quat *out_q) {
-   out_q->x = -q->x;
-   out_q->z = -q->y;
-   out_q->z = q->z;
-   out_q->w = q->w;
+    multiplyVec3ByNumber((const struct vec3f *)q, -1.f, (struct vec3f *)out_q);
+    out_q->w = q->w;
 }
 
 void inverseQuat(const struct quat *q, struct quat *out_q) {
@@ -31,7 +30,7 @@ struct quat multiplyQuat(const struct quat *q1, const struct quat *q2) {
         q1->y * q2->z - q1->z * q2->y + q1->w * q2->x + q2->w * q1->x,
         q1->z * q2->x - q1->x * q2->z + q1->w * q2->y + q2->w * q1->y,
         q1->x * q2->y - q1->y * q2->x + q1->w * q2->z + q2->w * q1->z,
-        q1->w * q2->w - (q1->x * q2->x + q1->y * q2->y + q1->z * q2->z)
+        q1->w * q2->w - scalarMultiplyVec3((const struct vec3f *)q1, (const struct vec3f *)q2)
     };
 }
 

@@ -1,5 +1,6 @@
 #include "model.h"
-#include "vectormath.h"
+#include "matrix.h"
+#include "vector.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -90,7 +91,7 @@ void calculateModelNormals(struct model *model, int offset) {
     }
     
     printf("Started normals calculation for provided model\n");
-    float normal[3];
+    struct vec3f normal;
     int pointAIdx, pointBIdx, pointCIdx;
     const float multiplier = -1.f;
     for (int i = 0; i < model->indexCount; i += 3) {
@@ -98,15 +99,19 @@ void calculateModelNormals(struct model *model, int offset) {
         pointBIdx = model->indices[i + 1] * model->body.vertexSize;
         pointAIdx = model->indices[i + 2] * model->body.vertexSize;
         
-        calculateNormal(model->body.vertices + pointAIdx, model->body.vertices + pointBIdx, model->body.vertices + pointCIdx, multiplier, normal);
+        calculateNormal(
+            (const struct vec3f *)(model->body.vertices + pointAIdx),
+            (const struct vec3f *)(model->body.vertices + pointBIdx), 
+            (const struct vec3f *)(model->body.vertices + pointCIdx),
+            multiplier, &normal);
         
-        model->body.vertices[pointAIdx + offset] += normal[0]; model->body.vertices[pointAIdx + offset + 1] += normal[1]; model->body.vertices[pointAIdx + offset + 2] += normal[2];
-        model->body.vertices[pointBIdx + offset] += normal[0]; model->body.vertices[pointBIdx + offset + 1] += normal[1]; model->body.vertices[pointBIdx + offset + 2] += normal[2];
-        model->body.vertices[pointCIdx + offset] += normal[0]; model->body.vertices[pointCIdx + offset + 1] += normal[1]; model->body.vertices[pointCIdx + offset + 2] += normal[2];
+        model->body.vertices[pointAIdx + offset] += normal.x; model->body.vertices[pointAIdx + offset + 1] += normal.y; model->body.vertices[pointAIdx + offset + 2] += normal.z;
+        model->body.vertices[pointBIdx + offset] += normal.x; model->body.vertices[pointBIdx + offset + 1] += normal.y; model->body.vertices[pointBIdx + offset + 2] += normal.z;
+        model->body.vertices[pointCIdx + offset] += normal.x; model->body.vertices[pointCIdx + offset + 1] += normal.y; model->body.vertices[pointCIdx + offset + 2] += normal.z;
     }
     
     for (int i = 0; i < model->body.vertexSize * model->body.verticeCount; i += model->body.vertexSize) {
-        normalize(model->body.vertices + i + offset);
+        normalizeVector((struct vec3f *)(model->body.vertices + i + offset));
     }
     
     printf("Completed normals calculation for provided model\n");

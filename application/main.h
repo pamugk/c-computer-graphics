@@ -1,6 +1,6 @@
 #include "../shared/configuration.h"
 #include "../shared/error.h"
-#include "../shared/vectormath.h"
+#include "../shared/matrix.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
