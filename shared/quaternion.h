@@ -21,4 +21,8 @@ float scalarMultiplyQuat(const struct quat *q1, const struct quat *q2);
 
 struct quat quatSum(const struct quat *q1, const struct quat *q2);
 
+void quatLerp(const struct quat *q1, const struct quat *q2, float t, struct quat *out_q);
+
+void quatSlerp(const struct quat *q1, const struct quat *q2, float t, struct quat *out_q);
+
 void matrixWithQuaternion(const struct quat *q, float result[16]);

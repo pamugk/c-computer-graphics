@@ -42,6 +42,45 @@ struct quat quatSum(const struct quat *q1, const struct quat *q2) {
     return (struct quat) { q1->x + q2->x, q1->y + q2->y, q1->z + q2->z, q1->w + q2->w };
 }
 
+void quatLerp(const struct quat *q1, const struct quat *q2, float t, struct quat *out_q) {
+    float s1 = 1.f - t, s2 = t;
+    if (scalarMultiplyQuat(q1, q2) < 0.f) {
+        s1 *= -1.f;
+    }
+    
+    quatMultyplyByNum(q1, s1, out_q);
+    
+    out_q->x += q2->x * s2,
+    out_q->y += q2->y * s2,
+    out_q->z += q2->z * s2,
+    out_q->w += q2->w * s2;
+}
+
+void quatSlerp(const struct quat *q1, const struct quat *q2, float t, struct quat *out_q) {
+    struct quat q1_local = { q1->x, q1->y, q1->z, q1->w };
+    
+    float q1Len = quatMagnitude(&q1_local), q2Len = quatMagnitude(q2);
+    float scalarMult = scalarMultiplyQuat(&q1_local, q2);
+    
+    if (scalarMult < 0) {
+        quatMultyplyByNum(&q1_local, -1.f, &q1_local);
+        scalarMult = scalarMultiplyQuat(&q1_local, q2);
+    }
+    
+    float
+        cosOm = scalarMult / q1Len / q2Len,
+        sinOm = sqrtf(1 - cosOm * cosOm),
+        om = acosf(cosOm);
+    float s2 = sinf(t * om) / sinOm;
+    
+    quatMultyplyByNum(q1, sinf((1.f - t) * om) / sinOm, out_q);
+    
+    out_q->x += q2->x * s2,
+    out_q->y += q2->y * s2,
+    out_q->z += q2->z * s2,
+    out_q->w += q2->w * s2;
+}
+
 void matrixWithQuaternion(const struct quat *q, float result[16]) {
     float s = 2.0f / quatNorm(q);
     float x = q->x * s, y = q->y * s, z = q->z * s;
