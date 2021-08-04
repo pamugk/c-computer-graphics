@@ -1,9 +1,15 @@
+#include "vector.h"
+
 struct quat {
     float x;
     float y;
     float z;
     float w;
 };
+
+struct quat makeIdenticalQuat();
+
+void makeQuatWithRotationAxis(struct vec3f *a, float rotationAngle, struct quat *out_q);
 
 float quatNorm(const struct quat *q);
 
@@ -24,5 +30,7 @@ struct quat quatSum(const struct quat *q1, const struct quat *q2);
 void quatLerp(const struct quat *q1, const struct quat *q2, float t, struct quat *out_q);
 
 void quatSlerp(const struct quat *q1, const struct quat *q2, float t, struct quat *out_q);
+
+void rotateVectorWithQuat(const struct vec3f *p, const struct quat *q, struct vec3f *out_p);
 
 void matrixWithQuaternion(const struct quat *q, float result[16]);

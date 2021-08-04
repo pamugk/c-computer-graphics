@@ -1,7 +1,15 @@
 #include "quaternion.h"
-#include "vector.h"
 
 #include <math.h>
+
+struct quat makeIdenticalQuat() {
+    return (struct quat) { 0.f, 0.f, 0.f, 1.f };
+}
+
+void makeQuatWithRotationAxis(struct vec3f *a, float rotationAngle, struct quat *out_q) {
+    multiplyVec3ByNumber(a, sinf(rotationAngle / 2.f), (struct vec3f *)&out_q);
+    out_q->w = cosf(rotationAngle / 2.f);
+}
 
 float quatNorm(const struct quat *q) {
     return q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w;
@@ -81,6 +89,19 @@ void quatSlerp(const struct quat *q1, const struct quat *q2, float t, struct qua
     out_q->w += q2->w * s2;
 }
 
+void rotateVectorWithQuat(const struct vec3f *p, const struct quat *q, struct vec3f *out_p) {
+    struct quat qp = { p->x, p->y, p->z, 0.f },
+    inversedQ, multipliedQuat;
+    inverseQuat(q, &inversedQ);
+    
+    multipliedQuat = multiplyQuat(q, &qp);
+    multipliedQuat = multiplyQuat(&multipliedQuat, &inversedQ);
+    
+    out_p->x = multipliedQuat.x,
+    out_p->y = multipliedQuat.y,
+    out_p->z = multipliedQuat.z;
+}
+
 void matrixWithQuaternion(const struct quat *q, float result[16]) {
     float s = 2.0f / quatNorm(q);
     float x = q->x * s, y = q->y * s, z = q->z * s;
@@ -89,23 +110,23 @@ void matrixWithQuaternion(const struct quat *q, float result[16]) {
     zz = q->z * z,
     wx = q->w * x, wy = q->w * y, wz = q->w * z;
 
-    result[0] = 1.0f - (yy + zz);
-    result[1] = xy - wz;
-    result[2] = xz + wy;
-    result[3] = 0.0f;
+    result[0] = 1.0f - (yy + zz),
+    result[1] = xy - wz,
+    result[2] = xz + wy,
+    result[3] = 0.0f,
 
-    result[4] = xy + wz;
-    result[5] = 1.0f - (xx + zz);
-    result[6] = yz - wx;
-    result[7] = 0.0f;
+    result[4] = xy + wz,
+    result[5] = 1.0f - (xx + zz),
+    result[6] = yz - wx,
+    result[7] = 0.0f,
 
-    result[8] = xz - wy;
-    result[9] = yz + wx;
-    result[10] = 1.0f - (xx + yy);
-    result[11] = 0.0f;
+    result[8] = xz - wy,
+    result[9] = yz + wx,
+    result[10] = 1.0f - (xx + yy),
+    result[11] = 0.0f,
 
-    result[12] = 0.0f;
-    result[13] = 0.0f;
-    result[14] = 0.0f;
+    result[12] = 0.0f,
+    result[13] = 0.0f,
+    result[14] = 0.0f,
     result[15] = 1.0f;
 }
