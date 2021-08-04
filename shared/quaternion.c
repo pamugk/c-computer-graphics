@@ -2,8 +2,11 @@
 
 #include <math.h>
 
-struct quat makeIdenticalQuat() {
-    return (struct quat) { 0.f, 0.f, 0.f, 1.f };
+void makeIdenticalQuat(struct quat *out_q) {
+    out_q->x = 0.f,
+    out_q->y = 0.f,
+    out_q->z = 0.f,
+    out_q->w = 1.f;
 }
 
 void makeQuatWithRotationAxis(struct vec3f *a, float rotationAngle, struct quat *out_q) {

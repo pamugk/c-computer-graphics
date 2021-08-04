@@ -7,7 +7,7 @@ struct quat {
     float w;
 };
 
-struct quat makeIdenticalQuat();
+void makeIdenticalQuat(struct quat *out_q);
 
 void makeQuatWithRotationAxis(struct vec3f *a, float rotationAngle, struct quat *out_q);
 
