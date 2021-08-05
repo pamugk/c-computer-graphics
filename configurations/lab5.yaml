@@ -1,0 +1,26 @@
+programs: 1
+    shaders: 2
+        ../shaders/lab5/vsh.glsl GL_VERTEX_SHADER
+        ../shaders/lab5/fsh.glsl GL_FRAGMENT_SHADER
+    variables: 2 6
+        u_mvp GL_FLOAT_MAT4 0
+        u_n GL_FLOAT_MAT3 1 
+        u_olpos GL_FLOAT_VEC3 1.0 1.0 1.0 
+        u_olcol GL_FLOAT_VEC3 1.0 1.0 1.0 
+        u_oeye GL_FLOAT_VEC3 0.0 0.0 0.0 
+        u_odmin GL_FLOAT 0.5 
+        u_osfoc GL_FLOAT 8.5 
+        u_lie GL_BOOL 1 
+    models: 1
+        0
+    END
+
+models: 1
+    8 file ../models/UFOs/SimpleUFO/ufo.ply
+    attributes: 3
+        3 GL_FLOAT 0 coordinates: predefined
+        3 GL_FLOAT 0 normals: predefined
+        2 GL_FLOAT 0 texCoordinates: predefined
+    transformations: 0
+    
+    END

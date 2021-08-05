@@ -1,6 +1,8 @@
 #ifndef MODEL
 #define MODEL
 
+#include "quaternion.h"
+
 #include <GL/glew.h>
 #include <stdbool.h>
 
@@ -33,6 +35,7 @@ struct model {
     GLsizei attributesCount;
     struct attribute *attributes;
     
+    struct quat q;
     float m[16];
 };
 

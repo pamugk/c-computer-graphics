@@ -2,6 +2,7 @@
 #include "commonutils.h"
 #include "types.h"
 #include "matrix.h"
+#include "modelimporter.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -463,6 +464,9 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
     } else if (strcmp("textfile", staticBuffer) == 0) {
         fscanf(configurationFile, "%ms", &dynamicBuffer);
         out_model->body = initBodyWithTextfile(dynamicBuffer, vertexSize, &out_model->indexCount, &out_model->indices);
+    } else if (strcmp("file", staticBuffer) == 0) {
+        fscanf(configurationFile, "%ms", &dynamicBuffer);
+        importModel(dynamicBuffer, out_model);
     } else {
         printf("Unrecognized model source: %s", staticBuffer);
         noErrorsOccured = false;

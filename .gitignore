@@ -5,3 +5,9 @@
 *.png
 *.bmp
 *.tif
+*.mtl
+*.blend*
+*.obj
+*.ply
+*.txt
+*.tga

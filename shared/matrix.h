@@ -1,5 +1,5 @@
-#ifndef VECTOR_MATH
-#define VECTOR_MATH
+#ifndef MATRIX_
+#define MATRIX_
 
 #include <stdbool.h>
 
@@ -62,4 +62,4 @@ void multiplyByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix
 //Оператор сложения матриц
 void divideByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[16]);
 
-#endif //VECTOR_MATH
+#endif //MATRIX_

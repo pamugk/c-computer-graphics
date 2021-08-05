@@ -1,6 +1,5 @@
 #include "model.h"
 #include "matrix.h"
-#include "vector.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -76,6 +75,7 @@ bool initModel(struct model *out_model) {
         glVertexAttribPointer(i, out_model->attributes[i].size, out_model->attributes[i].type, out_model->attributes[i].normalized, out_model->body.vertexSize * sizeof(GLfloat), (const GLvoid *)(attributeShift * sizeof(GLfloat)));
         attributeShift += out_model->attributes[i].size;
     }
+    makeIdenticalQuat(&out_model->q);
         
     return true;
 }

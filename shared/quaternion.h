@@ -1,3 +1,5 @@
+#ifndef QUATERNION_
+#define QUATERNION_
 #include "vector.h"
 
 struct quat {
@@ -34,3 +36,4 @@ void quatSlerp(const struct quat *q1, const struct quat *q2, float t, struct qua
 void rotateVectorWithQuat(const struct vec3f *p, const struct quat *q, struct vec3f *out_p);
 
 void matrixWithQuaternion(const struct quat *q, float result[16]);
+#endif //QUATERNION_

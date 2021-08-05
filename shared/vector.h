@@ -1,3 +1,5 @@
+#ifndef VECTOR_
+#define VECTOR_
 #include <stdbool.h>
 
 struct vec3f {
@@ -24,3 +26,4 @@ void calculateNormal(
 void normalizeVector(struct vec3f *vector);
 
 bool vec3ubEqual(const struct vec3ub *thisVector, const struct vec3ub *thatVector);
+#endif // VECTOR_
