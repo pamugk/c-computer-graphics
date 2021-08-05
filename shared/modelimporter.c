@@ -201,11 +201,14 @@ void importPlyModel(const char *filePath, struct model *out_model) {
     }
     
     if (idx < out_model->indexCount) {
-        out_model->indices = realloc(out_model->indices, idx * sizeof(unsigned int));
+        printf("Resizing an index array to %i elements\n", idx);
+        out_model->indices = (GLuint *)(reallocarray(out_model->indices, idx, sizeof(unsigned int)));
         out_model->indexCount = idx;
     }
     
     fclose(modelFile);
+
+    printf("Completed PLY model import\n");
 }
 
 void importModel(const char *filePath, struct model *out_model) {

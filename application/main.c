@@ -57,7 +57,7 @@ void draw() {
     
     float mv[MVP_MATRIX_SIZE];
     for (int i = 0; i < g_programsCount; i += 1) {
-        glUseProgram(g_programs[i].id);            
+        glUseProgram(g_programs[i].id);
         for (int t = 0; t < g_programs[i].textureCount; t += 1) {
             glActiveTexture(GL_TEXTURE0 + t);
             glBindTexture(g_programs[i].textures[t].target, g_programs[i].textures[t].id);

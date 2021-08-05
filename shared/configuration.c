@@ -249,13 +249,14 @@ bool parseShaderProgramConfig(FILE *configurationFile, struct shader_program *ou
 
 bool parseShaderProgramsConfig(FILE *configurationFile, unsigned int *out_shaderProgramsCount, struct shader_program **out_programs) {
     if (*out_programs != NULL) {
+        printf("Removing previously defined shader program array\n");
         for (int i = 0; i < *out_shaderProgramsCount; i += 1) {
             freeProgram((*out_programs) + i);
         }
         free(*out_programs);
     }
     
-    fscanf(configurationFile, "%ui", out_shaderProgramsCount);
+    fscanf(configurationFile, "%u", out_shaderProgramsCount);
     *out_programs = calloc(*out_shaderProgramsCount, sizeof(struct shader_program));
     
     if (*out_shaderProgramsCount > 0 && *out_programs == NULL) {
@@ -488,6 +489,7 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
             noErrorsOccured = false;
         }
     }
+    printf("Parsed model definition\n");
     
     return noErrorsOccured && initModel(out_model);
 }
@@ -546,5 +548,8 @@ bool applyConfiguration(
     }
     
     fclose(configurationFile);
+
+    printf("Completed configuration parsing\n");
+
     return noErrorsOccured;
 }

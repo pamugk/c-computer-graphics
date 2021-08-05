@@ -50,10 +50,12 @@ bool initModel(struct model *out_model) {
     
     glGenVertexArrays(1, &out_model->vao);
     glBindVertexArray(out_model->vao);
+    printf("Bound a model vertex array object\n");
 
     glGenBuffers(1, &out_model->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, out_model->vbo);
     glBufferData(GL_ARRAY_BUFFER, out_model->body.vertexSize * out_model->body.verticeCount * sizeof(GLfloat), out_model->body.vertices, GL_STATIC_DRAW);
+    printf("Bound a model vertex buffer object\n");
          
     if (out_model->indices == NULL && !makeIndices(out_model->body, &out_model->indexCount, &out_model->indices)) {
         printf("No indices provided\n");
@@ -63,6 +65,7 @@ bool initModel(struct model *out_model) {
     glGenBuffers(1, &out_model->ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, out_model->ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, out_model->indexCount * sizeof(GLuint), out_model->indices, GL_STATIC_DRAW);
+    printf("Bound a model index buffer object\n");
 
     if (out_model->attributes == NULL) {
         printf("No attributes provided\n");
@@ -75,7 +78,11 @@ bool initModel(struct model *out_model) {
         glVertexAttribPointer(i, out_model->attributes[i].size, out_model->attributes[i].type, out_model->attributes[i].normalized, out_model->body.vertexSize * sizeof(GLfloat), (const GLvoid *)(attributeShift * sizeof(GLfloat)));
         attributeShift += out_model->attributes[i].size;
     }
+    printf("Bound model attributes\n");
+
     makeIdenticalQuat(&out_model->q);
+
+    printf("Completed model initialization\n");
         
     return true;
 }
