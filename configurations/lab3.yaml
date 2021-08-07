@@ -33,8 +33,9 @@ models: 1
         2 GL_FLOAT 0 texCoordinates: same
         1 GL_INT 0 texLayer: stub
         3 GL_FLOAT 0 normals: calculate
-    transformations: 3
-        move center 
+    transformations: 4
+        move x center
+        move z center
         scale fit   
         rotate x 45.0 
     

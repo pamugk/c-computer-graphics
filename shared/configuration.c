@@ -398,14 +398,38 @@ bool parseModelTransformations(FILE *configurationFile, struct model *out_model)
     for (int i = 0; i < transformationsCount; i += 1) {
         fscanf(configurationFile, "%s", staticBuffer);
         if (strcmp("move", staticBuffer) == 0) {
+            unsigned char target = 0;
+            float dx = 0, dy = 0, dz = 0;
             fscanf(configurationFile, "%s", staticBuffer);
-            if (strcmp("center", staticBuffer) == 0) {
-                printf("Moving model for (%f, %f, %f) points\n", out_model->body.width / -2.f, 0.f, out_model->body.depth / -2.f);
-                moveModel(out_model, out_model->body.width / -2.f, 0.f, out_model->body.depth / -2.f);
+            if (strcmp("x", staticBuffer) == 0) {
+                target = 0;
+            } else if (strcmp("y", staticBuffer) == 0) {
+                target = 1;
+            } else if (strcmp("z", staticBuffer) == 0) {
+                target = 2;
             } else {
                 printf("Unknown movement target: %s\n", staticBuffer);
                 return false;
             }
+            
+            fscanf(configurationFile, "%s", staticBuffer);
+            if (strcmp("center", staticBuffer) == 0) {
+                switch (target) {
+                    case 0: {
+                        dx = out_model->body.width / -2.f;
+                        break;
+                    }
+                    case 1: {
+                        dy = out_model->body.height / -2.f;
+                        break;
+                    }
+                    case 2: {
+                        dz = out_model->body.depth / -2.f;
+                        break;
+                    }
+                }
+            }
+            moveModel(out_model, dx, dy, dz);
         } else if(strcmp("scale", staticBuffer) == 0) {
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("fit", staticBuffer) == 0) {
