@@ -45,7 +45,6 @@ struct body initBodyWithHeightmap(const char *pathToHeightmap, unsigned char ver
 
 void setRandomColors(struct body *paintedBody, int offset) {
     printf("Generating pseudo-random model color\n");
-    srand(123456);
     for (unsigned long i = 0; i < paintedBody->verticeCount * paintedBody->vertexSize; i += 1U) {
         paintedBody->vertices[i + offset] = 1.0 * rand() / RAND_MAX;
         paintedBody->vertices[i + offset + 1] = 1.0 * rand() / RAND_MAX;

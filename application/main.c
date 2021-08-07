@@ -23,8 +23,8 @@ int projection = 0;
 const double fpsLimit = 1.0 / 60.0;
 bool fixedFrameRate = false;
 
-ALCdevice *g_soundDevice;
-ALCcontext *g_soundContext;
+ALuint g_musicPlayer = 0;
+ALuint g_trackPool[2];
 
 unsigned char g_tracksCount = 0;
 char **g_musicFiles = NULL;
@@ -81,7 +81,7 @@ bool initOpenGL() {
 	}
 
     glfwSetFramebufferSizeCallback(g_window, reshape);
-    glfwSetInputMode(g_window, GLFW_STICKY_KEYS, GL_TRUE);
+    glfwSetInputMode(g_window, GLFW_STICKY_KEYS, GL_FALSE);
     glfwSetKeyCallback(g_window, onKeyPress);
     
     glEnable(GL_DEBUG_OUTPUT);
@@ -95,22 +95,8 @@ bool initOpenGL() {
 }
 
 bool initOpenAL() {
-    g_soundDevice = alcOpenDevice(NULL);
-    if (g_soundDevice == NULL) {
-        printf("Failed to initialize default sound device\n");
-        checkAlError();
-        return false;
-    }
-    
-    g_soundContext = alcCreateContext(g_soundDevice, NULL);
-    if (g_soundContext == NULL) {
-        printf("Failed to create sound context\n");
-        checkAlcError(g_soundDevice);
-        alcCloseDevice(g_soundDevice);
-        return false;
-    }
-    alcMakeContextCurrent(g_soundContext);
-    if (!checkAlcError(g_soundDevice)) {
+    if (!alureInitDevice(NULL, NULL)) {
+        printf("Failed to initialize default sound device: %s\n", alureGetErrorString());
         return false;
     }
     
@@ -156,6 +142,8 @@ void draw() {
     }
 }
 
+void updateTrackPool();
+
 void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_Q && action != GLFW_RELEASE) {
         //TODO: switch lighting state
@@ -196,6 +184,20 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutZ(prevM, -degree, v);
     }
+    if (key == GLFW_KEY_P && action == GLFW_RELEASE) {
+        ALint state;
+        alGetSourcei(g_musicPlayer, AL_SOURCE_STATE, &state);
+        if (state == AL_PLAYING) {
+            printf("Pausing music player\n");
+            alurePauseSource(g_musicPlayer);
+        } else if (state == AL_PAUSED) {
+            printf("Resuming music player\n");
+            alureResumeSource(g_musicPlayer);
+        }
+    }
+    if (key == GLFW_KEY_N && action == GLFW_RELEASE) {
+        alSourceStop(g_musicPlayer);
+    }
 }
 
 void initOptics() {
@@ -215,6 +217,25 @@ void initOptics() {
     degree = degrees[1];
 }
 
+void updateTrackPool() {
+    ALuint finishedTrack = g_trackPool[0];
+    g_trackPool[0] = g_trackPool[1];
+    g_trackPool[1] = alureCreateBufferFromFile(g_musicFiles[rand() % g_tracksCount]);
+    alSourcei(g_musicPlayer, AL_BUFFER, g_trackPool[0]);
+    alDeleteBuffers(1, &finishedTrack);
+}
+
+void initMusicPlayer() {
+    if (g_musicFiles != NULL) {
+        alGenSources(1, &g_musicPlayer);
+        checkAlError();
+        
+        g_trackPool[0] = alureCreateBufferFromFile(g_musicFiles[rand() % g_tracksCount]);
+        g_trackPool[1] = alureCreateBufferFromFile(g_musicFiles[rand() % g_tracksCount]);
+        alSourcei(g_musicPlayer, AL_BUFFER, g_trackPool[0]);
+    }
+}
+
 void cleanup() {
     for (int i = 0; i < g_programsCount; i += 1) {
         freeProgram(g_programs + i);
@@ -228,16 +249,18 @@ void cleanup() {
     
 	glfwTerminate();
     
-    alcMakeContextCurrent(NULL);
-    alcDestroyContext(g_soundContext);
-    alcCloseDevice(g_soundDevice);
-    
     if (g_musicFiles != NULL) {
         for (unsigned char i = 0; i < g_tracksCount; i += 1) {
             free(g_musicFiles[i]);
         }
         free(g_musicFiles);
+        
+        alDeleteBuffers(2, g_trackPool);
+        alDeleteSources(1, &g_musicPlayer);
+        printf("Freed music player\n");
     }
+    
+    alureShutdownDevice();
 }
 
 int main(int argc, char** argv) {    
@@ -255,8 +278,13 @@ int main(int argc, char** argv) {
 	int isOk = applyConfiguration(pathToConfiguration, &g_programsCount, &g_programs, &g_modelsCount, &g_models, &g_tracksCount, &g_musicFiles);
 	if (isOk) {
         initOptics();
-
+        initMusicPlayer();
+        if (g_musicPlayer != 0) {
+            alSourcePlay(g_musicPlayer);
+            checkAlError();
+        }
         double lastFrameTime = 0;
+        ALint state;
         while (glfwGetKey(g_window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(g_window) == 0) {
             glfwPollEvents();
 
@@ -266,6 +294,12 @@ int main(int argc, char** argv) {
 
             draw();
             glfwSwapBuffers(g_window);
+            
+            alGetSourcei(g_musicPlayer, AL_SOURCE_STATE, &state);
+            if (state == AL_STOPPED) {
+                updateTrackPool();
+                alSourcePlay(g_musicPlayer);
+            }
         }
     }
 

@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 void loadIntVector(FILE *inputFile, int vectorSize, GLint *out_vector) {
     for (int i = 0; i < vectorSize; i += 1) {
@@ -549,7 +550,7 @@ bool parseMusicConfig(FILE *configurationFile, unsigned char *tracksCount, char 
     fscanf(configurationFile, "%hhu", tracksCount);
     printf("Count of defined soundtrack entries: %hhu\n", *tracksCount);
     
-    *musicFiles = calloc(*tracksCount, sizeof(struct model));
+    *musicFiles = calloc(*tracksCount, sizeof(char *));
     if (*musicFiles == NULL) {
         printf("Soundtrack storage cannot be allocated\n");
         *tracksCount = 0;
@@ -579,6 +580,8 @@ bool applyConfiguration(
         printf("Configuration file %s can not be opened\n", pathToConfiguration);
         return false;
     }
+        
+    srand(time(NULL));
     
     char section[10];
     
