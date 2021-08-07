@@ -26,8 +26,8 @@ bool fixedFrameRate = false;
 ALCdevice *g_soundDevice;
 ALCcontext *g_soundContext;
 
-char **g_tracks;
-unsigned int g_tracksCount;
+unsigned char g_tracksCount = 0;
+char **g_musicFiles = NULL;
 
 bool handleArguments(int argc, char** argv) {
     for (int i = 0; i < argc; i += 1) {
@@ -231,6 +231,13 @@ void cleanup() {
     alcMakeContextCurrent(NULL);
     alcDestroyContext(g_soundContext);
     alcCloseDevice(g_soundDevice);
+    
+    if (g_musicFiles != NULL) {
+        for (unsigned char i = 0; i < g_tracksCount; i += 1) {
+            free(g_musicFiles[i]);
+        }
+        free(g_musicFiles);
+    }
 }
 
 int main(int argc, char** argv) {    
@@ -245,7 +252,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 	
-	int isOk = applyConfiguration(pathToConfiguration, &g_programsCount, &g_programs, &g_modelsCount, &g_models);
+	int isOk = applyConfiguration(pathToConfiguration, &g_programsCount, &g_programs, &g_modelsCount, &g_models, &g_tracksCount, &g_musicFiles);
 	if (isOk) {
         initOptics();
 

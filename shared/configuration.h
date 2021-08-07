@@ -8,6 +8,7 @@
 bool applyConfiguration(
     const char *pathToConfiguration,
     unsigned int *out_shaderProgramsCount, struct shader_program **out_programs,
-    unsigned int *out_modelsCount, struct model **out_models
+    unsigned int *out_modelsCount, struct model **out_models,
+    unsigned char *tracksCount, char ***musicFiles
 );
 #endif //CONFIGURATION

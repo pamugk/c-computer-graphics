@@ -1,0 +1,80 @@
+programs: 2
+    shaders: 2
+        ../shaders/lab4/vsh_skycube.glsl GL_VERTEX_SHADER
+        ../shaders/lab4/fsh_skycube.glsl GL_FRAGMENT_SHADER
+    textures: 1
+        u_map GL_TEXTURE_CUBE_MAP 0 
+        6 2048 2048
+            ../textures/skybox/right.jpg
+            ../textures/skybox/left.jpg
+            ../textures/skybox/top.jpg
+            ../textures/skybox/bottom.jpg
+            ../textures/skybox/front.jpg
+            ../textures/skybox/back.jpg
+        5
+            GL_TEXTURE_MAG_FILTER GL_LINEAR
+            GL_TEXTURE_MIN_FILTER GL_LINEAR
+            GL_TEXTURE_WRAP_S GL_CLAMP_TO_EDGE
+            GL_TEXTURE_WRAP_T GL_CLAMP_TO_EDGE
+            GL_TEXTURE_WRAP_R GL_CLAMP_TO_EDGE
+    variables: 1 0
+        u_mvp GL_FLOAT_MAT4 0
+    models: 1
+        0
+    END
+    
+    shaders: 2
+        ../shaders/lab4/vsh.glsl GL_VERTEX_SHADER
+        ../shaders/lab4/fsh.glsl GL_FRAGMENT_SHADER
+    textures: 1
+        u_surfaceMap GL_TEXTURE_2D_ARRAY 1
+        2 2048 2048
+            ../textures/seaTexture.jpg
+            ../textures/sandTexture.jpg
+        4
+            GL_TEXTURE_MAG_FILTER GL_LINEAR
+            GL_TEXTURE_MIN_FILTER GL_LINEAR_MIPMAP_LINEAR
+            GL_TEXTURE_WRAP_S GL_MIRRORED_REPEAT
+            GL_TEXTURE_WRAP_T GL_MIRRORED_REPEAT
+    variables: 2 6
+        u_mvp GL_FLOAT_MAT4 0
+        u_n GL_FLOAT_MAT3 1 
+        u_olpos GL_FLOAT_VEC3 1.0 1.0 1.0 
+        u_olcol GL_FLOAT_VEC3 1.0 1.0 1.0 
+        u_oeye GL_FLOAT_VEC3 0.0 0.0 0.0 
+        u_odmin GL_FLOAT 0.5 
+        u_osfoc GL_FLOAT 8.5 
+        u_lie GL_BOOL 1 
+    models: 1
+        1
+    
+    END
+    
+models: 2
+    3 file ../models/skybox.ply
+    attributes: 1
+        3 GL_FLOAT 0 coordinates: predefined
+        
+    END
+        
+    9 heightmap ../heightmaps/australia.jpg 0.1
+    attributes: 4
+        3 GL_FLOAT 0 coordinates: predefined
+        2 GL_FLOAT 0 texCoordinates: same
+        1 GL_INT 0 texLayer: stub
+        3 GL_FLOAT 0 normals: calculate
+    transformations: 3
+        move x center
+        move z center
+        scale fit
+    
+    END
+
+tracks: 37
+    ../music/track1.ogg ../music/track2.ogg ../music/track3.ogg ../music/track4.ogg ../music/track5.ogg ../music/track6.ogg
+    ../music/track7.ogg ../music/track8.ogg ../music/track9.ogg ../music/track10.ogg ../music/track11.ogg ../music/track12.ogg
+    ../music/track13.ogg ../music/track14.ogg ../music/track15.ogg ../music/track16.ogg ../music/track17.ogg ../music/track18.ogg
+    ../music/track19.ogg ../music/track20.ogg ../music/track21.ogg ../music/track22.ogg ../music/track23.ogg ../music/track24.ogg
+    ../music/track25.ogg ../music/track26.ogg ../music/track27.ogg ../music/track28.ogg ../music/track29.ogg ../music/track30.ogg
+    ../music/track31.ogg ../music/track32.ogg ../music/track33.ogg ../music/track34.ogg ../music/track35.ogg ../music/track36.ogg
+    ../music/track37.ogg

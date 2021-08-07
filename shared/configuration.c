@@ -538,10 +538,36 @@ bool parseModelsConfig(FILE *configurationFile, unsigned *out_modelsCount, struc
     return noErrorsOccured;
 }
 
+bool parseMusicConfig(FILE *configurationFile, unsigned char *tracksCount, char ***musicFiles) {
+    if (*musicFiles != NULL) {
+        for (unsigned char i = 0; i < *tracksCount; i += 1) {
+            free((*musicFiles)[i]);
+        }
+        free(*musicFiles);
+    }
+    
+    fscanf(configurationFile, "%hhu", tracksCount);
+    printf("Count of defined soundtrack entries: %hhu\n", *tracksCount);
+    
+    *musicFiles = calloc(*tracksCount, sizeof(struct model));
+    if (*musicFiles == NULL) {
+        printf("Soundtrack storage cannot be allocated\n");
+        *tracksCount = 0;
+        return false;
+    }
+    
+    for (unsigned char i = 0; i < *tracksCount; i += 1) {
+        fscanf(configurationFile, "%ms", *musicFiles + i);
+    }
+    
+    return true;
+}
+
 bool applyConfiguration(
     const char *pathToConfiguration,
     unsigned *out_shaderProgramsCount, struct shader_program **out_programs,
-    unsigned *out_modelsCount, struct model **out_models) {
+    unsigned *out_modelsCount, struct model **out_models,
+    unsigned char *tracksCount, char ***musicFiles) {
     if (pathToConfiguration == NULL) {
         printf("No path configuration file was provided\n");
         return false;
@@ -562,6 +588,8 @@ bool applyConfiguration(
             noErrorsOccured = parseShaderProgramsConfig(configurationFile, out_shaderProgramsCount, out_programs);
         } else if (strcmp("models:", section) == 0) {
             noErrorsOccured = parseModelsConfig(configurationFile, out_modelsCount, out_models);
+        } else if (strcmp("tracks:", section) == 0) {
+            noErrorsOccured = parseMusicConfig(configurationFile, tracksCount, musicFiles);
         } else {
             printf("Unknown configuration section: %s\n", section);
             noErrorsOccured = false;
