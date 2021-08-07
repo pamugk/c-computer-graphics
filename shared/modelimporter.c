@@ -46,8 +46,7 @@ void importPlyModel(const char *filePath, struct model *out_model) {
     fscanf(modelFile, "%s", staticBuffer);
     printf("Parsing ply file with ASCII data v. %s\n", staticBuffer);
     
-    int verticeCount = 0, facesCount = 0;
-    int xPos = -1, yPos = -1, zPos = -1;
+    int facesCount = 0, xPos = -1, yPos = -1, zPos = -1;
     while(fscanf(modelFile, "%s", staticBuffer) && strcmp("end_header", staticBuffer) != 0) {
         if (strcmp("comment", staticBuffer) == 0) {
             printf("Encountered a comment: ");
@@ -59,14 +58,14 @@ void importPlyModel(const char *filePath, struct model *out_model) {
             continue;
         } else if(strcmp("element", staticBuffer) != 0) {
             printf("Either element or comment are expected at this level, aborting\n");
-            verticeCount = 0, facesCount = 0;
+            out_model->body.verticeCount = 0, facesCount = 0;
             break;
         }
         
         fscanf(modelFile, "%s", staticBuffer);
         if (strcmp("vertex", staticBuffer) == 0) {
-            fscanf(modelFile, "%i", &verticeCount);
-            printf("Defined vertice count: %i\n", verticeCount);
+            fscanf(modelFile, "%lu", &(out_model->body.verticeCount));
+            printf("Defined vertice count: %lu\n", out_model->body.verticeCount);
             
             while (fscanf(modelFile, "%s", staticBuffer) && strcmp("property", staticBuffer) == 0) {
                 printf("Element with type ");
@@ -87,11 +86,11 @@ void importPlyModel(const char *filePath, struct model *out_model) {
                     printf("Warning: provided property type is not supported for a vertex\n");
                 }
                 
-                if (xPos == -1 && strcmp("x", staticBuffer)) {
+                if (xPos == -1 && strcmp("x", staticBuffer) == 0) {
                     xPos = out_model->body.vertexSize;
-                } else if (yPos == -1 && strcmp("y", staticBuffer)) {
+                } else if (yPos == -1 && strcmp("y", staticBuffer) == 0) {
                     yPos = out_model->body.vertexSize;
-                } else if (zPos == -1 && strcmp("z", staticBuffer)) {
+                } else if (zPos == -1 && strcmp("z", staticBuffer) == 0) {
                     zPos = out_model->body.vertexSize;
                 }
                 
@@ -103,12 +102,12 @@ void importPlyModel(const char *filePath, struct model *out_model) {
             while (fscanf(modelFile, "%s", staticBuffer) && strcmp("property", staticBuffer) == 0) {
                 printf("Element with type ");
                 fscanf(modelFile, "%s", staticBuffer);
-                printf("%s ", staticBuffer);
+                printf("%s", staticBuffer);
                 
                 bool listType = strcmp("list", staticBuffer) == 0;
                 if (listType) {
                     fscanf(modelFile, "%s", staticBuffer);
-                    printf("[size type: %s, ", staticBuffer);
+                    printf(" [size type: %s, ", staticBuffer);
                     fscanf(modelFile, "%s", staticBuffer);
                     printf("element type: %s]", staticBuffer);
                 }
@@ -121,7 +120,7 @@ void importPlyModel(const char *filePath, struct model *out_model) {
             }
         } else {
             printf("Unknown element, aborting\n");
-            verticeCount = 0, facesCount = 0;
+            out_model->body.verticeCount = 0, facesCount = 0;
             break;
         }
         
@@ -131,7 +130,7 @@ void importPlyModel(const char *filePath, struct model *out_model) {
         fpos_t q;
     }
     
-    out_model->body.vertices = calloc(verticeCount, sizeof(float) * out_model->body.vertexSize);
+    out_model->body.vertices = calloc(out_model->body.verticeCount, sizeof(float) * out_model->body.vertexSize);
     
     if (out_model->body.vertices == NULL) {
         printf("Not enough memory to allocate vertice array\n");
@@ -140,7 +139,7 @@ void importPlyModel(const char *filePath, struct model *out_model) {
     }
     
     float minX = FLT_MAX, maxX = FLT_MIN, minY = FLT_MAX, maxY = FLT_MIN, minZ = FLT_MAX, maxZ = FLT_MIN;
-    for (int i = 0; i < verticeCount * out_model->body.vertexSize; i += out_model->body.vertexSize) {
+    for (int i = 0; i < out_model->body.verticeCount * out_model->body.vertexSize; i += out_model->body.vertexSize) {
         for (int p = 0; p < out_model->body.vertexSize; p += 1) {
             fscanf(modelFile, "%f", out_model->body.vertices + i + p);
         }
@@ -173,7 +172,7 @@ void importPlyModel(const char *filePath, struct model *out_model) {
     out_model->body.depth = maxZ - minZ,
     out_model->body.height = maxY - minY;
     
-    out_model->indexCount = verticeCount * 6;
+    out_model->indexCount = out_model->body.verticeCount * 6;
     out_model->indices = calloc(out_model->indexCount, sizeof(unsigned int));
     
     int idx = 0;

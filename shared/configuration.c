@@ -462,9 +462,6 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
         printf("Model is defined via heightmap %s with h=%f\n", dynamicBuffer, h);
         out_model->body = initBodyWithHeightmap(dynamicBuffer, vertexSize, h);
         makeIndices(out_model->body, &out_model->indexCount, &out_model->indices);
-    } else if (strcmp("textfile", staticBuffer) == 0) {
-        fscanf(configurationFile, "%ms", &dynamicBuffer);
-        out_model->body = initBodyWithTextfile(dynamicBuffer, vertexSize, &out_model->indexCount, &out_model->indices);
     } else if (strcmp("file", staticBuffer) == 0) {
         fscanf(configurationFile, "%ms", &dynamicBuffer);
         importModel(dynamicBuffer, out_model);

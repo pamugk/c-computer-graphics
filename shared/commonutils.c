@@ -43,50 +43,6 @@ struct body initBodyWithHeightmap(const char *pathToHeightmap, unsigned char ver
     return result;
 }
 
-struct body initBodyWithTextfile(const char *pathToDefinition, unsigned char vertexSize, int *out_indexCount, GLuint **out_indices) {
-    struct body result = { 0U, 0U, 0U, vertexSize, 0U, NULL };
-    
-    if (pathToDefinition == NULL) {
-        printf("No path to model definition file was provided\n");
-        return result;
-    }
-    
-    FILE *definitionFile = fopen(pathToDefinition, "r");
-    if (definitionFile == NULL) {
-        printf("Model definition file can not be opened\n");
-        return result;
-    }
-    
-    unsigned char providedVertexSize = 0;
-    fscanf(definitionFile, "%i%i%i%hhi", &result.width, &result.depth, &result.height, &providedVertexSize);
-    result.verticeCount = result.width * result.depth * result.height;
-    
-    if (providedVertexSize > vertexSize) {
-        printf("Provided via textfile vertex size is larger than provided by default, so some of the vertex data may be unused\n");
-        result.vertexSize = providedVertexSize;
-    }
-    
-    result.vertices = calloc(result.verticeCount * result.vertexSize, sizeof(GLfloat));
-    for (unsigned int i = 0; i < result.verticeCount * result.vertexSize; i += 1) {
-        fscanf(definitionFile, "%f", result.vertices + i);
-    }
-    
-    fscanf(definitionFile, "%i", out_indexCount);
-    *out_indices = calloc(*out_indexCount, sizeof(GLuint));
-    
-    if (*out_indexCount > 0 && *out_indices == NULL) {
-        printf("Not enough memory to allocate index array\n");
-    } else {
-        for (int i = 0; i < *out_indexCount; i += 1) {
-            fscanf(definitionFile, "%u", out_indices[0] + i);
-        }
-    }
-    
-    fclose(definitionFile);
-    
-    return result;
-}
-
 void setRandomColors(struct body *paintedBody, int offset) {
     printf("Generating pseudo-random model color\n");
     srand(123456);

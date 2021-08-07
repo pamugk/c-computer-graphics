@@ -9,7 +9,6 @@
 #include <stdbool.h>
 
 struct body initBodyWithHeightmap(const char *heightmapPath, unsigned char vertexSize, float h);
-struct body initBodyWithTextfile(const char *pathToDefinition, unsigned char vertexSize, int *out_indexCount, GLuint **out_indices);
 
 void setRandomColors(struct body *paintedBody, int offset);
 
