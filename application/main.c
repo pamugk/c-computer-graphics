@@ -23,29 +23,98 @@ int projection = 0;
 const double fpsLimit = 1.0 / 60.0;
 bool fixedFrameRate = false;
 
-bool init() {
+ALCdevice *g_soundDevice;
+ALCcontext *g_soundContext;
+
+char **g_tracks;
+unsigned int g_tracksCount;
+
+bool handleArguments(int argc, char** argv) {
+    for (int i = 0; i < argc; i += 1) {
+        if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+            printf("Following flags are supported:\n");
+            printf("\t--help / -h - print help\n");
+            printf("\t--configuration / -c - set path to configuration file (required)\n");
+            printf("Controls:\n\tLeft/Right Arrows: rotate about Y axis;\n\tUp/Down Arrows: rotate about X axis;\n\tW/S Keys: rotate about Z axis;\n");
+            printf("\t1-9: rotation speed selection.\n");
+            return false;
+        } else if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--configuration") == 0) {
+            i += 1;
+            pathToConfiguration = argv[i];
+        }
+    }
+    
+    if (pathToConfiguration == NULL) {
+        printf("No configuration file was defined\n");
+        return false;
+    }
+    
+    return true;
+}
+
+void reshape(GLFWwindow *window, int width, int height);
+void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+bool initOpenGL() {
+    if (!glfwInit()) {
+		printf("Failed to initialize GLFW");
+		return false;
+	}
+	
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	g_window = glfwCreateWindow(1024, 768, "CG demonstration", NULL, NULL);
+    if (g_window == NULL) {
+		printf("Failed to open GLFW window\n");
+		glfwTerminate();
+		return false;
+	}
+
+    glfwMakeContextCurrent(g_window);
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK) {
+		printf("Failed to initialize GLEW\n");
+		return false;
+	}
+
+    glfwSetFramebufferSizeCallback(g_window, reshape);
+    glfwSetInputMode(g_window, GLFW_STICKY_KEYS, GL_TRUE);
+    glfwSetKeyCallback(g_window, onKeyPress);
+    
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(errorCallback, 0);
+    
     glClearColor(1.f, 1.f, 1.f, 1.f);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
     
-    return applyConfiguration(pathToConfiguration, &g_programsCount, &g_programs, &g_modelsCount, &g_models);
+    return true;
 }
 
-void initOptics() {
-    getIdentityMatrix(v);
-    
-    if (projection) {
-        getParallelProjectionMatrix(-1.f, 1.f, -1.f, 1.f, -3.f, 3.f, p);
-    } else {
-        getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1.f, 1.f, 45.f, p);
+bool initOpenAL() {
+    g_soundDevice = alcOpenDevice(NULL);
+    if (g_soundDevice == NULL) {
+        printf("Failed to initialize default sound device\n");
+        checkAlError();
+        return false;
     }
     
-    for (int i = 0; i < countOfSpeeds; i++) {
-        degrees[i] = (i + 1) * 0.01f;
-        degreeKeys[i] = GLFW_KEY_1 + i;
+    g_soundContext = alcCreateContext(g_soundDevice, NULL);
+    if (g_soundContext == NULL) {
+        printf("Failed to create sound context\n");
+        checkAlcError(g_soundDevice);
+        alcCloseDevice(g_soundDevice);
+        return false;
+    }
+    alcMakeContextCurrent(g_soundContext);
+    if (!checkAlcError(g_soundDevice)) {
+        return false;
     }
     
-    degree = degrees[1];
+    return true;
 }
 
 void reshape(GLFWwindow *window, int width, int height) {
@@ -85,80 +154,6 @@ void draw() {
             glDrawElements(GL_TRIANGLES, g_models[m].indexCount, GL_UNSIGNED_INT, (const GLvoid *)0);
         }
     }
-}
-
-void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods);
-
-bool initOpenGL() {
-    if (!glfwInit()) {
-		printf("Failed to initialize GLFW");
-		return false;
-	}
-	
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	g_window = glfwCreateWindow(1024, 768, "CG demonstration", NULL, NULL);
-    if (g_window == NULL) {
-		printf("Failed to open GLFW window\n");
-		glfwTerminate();
-		return false;
-	}
-
-    glfwMakeContextCurrent(g_window);
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) {
-		printf("Failed to initialize GLEW\n");
-		return false;
-	}
-
-    glfwSetFramebufferSizeCallback(g_window, reshape);
-    glfwSetInputMode(g_window, GLFW_STICKY_KEYS, GL_TRUE);
-    glfwSetKeyCallback(g_window, onKeyPress);
-    
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(errorCallback, 0);
-    
-    return true;
-}
-
-void cleanup() {
-    for (int i = 0; i < g_programsCount; i += 1) {
-        freeProgram(g_programs + i);
-    }
-    free(g_programs);
-    
-    for (int i = 0; i < g_modelsCount; i += 1) {
-        freeModel(g_models + i);
-    }
-    free(g_models);
-    
-	glfwTerminate();
-}
-
-bool handleArguments(int argc, char** argv) {
-    for (int i = 0; i < argc; i += 1) {
-        if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-            printf("Following flags are supported:\n");
-            printf("\t--help / -h - print help\n");
-            printf("\t--configuration / -c - set path to configuration file (required)\n");
-            printf("Controls:\n\tLeft/Right Arrows: rotate about Y axis;\n\tUp/Down Arrows: rotate about X axis;\n\tW/S Keys: rotate about Z axis;\n");
-            printf("\t1-9: rotation speed selection.\n");
-            return false;
-        } else if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--configuration") == 0) {
-            i += 1;
-            pathToConfiguration = argv[i];
-        }
-    }
-    
-    if (pathToConfiguration == NULL) {
-        printf("No configuration file was defined\n");
-        return false;
-    }
-    
-    return true;
 }
 
 void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -203,6 +198,41 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
     }
 }
 
+void initOptics() {
+    getIdentityMatrix(v);
+    
+    if (projection) {
+        getParallelProjectionMatrix(-1.f, 1.f, -1.f, 1.f, -3.f, 3.f, p);
+    } else {
+        getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1.f, 1.f, 45.f, p);
+    }
+    
+    for (int i = 0; i < countOfSpeeds; i++) {
+        degrees[i] = (i + 1) * 0.01f;
+        degreeKeys[i] = GLFW_KEY_1 + i;
+    }
+    
+    degree = degrees[1];
+}
+
+void cleanup() {
+    for (int i = 0; i < g_programsCount; i += 1) {
+        freeProgram(g_programs + i);
+    }
+    free(g_programs);
+    
+    for (int i = 0; i < g_modelsCount; i += 1) {
+        freeModel(g_models + i);
+    }
+    free(g_models);
+    
+	glfwTerminate();
+    
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(g_soundContext);
+    alcCloseDevice(g_soundDevice);
+}
+
 int main(int argc, char** argv) {    
     if (!handleArguments(argc, argv)) {
         return 0;
@@ -210,8 +240,12 @@ int main(int argc, char** argv) {
     if (!initOpenGL()) {
         return -1;
     }
+    if (!initOpenAL()) {
+        glfwTerminate();
+        return -1;
+    }
 	
-	int isOk = init();
+	int isOk = applyConfiguration(pathToConfiguration, &g_programsCount, &g_programs, &g_modelsCount, &g_models);
 	if (isOk) {
         initOptics();
 

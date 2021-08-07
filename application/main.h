@@ -2,6 +2,7 @@
 #include "../shared/error.h"
 #include "../shared/matrix.h"
 
+#include <AL/alure.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 

@@ -75,3 +75,21 @@ void errorCallback(GLenum source,
     printf("%s MESSAGE from %s (%s SEVERITY): message = %s\n",
            debugMessageTypeToString(type), debugSourceToString(source), severityToString(severity), message);
 }
+
+ALboolean checkAlcError(ALCdevice *device) {
+    ALCenum error = alcGetError(device);
+    if (error != ALC_NO_ERROR) {
+        printf("ALC error: %s\n", alcGetString(device, error));
+        return AL_FALSE;
+    }
+    return AL_TRUE;
+}
+
+ALboolean checkAlError() {
+    ALCenum error = alGetError();
+    if (error != ALC_NO_ERROR) {
+        printf("AL error: %s\n", alGetString(error));
+        return AL_FALSE;
+    }
+    return AL_TRUE;
+}
