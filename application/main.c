@@ -62,10 +62,13 @@ bool initOpenGL() {
 		return false;
 	}
 	
+	glfwSetErrorCallback(glfwErrorCallback);
+	
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
 	g_window = glfwCreateWindow(1024, 768, "CG demonstration", NULL, NULL);
     if (g_window == NULL) {
@@ -77,17 +80,18 @@ bool initOpenGL() {
     glfwMakeContextCurrent(g_window);
     glewExperimental = GL_TRUE;
     errorCode = glewInit();
-    if (errorCode != GLEW_OK) {
-		printf("Failed to initialize GLEW: %i\n", errorCode);
+    /*if (errorCode != GLEW_OK) {
+		printf("Failed to initialize GLEW: %s\n", glewGetErrorString(errorCode));
 		return false;
-	}
+	}*/
 
     glfwSetFramebufferSizeCallback(g_window, reshape);
     glfwSetInputMode(g_window, GLFW_STICKY_KEYS, GL_FALSE);
     glfwSetKeyCallback(g_window, onKeyPress);
     
     glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(errorCallback, 0);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
+    glDebugMessageCallback(glDebugCallback, NULL);
     
     glClearColor(1.f, 1.f, 1.f, 1.f);
     glEnable(GL_DEPTH_TEST);

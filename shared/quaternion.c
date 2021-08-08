@@ -10,7 +10,7 @@ void makeIdenticalQuat(struct quat *out_q) {
 }
 
 void makeQuatWithRotationAxis(struct vec3f *a, float rotationAngle, struct quat *out_q) {
-    multiplyVec3ByNumber(a, sinf(rotationAngle / 2.f), (struct vec3f *)&out_q);
+    multiplyVec3ByNumber(a, sinf(rotationAngle / 2.f), (struct vec3f *)out_q);
     out_q->w = cosf(rotationAngle / 2.f);
 }
 

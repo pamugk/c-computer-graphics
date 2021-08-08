@@ -65,7 +65,7 @@ const char *severityToString(GLenum severity) {
     return "UNKNOWN";
 }
 
-void errorCallback(GLenum source,
+void glDebugCallback(GLenum source,
             GLenum type,
             GLuint id,
             GLenum severity,
@@ -74,6 +74,9 @@ void errorCallback(GLenum source,
             const void *userParam) {
     printf("%s MESSAGE from %s (%s SEVERITY): message = %s\n",
            debugMessageTypeToString(type), debugSourceToString(source), severityToString(severity), message);
+}
+void glfwErrorCallback(int errorCode, const char* errorMessage) {
+    printf("GLFW error №%i: %s\n", errorCode, errorMessage);
 }
 
 ALboolean checkAlcError(ALCdevice *device) {
