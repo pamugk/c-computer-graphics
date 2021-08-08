@@ -21,6 +21,12 @@ float quatNorm(const struct quat *q) {
 float quatMagnitude(const struct quat *q) {
     return sqrtf(quatNorm(q));
 }
+
+void normalizeQuat(struct quat *q) {
+    float magnitude = quatMagnitude(q);
+    q->x /= magnitude, q->y /= magnitude, q->z /= magnitude, q->w /= magnitude;
+}
+
 void conjugateQuat(const struct quat *q, struct quat *out_q) {
     multiplyVec3ByNumber((const struct vec3f *)q, -1.f, (struct vec3f *)out_q);
     out_q->w = q->w;

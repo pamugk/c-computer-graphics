@@ -17,6 +17,8 @@ float quatNorm(const struct quat *q);
 
 float quatMagnitude(const struct quat *q);
 
+void normalizeQuat(struct quat *q);
+
 void conjugateQuat(const struct quat *q, struct quat *out_q);
 
 void inverseQuat(const struct quat *q, struct quat *out_q);
