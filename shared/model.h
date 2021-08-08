@@ -50,7 +50,7 @@ void moveModel(struct model *model, float dx, float dy, float dz);
 
 void scaleModel(struct model *model, float sx, float sy, float sz);
 
-void rotateModelAboutAxis(struct model *model, float degree);
+void rotateModelAboutAxis(struct model *model, struct vec3f *axis, float degree);
 void rotateModel(struct model *model, float x, float y, float z, float degree);
 void rotateModelAboutX(struct model *model, float degree);
 void rotateModelAboutY(struct model *model, float degree);

@@ -453,8 +453,9 @@ bool parseModelTransformations(FILE *configurationFile, struct model *out_model)
                 fscanf(configurationFile, "%f", &degree);
                 rotateModelAboutZ(out_model, degree);
             } else if (strcmp("axis", staticBuffer) == 0) {
-                fscanf(configurationFile, "%f", &degree);
-                rotateModelAboutAxis(out_model, degree);
+                struct vec3f axis;
+                fscanf(configurationFile, "%f%f%f%f", &axis.x, &axis.y, &axis.z, &degree);
+                rotateModelAboutAxis(out_model, &axis, degree);
             } else {
                 printf("Unknown rotation target: %s\n", staticBuffer);
                 return false;

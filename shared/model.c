@@ -136,34 +136,32 @@ void scaleModel(struct model *model, float sx, float sy, float sz) {
     scale(prevM, sx, sy, sz, model->m);
 }
 
-void rotateModelAboutAxis(struct model *model, float degree) {
-    float prevM[MVP_MATRIX_SIZE]; 
-    memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
-    rotate(prevM, 0, 0, 0, degree, model->m);
+void rotateModelAboutAxis(struct model *model, struct vec3f *axis, float degree) {
+    struct quat rotationQ;
+    makeQuatWithRotationAxis(axis, degree, &rotationQ);
+    struct quat prevQ = { model->q.x, model->q.y, model->q.z, model->q.w };
+    quatLerp(&prevQ, &rotationQ, 0.5f, &model->q);
+    quatMultyplyByNum(&model->q, 1.f / quatMagnitude(&model->q), &model->q);
 }
 
 void rotateModel(struct model *model, float x, float y, float z, float degree) {
-    float prevM[MVP_MATRIX_SIZE]; 
-    memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
-    rotate(prevM, x, y, z, degree, model->m);
+    struct vec3f axis = { x, y, z };
+    rotateModelAboutAxis(model, &axis, degree);
 }
 
 void rotateModelAboutX(struct model *model, float degree) {
-    float prevM[MVP_MATRIX_SIZE]; 
-    memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
-    rotateAboutX(prevM, degree, model->m);
+    struct vec3f axis = { 1.f, 0.f, 0.f };
+    rotateModelAboutAxis(model, &axis, degree);
 }
 
 void rotateModelAboutY(struct model *model, float degree) {
-    float prevM[MVP_MATRIX_SIZE]; 
-    memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
-    rotateAboutY(prevM, degree, model->m);
+    struct vec3f axis = { 0.f, 1.f, 0.f };
+    rotateModelAboutAxis(model, &axis, degree);
 }
 
 void rotateModelAboutZ(struct model *model, float degree) {
-    float prevM[MVP_MATRIX_SIZE]; 
-    memcpy(prevM, model->m, sizeof(float) * MVP_MATRIX_SIZE);
-    rotateAboutZ(prevM, degree, model->m);
+    struct vec3f axis = { 0.f, 0.f, 1.f };
+    rotateModelAboutAxis(model, &axis, degree);
 }
 
 void freeModel(struct model *model) {

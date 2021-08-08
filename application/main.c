@@ -56,13 +56,14 @@ void reshape(GLFWwindow *window, int width, int height);
 void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 bool initOpenGL() {
+    int errorCode;
     if (!glfwInit()) {
-		printf("Failed to initialize GLFW");
+		printf("Failed to initialize GLFW\n");
 		return false;
 	}
 	
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
@@ -75,8 +76,9 @@ bool initOpenGL() {
 
     glfwMakeContextCurrent(g_window);
     glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) {
-		printf("Failed to initialize GLEW\n");
+    errorCode = glewInit();
+    if (errorCode != GLEW_OK) {
+		printf("Failed to initialize GLEW: %i\n", errorCode);
 		return false;
 	}
 
@@ -125,7 +127,11 @@ void draw() {
             int m = g_programs[i].modelsToRenderIdx[j];
             
             if (mvpDefined) {
-                multiplyMatrices(v, g_models[m].m, mv);
+                float rotationMatrix[MVP_MATRIX_SIZE], fullMMatrix[MVP_MATRIX_SIZE];
+                matrixWithQuaternion(&g_models[m].q, rotationMatrix);
+                multiplyMatrices(rotationMatrix, g_models[m].m, fullMMatrix);
+                
+                multiplyMatrices(v, fullMMatrix, mv);
                 multiplyMatrices(p, mv, g_programs[i].variables[0].value.floatMat4Val);
                 
                 if (normalsDefined) {
@@ -145,46 +151,49 @@ void draw() {
 void updateTrackPool();
 
 void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_Q && action != GLFW_RELEASE) {
-        //TODO: switch lighting state
-    }
-
     for (int i = 0; i < countOfSpeeds; i++) {
         if (key == degreeKeys[i] == GLFW_PRESS) {
             degree = degrees[i];
         }
     }
-    if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
+    
+    if (key == GLFW_KEY_KP_4 && action != GLFW_RELEASE) {
         float prevM[MVP_MATRIX_SIZE];
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutY(prevM, degree, v);
-    }
-    if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
+    } else if (key == GLFW_KEY_KP_6 && action != GLFW_RELEASE) {
         float prevM[MVP_MATRIX_SIZE];
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutY(prevM, -degree, v);
-    }
-    if (key == GLFW_KEY_UP && action != GLFW_RELEASE) {
+    } else if (key == GLFW_KEY_KP_8 && action != GLFW_RELEASE) {
         float prevM[MVP_MATRIX_SIZE];
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutX(prevM, degree, v);
-    }
-    if (key == GLFW_KEY_DOWN && action != GLFW_RELEASE) {
+    } else if (key == GLFW_KEY_KP_5 && action != GLFW_RELEASE) {
         float prevM[MVP_MATRIX_SIZE];
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutX(prevM, -degree, v);
-    }
-    if (key ==GLFW_KEY_W && action != GLFW_RELEASE) {
+    } else if (key ==GLFW_KEY_KP_7 && action != GLFW_RELEASE) {
         float prevM[MVP_MATRIX_SIZE];
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutZ(prevM, degree, v);
-    }
-    if (key == GLFW_KEY_S && action != GLFW_RELEASE) {
+    } else if (key == GLFW_KEY_9 && action != GLFW_RELEASE) {
         float prevM[MVP_MATRIX_SIZE];
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutZ(prevM, -degree, v);
-    }
-    if (key == GLFW_KEY_P && action == GLFW_RELEASE) {
+    } else if (key == GLFW_KEY_UP && action != GLFW_RELEASE) {
+        rotateModelAboutX(g_models, degree);
+    } else if (key == GLFW_KEY_DOWN && action != GLFW_RELEASE) {
+        rotateModelAboutX(g_models, -degree);
+    } else if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
+        rotateModelAboutY(g_models, degree);
+    } else if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
+        rotateModelAboutY(g_models, -degree);
+    } else if (key == GLFW_KEY_W && action != GLFW_RELEASE) {
+        rotateModelAboutZ(g_models, degree);
+    } else if (key == GLFW_KEY_S && action != GLFW_RELEASE) {
+        rotateModelAboutZ(g_models, -degree);
+    } else if (g_musicPlayer != 0 && key == GLFW_KEY_P && action == GLFW_RELEASE) {
         ALint state;
         alGetSourcei(g_musicPlayer, AL_SOURCE_STATE, &state);
         if (state == AL_PLAYING) {
@@ -194,8 +203,7 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
             printf("Resuming music player\n");
             alureResumeSource(g_musicPlayer);
         }
-    }
-    if (key == GLFW_KEY_N && action == GLFW_RELEASE) {
+    } else if (g_musicPlayer != 0 && key == GLFW_KEY_N && action == GLFW_RELEASE) {
         alSourceStop(g_musicPlayer);
     }
 }
@@ -206,7 +214,7 @@ void initOptics() {
     if (projection) {
         getParallelProjectionMatrix(-1.f, 1.f, -1.f, 1.f, -3.f, 3.f, p);
     } else {
-        getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1.f, 1.f, 45.f, p);
+        getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1024.f, 768.f, 45.f, p);
     }
     
     for (int i = 0; i < countOfSpeeds; i++) {
