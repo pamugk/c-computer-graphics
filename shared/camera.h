@@ -31,4 +31,6 @@ void yawCameraQuat(struct camera_quat *camera, float angle);
 void pitchCameraQuat(struct camera_quat *camera, float angle);
 void rollCameraQuat(struct camera_quat *camera, float angle);
 void viewCameraQuat(struct camera_quat *camera, float out_v[MVP_MATRIX_SIZE]);
+
+void buildThirdPersonCameraView(const struct vec3f *e, const struct vec3f *c, const struct vec3f *u, float out_v[MVP_MATRIX_SIZE]);
 #endif // CAMERA

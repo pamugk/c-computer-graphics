@@ -12,6 +12,12 @@ void multiplyVec3ByNumber(const struct vec3f *vector, float multiplier, struct v
     out_vector->z = multiplier * vector->z;
 }
 
+void vectorMultiplication(const struct vec3f *a, const struct vec3f *b, struct vec3f *out_vector) {
+    out_vector->x = a->y * b->z - b->y * a->z,
+    out_vector->y = -a->x * b->z + b->x * a->z,
+    out_vector->z = a->x * b->y - b->x * a->y;
+}
+
 float vectorLength(const struct vec3f *vector) {
     return sqrt(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
 }

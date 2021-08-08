@@ -17,6 +17,8 @@ struct vec3ub {
 float scalarMultiplyVec3(const struct vec3f *a, const struct vec3f *b);
 void multiplyVec3ByNumber(const struct vec3f *vector, float multiplier, struct vec3f *out_vector);
 
+void vectorMultiplication(const struct vec3f *a, const struct vec3f *b, struct vec3f *out_vector);
+
 void calculateNormal(
     const struct vec3f *pointA, 
     const struct vec3f *pointB, 

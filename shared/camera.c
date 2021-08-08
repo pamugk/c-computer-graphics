@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+# define M_PI		3.14159265358979323846	/* pi */
+
 float wrap(float a, float min, float max) {
     a -= min, max -= min;
     if (max == 0) {
@@ -84,4 +86,32 @@ void viewCameraQuat(struct camera_quat *camera, float out_v[MVP_MATRIX_SIZE]) {
     float tempMatrix[MVP_MATRIX_SIZE];
     matrixWithQuaternion(&camera->orientation, tempMatrix);
     move(tempMatrix, -camera->position.x, -camera->position.y, -camera->position.z, out_v);
+}
+
+void buildThirdPersonCameraView(const struct vec3f *e, const struct vec3f *c, const struct vec3f *u, float out_v[MVP_MATRIX_SIZE]) {
+    float leftM[MVP_MATRIX_SIZE] = {
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        c->x - e->x, c->y - e->y, c->z - e->z, 0,
+        0, 0, 0, 1
+    };
+    normalizeVector((struct vec3f *)(leftM + 8));
+    
+    vectorMultiplication((struct vec3f *)(leftM + 8), u, (struct vec3f *)(leftM));
+    
+    struct vec3f s = { leftM[0], leftM[1], leftM[2] };
+    normalizeVector(&s);
+    
+    vectorMultiplication(&s, (struct vec3f *)(leftM + 8),  (struct vec3f *)(leftM + 4));
+    
+    multiplyVec3ByNumber((const struct vec3f *)(leftM + 8), -1.0f, (struct vec3f *)(leftM + 8));
+    
+    float rightM[MVP_MATRIX_SIZE] = {
+        1.0f, 0.0f, 0.0f, -e->x,
+        0.0f, 1.0f, 0.0f, -e->y,
+        0.0f, 0.0f, 1.0f, -e->z,
+        0.0f, 0.0f, 0.0f, 1.0f,
+    };
+    
+    multiplyMatrices(leftM, rightM, out_v);
 }
