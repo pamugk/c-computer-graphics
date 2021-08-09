@@ -47,7 +47,7 @@ void rollCameraAngle(struct camera_angle *camera, float angle) {
 
 void viewCameraAngle(struct camera_angle *camera, float out_v[MVP_MATRIX_SIZE]) {
     float tempMatrix[MVP_MATRIX_SIZE];
-    rotateAboutZ(E, camera->orientation.roll, tempMatrix);
+    rotateAboutZ((float *)E, camera->orientation.roll, tempMatrix);
     rotateAboutX(tempMatrix, camera->orientation.pitch, out_v);
     rotateAboutY(out_v, camera->orientation.yaw, tempMatrix);
     move(tempMatrix, -camera->position.x, -camera->position.y, -camera->position.z, out_v);

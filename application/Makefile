@@ -1,7 +1,7 @@
-APPNAME=app
-CFLAGS=-std=c17 -g
+CFLAGS=-std=c2x -g
 LIBS=$(shell pkg-config --libs alure glfw3 glew libpng libjpeg) -lm
-SOURCES=$(shell ls -d ../shared/*.[ch]) $(shell ls *.[ch])
 
 all:
-	gcc $(CFLAGS) -o $(APPNAME) $(SOURCES) $(LIBS)
+	clang $(CFLAGS) ../shared/*.[ch] *.[ch] $(LIBS)
+clean:
+	rm ../shared/*.gch *.gch

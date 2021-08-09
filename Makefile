@@ -1,6 +1,5 @@
-CFLAGS=-std=c17
-LIBS=$(shell pkg-config --libs glfw3 glew libpng libjpeg) -lm
-SOURCES=$(shell ls -d shared/*.[ch]) $(shell ls application/*.[ch])
+CFLAGS=-std=c2x -g
+LIBS=$(shell pkg-config --libs alure glfw3 glew libpng libjpeg) -lm
 
 all:
-	gcc $(CFLAGS) -o application/app $(SOURCES) $(LIBS)
+	clang $(CFLAGS) shared/*.[ch] application/*.[ch] $(LIBS)

@@ -33,6 +33,7 @@ bool startReadingBmp(struct bmp_image *image, FILE *bmpFile) {
         printf("DIB header seems to be corrupted\n");
         return false;
     }
+    return true;
 }
 
 bool finishReadingBmp(struct bmp_image *image, FILE *bmpFile) {
@@ -70,6 +71,8 @@ bool finishReadingBmp(struct bmp_image *image, FILE *bmpFile) {
     while (fread(shiftedPointer, BUFFER_SIZE, 1U, bmpFile) == BUFFER_SIZE) {
         shiftedPointer += BUFFER_SIZE;
     }
+
+    return true;
 }
 
 bool extractImage(struct bmp_image *image, unsigned int *out_width, unsigned int *out_height, unsigned char **out_image) {
@@ -81,8 +84,8 @@ bool extractImage(struct bmp_image *image, unsigned int *out_width, unsigned int
         colorDepth = image->dibHeader->coreHeader.imageColorDepth;
         topDown = false;
     } else {
-        *out_width = abs(image->dibHeader->coreHeader.width);
-        *out_height = abs(image->dibHeader->coreHeader.height);
+        *out_width = abs(image->dibHeader->os2Header16.imageWidth);
+        *out_height = abs(image->dibHeader->os2Header16.imageHeight);
         colorDepth = image->dibHeader->coreHeader.imageColorDepth;
         topDown = image->dibHeader->os2Header16.imageHeight < 0;
     }

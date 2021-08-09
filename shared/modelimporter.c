@@ -2,9 +2,11 @@
 #include "modelimporter.h"
 
 #include <float.h>
+#include <malloc.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <string.h>
 
 bool isPly(const char *fileExtension) {

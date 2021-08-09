@@ -1,6 +1,7 @@
 *app
 *.blend*
 *.bmp
+*.gch
 *.idea
 *.jpg
 *.jpeg
@@ -8,6 +9,7 @@
 *.mtl
 *.obj
 *.ogg
+*.out
 *.png
 *.tga
 *.tif
