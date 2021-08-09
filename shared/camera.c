@@ -1,6 +1,7 @@
 #include "camera.h"
 
 #include <math.h>
+#include <string.h>
 
 # define M_PI		3.14159265358979323846	/* pi */
 
@@ -114,4 +115,22 @@ void buildThirdPersonCameraView(const struct vec3f *e, const struct vec3f *c, co
     };
     
     multiplyMatrices(leftM, rightM, out_v);
+}
+
+void buildOrbitalCameraRotation(float dx, float dy, bool rotateAboutZ, struct orbital_camera *camera) {
+    float prevR[MVP_MATRIX_SIZE];
+    memcpy(prevR, camera->r, sizeof(float) * MVP_MATRIX_SIZE);
+    if (rotateAboutZ) {
+        rotateAboutAxis(prevR, prevR[2], prevR[6], prevR[10], dx * camera->rotationSpeed, camera->r);
+    } else {
+        rotateAboutAxis(camera->r, prevR[1], prevR[5], prevR[9], dx * camera->rotationSpeed, prevR);
+        rotateAboutAxis(prevR, prevR[0], prevR[4], prevR[8], dx * camera->rotationSpeed, camera->r);
+    }
+    normalizeMatrixLocal(camera->r);
+}
+
+void buildOrbitalCameraView(struct orbital_camera *camera, float out_v[MVP_MATRIX_SIZE]) {
+    float temp_v[MVP_MATRIX_SIZE];
+    multiplyMatrices(camera->t, camera->s, temp_v);
+    multiplyMatrices(temp_v, camera->r, out_v);
 }

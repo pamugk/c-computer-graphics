@@ -20,46 +20,48 @@ static const float E[] = {
 };
 
 //Метод для формирования единичной матрицы
-void getIdentityMatrix(float out_matrix[16]);
+void getIdentityMatrix(float out_matrix[MVP_MATRIX_SIZE]);
 
 //Метод извлечения данных для N-матрицы
-void buildNMatrix(float matrix[MVP_MATRIX_SIZE], float out_matrix[9]);
+void buildNMatrix(float matrix[MVP_MATRIX_SIZE], float out_matrix[N_MATRIX_SIZE]);
 //Метод для транспонирования матрицы
-void transpose(float matrix[MVP_MATRIX_SIZE], float out_matrix[16]);
+void transpose(float matrix[MVP_MATRIX_SIZE], float out_matrix[MVP_MATRIX_SIZE]);
 
 //Метод для преобразования переноса
-void move(float matrix[MVP_MATRIX_SIZE], float x, float y, float z, float out_matrix[16]);
+void move(float matrix[MVP_MATRIX_SIZE], float x, float y, float z, float out_matrix[MVP_MATRIX_SIZE]);
 //Метод для преобразования масштабирования
-void scale(float matrix[MVP_MATRIX_SIZE], float sx, float sy, float sz, float out_matrix[16]);
+void scale(float matrix[MVP_MATRIX_SIZE], float sx, float sy, float sz, float out_matrix[MVP_MATRIX_SIZE]);
 //Метод для преобразования вращения вокруг X
-void rotateAboutX(float matrix[MVP_MATRIX_SIZE], float degree, float out_matrix[16]);
+void rotateAboutX(float matrix[MVP_MATRIX_SIZE], float degree, float out_matrix[MVP_MATRIX_SIZE]);
 //Метод для преобразования вращения вокруг Y
-void rotateAboutY(float matrix[MVP_MATRIX_SIZE], float degree, float out_matrix[16]);
+void rotateAboutY(float matrix[MVP_MATRIX_SIZE], float degree, float out_matrix[MVP_MATRIX_SIZE]);
 //Метод для преобразования вращения вокруг Z
-void rotateAboutZ(float matrix[MVP_MATRIX_SIZE], float degree, float out_matrix[16]);
+void rotateAboutZ(float matrix[MVP_MATRIX_SIZE], float degree, float out_matrix[MVP_MATRIX_SIZE]);
 //Метод для преобразования вращения (|(x, y, z)| = 1)
-void rotate(float matrix[MVP_MATRIX_SIZE], float x, float y, float z, float degree, float out_matrix[16]);
+void rotateAboutAxis(float matrix[MVP_MATRIX_SIZE], float x, float y, float z, float degree, float out_matrix[MVP_MATRIX_SIZE]);
 
 //Метод для формирования матрицы параллельной проекции
-void getParallelProjectionMatrix(float l, float r, float b, float t, float n, float f, float out_matrix[16]);
+void getParallelProjectionMatrix(float l, float r, float b, float t, float n, float f, float out_matrix[MVP_MATRIX_SIZE]);
 //Метод для формирования матрицы перспективной проекции
-void getPerspectiveProjectionMatrix(float l, float r, float b, float t, float n, float f, float out_matrix[16]);
+void getPerspectiveProjectionMatrix(float l, float r, float b, float t, float n, float f, float out_matrix[MVP_MATRIX_SIZE]);
 //Метод для формирования матрицы перспективной проекции
-void getPerspectiveProjectionMatrixByAngle(float n, float f, float w, float h, float fovAngle, float out_matrix[16]);
+void getPerspectiveProjectionMatrixByAngle(float n, float f, float w, float h, float fovAngle, float out_matrix[MVP_MATRIX_SIZE]);
 
 //Сравнение матриц на равенство
 bool equals(float matrixMVP_MATRIX_SIZE[MVP_MATRIX_SIZE], float otherMatrix[MVP_MATRIX_SIZE]);
 
 //Оператор сложения матриц
-void add(float matrix[MVP_MATRIX_SIZE], float otherMatrix[MVP_MATRIX_SIZE], float out_matrix[16]);
+void add(float matrix[MVP_MATRIX_SIZE], float otherMatrix[MVP_MATRIX_SIZE], float out_matrix[MVP_MATRIX_SIZE]);
 //Оператор вычитания матриц
-void substract(float minuend[MVP_MATRIX_SIZE], float subtrahend[MVP_MATRIX_SIZE], float out_matrix[16]);
+void substract(float minuend[MVP_MATRIX_SIZE], float subtrahend[MVP_MATRIX_SIZE], float out_matrix[MVP_MATRIX_SIZE]);
 
 //Оператор умножения матриц
-void multiplyMatrices(float matrix[MVP_MATRIX_SIZE], float otherMatrix[MVP_MATRIX_SIZE], float out_matrix[16]);
+void multiplyMatrices(float matrix[MVP_MATRIX_SIZE], float otherMatrix[MVP_MATRIX_SIZE], float out_matrix[MVP_MATRIX_SIZE]);
 //Оператор сложения матриц
-void multiplyByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[16]);
+void multiplyByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[MVP_MATRIX_SIZE]);
 //Оператор сложения матриц
-void divideByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[16]);
+void divideByNumber(float matrix[MVP_MATRIX_SIZE], float num, float out_matrix[MVP_MATRIX_SIZE]);
+
+void normalizeMatrixLocal(float matrix[MVP_MATRIX_SIZE]);
 
 #endif //MATRIX_

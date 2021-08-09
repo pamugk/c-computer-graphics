@@ -33,4 +33,14 @@ void rollCameraQuat(struct camera_quat *camera, float angle);
 void viewCameraQuat(struct camera_quat *camera, float out_v[MVP_MATRIX_SIZE]);
 
 void buildThirdPersonCameraView(const struct vec3f *e, const struct vec3f *c, const struct vec3f *u, float out_v[MVP_MATRIX_SIZE]);
+
+struct orbital_camera {
+    float t[MVP_MATRIX_SIZE];
+    float s[MVP_MATRIX_SIZE];
+    float r[MVP_MATRIX_SIZE];
+    float rotationSpeed;
+};
+
+void buildOrbitalCameraRotation(float dx, float dy, bool rotateAboutZ, struct orbital_camera *camera);
+void buildOrbitalCameraView(struct orbital_camera *camera, float out_v[MVP_MATRIX_SIZE]);
 #endif // CAMERA
