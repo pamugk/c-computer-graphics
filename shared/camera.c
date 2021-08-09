@@ -17,6 +17,11 @@ float wrap(float a, float min, float max) {
     return a;
 }
 
+void initCameraAngle(struct camera_angle *camera) {
+    camera->position = (struct vec3f){ 0.0f, 0.0f, 0.0f },
+    camera->orientation.yaw = 0.0f, camera->orientation.pitch = 0.0f, camera->orientation.roll = 0.0f;
+}
+
 void moveCameraAngle(struct camera_angle *camera, float delta) {
     camera->position.x -= sinf(camera->orientation.yaw) * delta;
     camera->position.z -= cosf(camera->orientation.yaw) * delta;
@@ -46,6 +51,11 @@ void viewCameraAngle(struct camera_angle *camera, float out_v[MVP_MATRIX_SIZE]) 
     rotateAboutX(tempMatrix, camera->orientation.pitch, out_v);
     rotateAboutY(out_v, camera->orientation.yaw, tempMatrix);
     move(tempMatrix, -camera->position.x, -camera->position.y, -camera->position.z, out_v);
+}
+
+void initCameraQuat(struct camera_quat *camera) {
+    camera->position = (struct vec3f){ 0.0f, 0.0f, 0.0f },
+    makeIdenticalQuat(&camera->orientation);
 }
 
 void moveCameraQuat(struct camera_quat *camera, float delta) {
@@ -89,16 +99,22 @@ void viewCameraQuat(struct camera_quat *camera, float out_v[MVP_MATRIX_SIZE]) {
     move(tempMatrix, -camera->position.x, -camera->position.y, -camera->position.z, out_v);
 }
 
-void buildThirdPersonCameraView(const struct vec3f *e, const struct vec3f *c, const struct vec3f *u, float out_v[MVP_MATRIX_SIZE]) {
+void initThirdPersonCamera(struct third_person_camera *camera) {
+    camera->e = (struct vec3f){ 0.0f, 0.0f, 0.5f };
+    camera->c = (struct vec3f){ 0.0f, 0.0f, 0.0f };
+    camera->u = (struct vec3f){ 0.0f, 0.0f, 1.0f };
+}
+
+void buildThirdPersonCameraView(struct third_person_camera *camera, float out_v[MVP_MATRIX_SIZE]) {
     float leftM[MVP_MATRIX_SIZE] = {
         0, 0, 0, 0,
         0, 0, 0, 0,
-        c->x - e->x, c->y - e->y, c->z - e->z, 0,
+        camera->c.x - camera->e.x, camera->c.y - camera->e.y, camera->c.z - camera->e.z, 0,
         0, 0, 0, 1
     };
     normalizeVector((struct vec3f *)(leftM + 8));
     
-    vectorMultiplication((struct vec3f *)(leftM + 8), u, (struct vec3f *)(leftM));
+    vectorMultiplication((struct vec3f *)(leftM + 8), &camera->u, (struct vec3f *)(leftM));
     
     struct vec3f s = { leftM[0], leftM[1], leftM[2] };
     normalizeVector(&s);
@@ -108,13 +124,19 @@ void buildThirdPersonCameraView(const struct vec3f *e, const struct vec3f *c, co
     multiplyVec3ByNumber((const struct vec3f *)(leftM + 8), -1.0f, (struct vec3f *)(leftM + 8));
     
     float rightM[MVP_MATRIX_SIZE] = {
-        1.0f, 0.0f, 0.0f, -e->x,
-        0.0f, 1.0f, 0.0f, -e->y,
-        0.0f, 0.0f, 1.0f, -e->z,
+        1.0f, 0.0f, 0.0f, -camera->e.x,
+        0.0f, 1.0f, 0.0f, -camera->e.y,
+        0.0f, 0.0f, 1.0f, -camera->e.z,
         0.0f, 0.0f, 0.0f, 1.0f,
     };
     
     multiplyMatrices(leftM, rightM, out_v);
+}
+
+void initOrbitalCamera(struct orbital_camera *camera) {
+    getIdentityMatrix(camera->t);
+    getIdentityMatrix(camera->s);
+    getIdentityMatrix(camera->r);
 }
 
 void buildOrbitalCameraRotation(float dx, float dy, bool rotateAboutZ, struct orbital_camera *camera) {

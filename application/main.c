@@ -4,25 +4,35 @@ GLFWwindow *g_window;
 
 char *pathToConfiguration;
 
+// Shader programs
 unsigned int g_programsCount;
 struct shader_program *g_programs;
 
+// Models
 unsigned int g_modelsCount;
 struct model *g_models;
 
+// View
 float v[MVP_MATRIX_SIZE];
 float p[MVP_MATRIX_SIZE];
 
+// Cameras
+struct camera_angle fpc1;
+struct camera_quat fpc2;
+struct third_person_camera tpc;
+struct orbital_camera oc;
+
+// Rotation settings
 const int countOfSpeeds = 9;
 float degrees[9];
 int degreeKeys[9];
 float degree;
 
-int projection = 0;
-
+// Rendering settings
 const double fpsLimit = 1.0 / 60.0;
 bool fixedFrameRate = false;
 
+// Music player
 ALuint g_musicPlayer = 0;
 ALuint g_trackPool[2];
 
@@ -214,12 +224,7 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
 
 void initOptics() {
     getIdentityMatrix(v);
-    
-    if (projection) {
-        getParallelProjectionMatrix(-1.f, 1.f, -1.f, 1.f, -3.f, 3.f, p);
-    } else {
-        getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1024.f, 768.f, 45.f, p);
-    }
+    getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1024.f, 768.f, 45.f, p);
     
     for (int i = 0; i < countOfSpeeds; i++) {
         degrees[i] = (i + 1) * 0.01f;
@@ -227,6 +232,10 @@ void initOptics() {
     }
     
     degree = degrees[1];
+    
+    initCameraAngle(&fpc1), initCameraQuat(&fpc2),
+    initThirdPersonCamera(&tpc),
+    initOrbitalCamera(&oc);
 }
 
 void updateTrackPool() {

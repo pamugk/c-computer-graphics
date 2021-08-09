@@ -13,6 +13,7 @@ struct camera_angle {
     } orientation;
 };
 
+void initCameraAngle(struct camera_angle *camera);
 void moveCameraAngle(struct camera_angle *camera, float delta);
 void strafeCameraAngle(struct camera_angle *camera, float delta);
 void yawCameraAngle(struct camera_angle *camera, float angle);
@@ -25,6 +26,7 @@ struct camera_quat {
     struct quat orientation;
 };
 
+void initCameraQuat(struct camera_quat *camera);
 void moveCameraQuat(struct camera_quat *camera, float delta);
 void strafeCameraQuat(struct camera_quat *camera, float delta);
 void yawCameraQuat(struct camera_quat *camera, float angle);
@@ -32,7 +34,14 @@ void pitchCameraQuat(struct camera_quat *camera, float angle);
 void rollCameraQuat(struct camera_quat *camera, float angle);
 void viewCameraQuat(struct camera_quat *camera, float out_v[MVP_MATRIX_SIZE]);
 
-void buildThirdPersonCameraView(const struct vec3f *e, const struct vec3f *c, const struct vec3f *u, float out_v[MVP_MATRIX_SIZE]);
+struct third_person_camera {
+    struct vec3f e;
+    struct vec3f c; 
+    struct vec3f u;
+};
+
+void initThirdPersonCamera(struct third_person_camera *camera);
+void buildThirdPersonCameraView(struct third_person_camera *camera, float out_v[MVP_MATRIX_SIZE]);
 
 struct orbital_camera {
     float t[MVP_MATRIX_SIZE];
@@ -41,6 +50,7 @@ struct orbital_camera {
     float rotationSpeed;
 };
 
+void initOrbitalCamera(struct orbital_camera *camera);
 void buildOrbitalCameraRotation(float dx, float dy, bool rotateAboutZ, struct orbital_camera *camera);
 void buildOrbitalCameraView(struct orbital_camera *camera, float out_v[MVP_MATRIX_SIZE]);
 #endif // CAMERA
