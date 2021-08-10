@@ -16,11 +16,17 @@ struct model *g_models;
 float v[MVP_MATRIX_SIZE];
 float p[MVP_MATRIX_SIZE];
 
+int camera = 0;
+
 // Cameras
 struct camera_angle fpc1;
 struct camera_quat fpc2;
 struct third_person_camera tpc;
 struct orbital_camera oc;
+
+float cameraRotationSpeed;
+
+double prevX, prevY;
 
 // Rotation settings
 const int countOfSpeeds = 9;
@@ -64,6 +70,7 @@ bool handleArguments(int argc, char** argv) {
 
 void reshape(GLFWwindow *window, int width, int height);
 void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods);
+void onCursorMove(GLFWwindow* window, double x, double y);
 
 bool initOpenGL() {
     int errorCode;
@@ -98,6 +105,9 @@ bool initOpenGL() {
     glfwSetFramebufferSizeCallback(g_window, reshape);
     glfwSetInputMode(g_window, GLFW_STICKY_KEYS, GL_FALSE);
     glfwSetKeyCallback(g_window, onKeyPress);
+    glfwSetCursorPosCallback(g_window, onCursorMove);
+    glfwSetInputMode(g_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(g_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
     
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
@@ -121,12 +131,35 @@ bool initOpenAL() {
 
 void reshape(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
+    cameraRotationSpeed = calculateRotationSpeed(width, height);
 }
 
 void draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    float mv[MVP_MATRIX_SIZE];
+    float cameraView[MVP_MATRIX_SIZE];
+    
+    switch (camera) {
+        case 0: {
+            viewCameraAngle(&fpc1, cameraView);
+            break;
+        }
+        case 1: {
+            viewCameraQuat(&fpc2, cameraView);
+            break;
+        }
+        case 2: {
+            buildThirdPersonCameraView(&tpc, cameraView);
+            break;
+        }
+        case 3: {
+            buildOrbitalCameraView(&oc, cameraView);
+            break;
+        }
+    }
+    
+    float c[MVP_MATRIX_SIZE]; multiplyMatrices(p, cameraView, c);
+    
     for (int i = 0; i < g_programsCount; i += 1) {
         glUseProgram(g_programs[i].id);
         for (int t = 0; t < g_programs[i].textureCount; t += 1) {
@@ -145,8 +178,7 @@ void draw() {
                 matrixWithQuaternion(&g_models[m].q, rotationMatrix);
                 multiplyMatrices(rotationMatrix, g_models[m].m, fullMMatrix);
                 
-                multiplyMatrices(v, fullMMatrix, mv);
-                multiplyMatrices(p, mv, g_programs[i].variables[0].value.floatMat4Val);
+                multiplyMatrices(c, fullMMatrix, g_programs[i].variables[0].value.floatMat4Val);
                 
                 if (normalsDefined) {
                     buildNMatrix(g_programs[i].variables[0].value.floatMat4Val, g_programs[i].variables[1].value.floatMat3Val);
@@ -195,18 +227,82 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
         float prevM[MVP_MATRIX_SIZE];
         memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
         rotateAboutZ(prevM, -degree, v);
+    } else if (key == GLFW_KEY_F1) {
+        camera = 0;
+    } else if (key == GLFW_KEY_F2) {
+        camera = 1;
+    } else if (key == GLFW_KEY_F3) {
+        camera = 2;
+    } else if (key == GLFW_KEY_F4) {
+        camera = 3;
     } else if (key == GLFW_KEY_UP && action != GLFW_RELEASE) {
-        rotateModelAboutX(g_models, degree);
+        switch (camera) {
+            case 0: {
+                moveCameraAngle(&fpc1, 0.005);
+                break;
+            }
+            case 1: {
+                moveCameraQuat(&fpc2, 0.005);
+                break;
+            }
+            case 2: {
+                break;
+            }
+            case 3: {
+                break;
+            }
+        }
     } else if (key == GLFW_KEY_DOWN && action != GLFW_RELEASE) {
-        rotateModelAboutX(g_models, -degree);
+        switch (camera) {
+            case 0: {
+                moveCameraAngle(&fpc1, -0.005);
+                break;
+            }
+            case 1: {
+                moveCameraQuat(&fpc2, -0.005);
+                break;
+            }
+            case 2: {
+                break;
+            }
+            case 3: {
+                break;
+            }
+        }
     } else if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
-        rotateModelAboutY(g_models, degree);
+        switch (camera) {
+            case 0: {
+                strafeCameraAngle(&fpc1, -0.005);
+                break;
+            }
+            case 1: {
+                strafeCameraQuat(&fpc2, -0.005);
+                break;
+            }
+            case 2: {
+                break;
+            }
+            case 3: {
+                break;
+            }
+        }
     } else if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
-        rotateModelAboutY(g_models, -degree);
-    } else if (key == GLFW_KEY_W && action != GLFW_RELEASE) {
-        rotateModelAboutZ(g_models, degree);
-    } else if (key == GLFW_KEY_S && action != GLFW_RELEASE) {
-        rotateModelAboutZ(g_models, -degree);
+        switch (camera) {
+            case 0: {
+                strafeCameraAngle(&fpc1, 0.005);
+                break;
+            }
+            case 1: {
+                strafeCameraQuat(&fpc2, 0.005);
+                break;
+            }
+            case 2: {
+                break;
+            }
+            case 3: {
+                break;
+            }
+        }
     } else if (g_musicPlayer != 0 && key == GLFW_KEY_P && action == GLFW_RELEASE) {
         ALint state;
         alGetSourcei(g_musicPlayer, AL_SOURCE_STATE, &state);
@@ -220,6 +316,31 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
     } else if (g_musicPlayer != 0 && key == GLFW_KEY_N && action == GLFW_RELEASE) {
         alSourceStop(g_musicPlayer);
     }
+}
+
+void onCursorMove(GLFWwindow* window, double x, double y) {
+    float dx = prevX - x, dy = prevY - y;
+    
+    switch (camera) {
+        case 0: {
+            yawCameraAngle(&fpc1, -dx * cameraRotationSpeed);
+            pitchCameraAngle(&fpc1, -dy * cameraRotationSpeed);
+            break;
+        }
+        case 1: {
+            yawCameraQuat(&fpc2, dx * cameraRotationSpeed);
+            pitchCameraQuat(&fpc2, dy * cameraRotationSpeed);
+            break;
+        }
+        case 2: {
+            break;
+        }
+        case 3: {
+            break;
+        }
+    }
+    
+    prevX = x, prevY = y;
 }
 
 void initOptics() {
@@ -236,6 +357,9 @@ void initOptics() {
     initCameraAngle(&fpc1), initCameraQuat(&fpc2),
     initThirdPersonCamera(&tpc),
     initOrbitalCamera(&oc);
+    
+    cameraRotationSpeed = calculateRotationSpeed(1024, 768);
+    glfwGetCursorPos(g_window, &prevX, &prevY); 
 }
 
 void updateTrackPool() {

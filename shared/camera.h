@@ -4,6 +4,8 @@
 #include "quaternion.h"
 #include "matrix.h"
 
+float calculateRotationSpeed(float width, float height);
+
 struct camera_angle {
     struct vec3f position;
     struct {

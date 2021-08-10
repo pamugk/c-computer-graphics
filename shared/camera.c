@@ -5,6 +5,10 @@
 
 # define M_PI		3.14159265358979323846	/* pi */
 
+float calculateRotationSpeed(float width, float height) {
+    return M_PI / (width > height ? height : width);
+}
+
 float wrap(float a, float min, float max) {
     a -= min, max -= min;
     if (max == 0) {
