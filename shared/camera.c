@@ -104,7 +104,7 @@ void viewCameraQuat(struct camera_quat *camera, float out_v[MVP_MATRIX_SIZE]) {
 }
 
 void initThirdPersonCamera(struct third_person_camera *camera) {
-    camera->e = (struct vec3f){ 0.0f, 0.0f, 0.5f };
+    camera->e = (struct vec3f){ 0.0f, 0.0f, -0.5f };
     camera->c = (struct vec3f){ 0.0f, 0.0f, 0.0f };
     camera->u = (struct vec3f){ 0.0f, 0.0f, 1.0f };
 }

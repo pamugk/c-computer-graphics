@@ -246,6 +246,7 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
                 break;
             }
             case 2: {
+                tpc.e.z += 0.005;
                 break;
             }
             case 3: {
@@ -263,6 +264,7 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
                 break;
             }
             case 2: {
+                tpc.e.z -= 0.005;
                 break;
             }
             case 3: {
@@ -280,6 +282,7 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
                 break;
             }
             case 2: {
+                tpc.e.x -= 0.005;
                 break;
             }
             case 3: {
@@ -297,6 +300,7 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
                 break;
             }
             case 2: {
+                tpc.e.x += 0.005;
                 break;
             }
             case 3: {
@@ -336,6 +340,7 @@ void onCursorMove(GLFWwindow* window, double x, double y) {
             break;
         }
         case 3: {
+            buildOrbitalCameraRotation(dx, dy, glfwGetKey(g_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS, &oc);
             break;
         }
     }
