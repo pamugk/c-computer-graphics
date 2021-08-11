@@ -13,7 +13,6 @@ unsigned int g_modelsCount;
 struct model *g_models;
 
 // View
-float v[MVP_MATRIX_SIZE];
 float p[MVP_MATRIX_SIZE];
 
 int camera = 0;
@@ -204,29 +203,17 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
     }
     
     if (key == GLFW_KEY_KP_4 && action != GLFW_RELEASE) {
-        float prevM[MVP_MATRIX_SIZE];
-        memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
-        rotateAboutY(prevM, degree, v);
+        rotateModelAboutY(g_models, -1);
     } else if (key == GLFW_KEY_KP_6 && action != GLFW_RELEASE) {
-        float prevM[MVP_MATRIX_SIZE];
-        memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
-        rotateAboutY(prevM, -degree, v);
+        rotateModelAboutY(g_models, 1);
     } else if (key == GLFW_KEY_KP_8 && action != GLFW_RELEASE) {
-        float prevM[MVP_MATRIX_SIZE];
-        memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
-        rotateAboutX(prevM, degree, v);
+        rotateModelAboutX(g_models, 1);
     } else if (key == GLFW_KEY_KP_5 && action != GLFW_RELEASE) {
-        float prevM[MVP_MATRIX_SIZE];
-        memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
-        rotateAboutX(prevM, -degree, v);
+        rotateModelAboutX(g_models, -1);
     } else if (key ==GLFW_KEY_KP_7 && action != GLFW_RELEASE) {
-        float prevM[MVP_MATRIX_SIZE];
-        memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
-        rotateAboutZ(prevM, degree, v);
+        rotateModelAboutZ(g_models, -1);
     } else if (key == GLFW_KEY_9 && action != GLFW_RELEASE) {
-        float prevM[MVP_MATRIX_SIZE];
-        memcpy(prevM, v, sizeof(float) * MVP_MATRIX_SIZE);
-        rotateAboutZ(prevM, -degree, v);
+        rotateModelAboutZ(g_models, 1);
     } else if (key == GLFW_KEY_F1) {
         camera = 0;
     } else if (key == GLFW_KEY_F2) {
@@ -349,7 +336,6 @@ void onCursorMove(GLFWwindow* window, double x, double y) {
 }
 
 void initOptics() {
-    getIdentityMatrix(v);
     getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1024.f, 768.f, 45.f, p);
     
     for (int i = 0; i < countOfSpeeds; i++) {
