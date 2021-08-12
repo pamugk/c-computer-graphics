@@ -29,13 +29,13 @@ unsigned int openGlImageFormatToPngFormat(GLenum glFormat, GLboolean useColorMap
             return useColorMap ? PNG_FORMAT_BGR_COLORMAP : PNG_FORMAT_BGR;
         }
         case GL_RGB: {
-            return useColorMap ? PNG_FORMAT_RGB : PNG_FORMAT_RGB_COLORMAP;
+            return useColorMap ? PNG_FORMAT_RGB_COLORMAP : PNG_FORMAT_RGB;
         }
         case GL_BGRA: {
-            return useColorMap ? PNG_FORMAT_BGRA : PNG_FORMAT_BGRA_COLORMAP;
+            return useColorMap ? PNG_FORMAT_BGRA_COLORMAP : PNG_FORMAT_BGRA;
         }
         case GL_RGBA: {
-            return useColorMap ? PNG_FORMAT_RGBA : PNG_FORMAT_RGBA_COLORMAP;
+            return useColorMap ? PNG_FORMAT_RGBA_COLORMAP : PNG_FORMAT_RGBA;
         }
     }
     return 0U;

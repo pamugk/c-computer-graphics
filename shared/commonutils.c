@@ -77,7 +77,7 @@ void initBodyTextureMap(struct body *physicalBody, int offset, const char *pathT
     }
     
     printf("Started texture layer calculations for provided model\n");
-    struct image texMap = readImage(pathToTextureMap, GL_RGB, GL_TRUE);
+    struct image texMap = readImage(pathToTextureMap, GL_RGBA, GL_TRUE);
     
     if (texMap.contents == NULL || texMap.colorMap == NULL || texMap.width == 0 || texMap.height == 0) {
         printf("Texture map was not loaded correctly\n");
@@ -85,19 +85,19 @@ void initBodyTextureMap(struct body *physicalBody, int offset, const char *pathT
         return;
     }
     
+    const struct vec3ub *colors = (const struct vec3ub *)mappedColors;
+    
+    
     if (texMap.width != physicalBody->width || physicalBody->depth != texMap.height) {
         printf("Texture map size does not match provided body size\n");
     } else {
-        for (int i = 0; i < physicalBody->vertexSize * physicalBody->verticeCount; i += physicalBody->vertexSize) {
-            ((int*)physicalBody->vertices)[i + offset] = -1;
-            
-            bool foundTexture = GL_FALSE;
-            for (int mc = 0; !foundTexture && mc < mappedColorsCount * 2; mc += 3) {
-                for (int c = 0; c < texMap.colorMapEntriesCount * 3; c += 3) {
-                    if (vec3ubEqual((const struct vec3ub *)(mappedColors + mc), ((const struct vec3ub *)(texMap.colorMap + c)))) {
-                        ((int*)physicalBody->vertices)[i + offset] = mc;
-                        break;
-                    }
+        for (int i = 0; i < physicalBody->verticeCount; i += 1) {
+            ((int*)physicalBody->vertices)[i * physicalBody->vertexSize + offset] = 1;
+            unsigned char c = texMap.contents[i];
+            for (unsigned char mc = 0; mc < mappedColorsCount; mc += 1) {
+                if (vec3ubEqual(colors + mc, (const struct vec3ub *)(texMap.colorMap + c * texMap.sampleSize))) {
+                    ((int*)physicalBody->vertices)[i * physicalBody->vertexSize + offset] = mc;
+                    break;
                 }
             }
         }

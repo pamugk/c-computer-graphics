@@ -105,8 +105,8 @@ bool initOpenGL() {
     glfwSetInputMode(g_window, GLFW_STICKY_KEYS, GL_FALSE);
     glfwSetKeyCallback(g_window, onKeyPress);
     glfwSetCursorPosCallback(g_window, onCursorMove);
-    glfwSetInputMode(g_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetInputMode(g_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+    //glfwSetInputMode(g_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetInputMode(g_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
     
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
