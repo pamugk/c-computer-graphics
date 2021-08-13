@@ -94,7 +94,7 @@ void initBodyTextureMap(struct body *physicalBody, int offset, const char *pathT
             physicalBody->vertices[i * physicalBody->vertexSize + offset] = 0;
             unsigned char c = texMap.contents[i];
             for (unsigned char mc = 0; mc < mappedColorsCount; mc += 1) {
-                if (vec3ubEqual(colors + mc, (const struct vec3ub *)(texMap.colorMap + c * texMap.sampleSize))) {
+                if (vec3ubEqual(colors + mc, (const struct vec3ub *)(texMap.colorMap + c * texMap.sampleSize), 5)) {
                     physicalBody->vertices[i * physicalBody->vertexSize + offset] = mc;
                     break;
                 }

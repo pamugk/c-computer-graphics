@@ -48,8 +48,10 @@ void normalizeVector(struct vec3f *vector) {
     vector->x /= len; vector->y /= len; vector->z /= len;
 }
 
-bool vec3ubEqual(const struct vec3ub *thisVector, const struct vec3ub *thatVector) {
-    return thisVector->x == thatVector->x
-        && thisVector->y == thatVector->y
-        && thisVector->z == thatVector->z;
+bool vec3ubEqual(const struct vec3ub *thisVector, const struct vec3ub *thatVector, unsigned char maxDif) {
+    unsigned char 
+        dx = thisVector->x > thatVector->x ? thisVector->x - thatVector->x : thatVector->x - thisVector->x,
+        dy = thisVector->y > thatVector->y ? thisVector->y - thatVector->y : thatVector->y - thisVector->y,
+        dz = thisVector->z > thatVector->z ? thisVector->z - thatVector->z : thatVector->z - thisVector->z;
+    return sqrt(dx * dx + dy * dy + dz * dz) <= maxDif;
 }
