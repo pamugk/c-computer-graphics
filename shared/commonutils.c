@@ -91,7 +91,7 @@ void initBodyTextureMap(struct body *physicalBody, int offset, const char *pathT
         printf("Texture map size does not match provided body size\n");
     } else {
         for (int i = 0; i < physicalBody->verticeCount; i += 1) {
-            ((int*)physicalBody->vertices)[i * physicalBody->vertexSize + offset] = 0;
+            physicalBody->vertices[i * physicalBody->vertexSize + offset] = 0;
             unsigned char c = texMap.contents[i];
             for (unsigned char mc = 0; mc < mappedColorsCount; mc += 1) {
                 if (vec3ubEqual(colors + mc, (const struct vec3ub *)(texMap.colorMap + c * texMap.sampleSize))) {
@@ -113,6 +113,6 @@ void initBodyStubTextureLayer(struct body *physicalBody, int offset) {
     
     printf("Started stub texture layer calculations for provided model\n");
     for (int i = 0; i < physicalBody->vertexSize * physicalBody->verticeCount; i += physicalBody->vertexSize) {
-        ((int*)physicalBody->vertices)[i + offset] = physicalBody->vertices[i + 1] >= 0.01;
+        physicalBody->vertices[i + offset] = physicalBody->vertices[i + 1] >= 0.01;
     }
 }
