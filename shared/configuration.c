@@ -351,7 +351,7 @@ bool parseModelAttributes(FILE *configurationFile, struct model *out_model) {
                 
                 if (colors != NULL) {
                     for (int i = 0; i < 3 * colorsCount; i += 3) {
-                        fscanf(configurationFile, "%hhu %hhu %hhu", colors + i, colors + i + 1, colors + 2);
+                        fscanf(configurationFile, "%hhu %hhu %hhu", colors + i, colors + i + 1, colors + i + 2);
                     }
                 }
                 

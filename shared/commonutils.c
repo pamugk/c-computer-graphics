@@ -87,16 +87,15 @@ void initBodyTextureMap(struct body *physicalBody, int offset, const char *pathT
     
     const struct vec3ub *colors = (const struct vec3ub *)mappedColors;
     
-    
     if (texMap.width != physicalBody->width || physicalBody->depth != texMap.height) {
         printf("Texture map size does not match provided body size\n");
     } else {
         for (int i = 0; i < physicalBody->verticeCount; i += 1) {
-            ((int*)physicalBody->vertices)[i * physicalBody->vertexSize + offset] = 1;
+            ((int*)physicalBody->vertices)[i * physicalBody->vertexSize + offset] = 0;
             unsigned char c = texMap.contents[i];
             for (unsigned char mc = 0; mc < mappedColorsCount; mc += 1) {
                 if (vec3ubEqual(colors + mc, (const struct vec3ub *)(texMap.colorMap + c * texMap.sampleSize))) {
-                    ((int*)physicalBody->vertices)[i * physicalBody->vertexSize + offset] = mc;
+                    physicalBody->vertices[i * physicalBody->vertexSize + offset] = mc;
                     break;
                 }
             }

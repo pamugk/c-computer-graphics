@@ -186,8 +186,7 @@ struct texture loadTexture(
     struct texture_parameter *parameters) {
     
     struct texture result = { 0, -1, NULL, target };
-    glGenTextures(1, &result.id);
-    glBindTexture(target, result.id);
+    glCreateTextures(target, 1, &result.id);
     
     printf("Started texture initialization\n");
     switch (target) {
@@ -226,7 +225,7 @@ struct texture loadTexture(
             break;
         }
         case GL_TEXTURE_2D_ARRAY: {
-            glTexStorage3D(target, 1, GL_RGBA8, width, height, layersCount);
+            glTextureStorage3D(result.id, 1, GL_RGBA8, width, height, layersCount);
             
             for (int i = 0; i < layersCount; i += 1) {
                 struct image textureImage = readImage(filePaths[i], GL_RGBA, GL_FALSE);

@@ -51,5 +51,5 @@ void normalizeVector(struct vec3f *vector) {
 bool vec3ubEqual(const struct vec3ub *thisVector, const struct vec3ub *thatVector) {
     return thisVector->x == thatVector->x
         && thisVector->y == thatVector->y
-        && thisVector->y == thatVector->y;
+        && thisVector->z == thatVector->z;
 }

@@ -2,12 +2,12 @@
 
 layout(location = 0) in vec3 a_position;
 layout(location = 1) in vec2 a_texCoord;
-layout(location = 2) in int a_texNum;
+layout(location = 2) in float a_texNum;
 
 uniform mat4 u_mvp;
 
 out vec2 v_texCoord;
-flat out int v_texNum;
+flat out float v_texNum;
 
 void main()
 {
