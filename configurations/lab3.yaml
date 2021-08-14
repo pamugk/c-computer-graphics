@@ -1,42 +1,43 @@
 programs: 1
     shaders: 2
-        ../shaders/lab3/vsh.glsl GL_VERTEX_SHADER
-        ../shaders/lab3/fsh.glsl GL_FRAGMENT_SHADER
+        ../shaders/lab2/vsh.glsl GL_VERTEX_SHADER
+        ../shaders/lab2/fsh.glsl GL_FRAGMENT_SHADER
+    variables: 1 0
+        u_mvp GL_FLOAT_MAT4 0
     textures: 1
-        u_surfaceMap GL_TEXTURE_2D_ARRAY 1
-        2 2048 2048
-            ../textures/seaTexture.jpg
-            ../textures/sandTexture.jpg
+        u_surfaceMap GL_TEXTURE_2D_ARRAY 0
+        5 512 512
+            ../textures/512/sandTexture.jpg
+            ../textures/512/seaTexture.jpg
+            ../textures/512/steppe.jpg
+            ../textures/512/warmMoistPlains.jpg
+            ../textures/512/coldMountainForest.jpg
         4
             GL_TEXTURE_MAG_FILTER GL_LINEAR
             GL_TEXTURE_MIN_FILTER GL_LINEAR_MIPMAP_LINEAR
             GL_TEXTURE_WRAP_S GL_MIRRORED_REPEAT
             GL_TEXTURE_WRAP_T GL_MIRRORED_REPEAT
-    variables: 2 6
-        u_mvp GL_FLOAT_MAT4 0
-        u_n GL_FLOAT_MAT3 1 
-        u_olpos GL_FLOAT_VEC3 1.0 1.0 1.0 
-        u_olcol GL_FLOAT_VEC3 1.0 1.0 1.0 
-        u_oeye GL_FLOAT_VEC3 0.0 0.0 0.0 
-        u_odmin GL_FLOAT 0.5 
-        u_osfoc GL_FLOAT 8.5 
-        u_lie GL_BOOL 1 
     models: 1
         0
     
     END
         
 models: 1
-    9 heightmap ../heightmaps/australia.jpg 0.1
-    attributes: 4
-        3 GL_FLOAT 0 coordinates: predefined
+    6 heightmap ../australia/AustraliaHeight.jpg 0.1
+    attributes: 3
+        3 GL_FLOAT 0 coordinates: predefined 
         2 GL_FLOAT 0 texCoordinates: same
-        1 GL_INT 0 texLayer: stub
-        3 GL_FLOAT 0 normals: calculate
-    transformations: 4
+        1 GL_FLOAT 0 texLayer: file
+            ../australia/AustraliaTex256.png 5
+            255 255 153
+            0 0 0
+            204 204 102
+            204 204 51
+            51 102 0
+    
+    transformations: 3
         move x center
         move z center
-        scale fit   
-        rotate x 45.0 
+        scale fit
     
     END
