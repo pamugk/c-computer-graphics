@@ -4,12 +4,12 @@ programs: 1
         ../shaders/lab3/fsh.glsl GL_FRAGMENT_SHADER
     variables: 2 6
         u_mvp GL_FLOAT_MAT4 0
-        u_n GL_FLOAT_MAT3 1 
+        u_n GL_FLOAT_MAT3 0 
         u_olpos GL_FLOAT_VEC3 1.0 1.0 1.0 
         u_olcol GL_FLOAT_VEC3 1.0 1.0 1.0 
         u_oeye GL_FLOAT_VEC3 0.0 0.0 0.0 
         u_odmin GL_FLOAT 0.5 
-        u_osfoc GL_FLOAT 8.5 
+        u_osfoc GL_FLOAT 4.0 
         u_lie GL_BOOL 1 
     textures: 1
         u_surfaceMap GL_TEXTURE_2D_ARRAY 0

@@ -60,8 +60,8 @@ void initBodyTextures(struct body *physicalBody, int offset) {
     
     printf("Started texture calculations for provided model\n");
     for (int i = 0; i < physicalBody->vertexSize * physicalBody->verticeCount; i += physicalBody->vertexSize) {
-        physicalBody->vertices[i + offset] = physicalBody->vertices[i];
-        physicalBody->vertices[i + offset + 1] = physicalBody->vertices[i + 2];
+        physicalBody->vertices[i + offset] = physicalBody->vertices[i] + 1.0 * physicalBody->vertices[i] / physicalBody->width;
+        physicalBody->vertices[i + offset + 1] = physicalBody->vertices[i + 2] + 1.0 * physicalBody->vertices[i + 2] / physicalBody->depth;
     }
     printf("Completed texture calculations for provided model\n");
 }

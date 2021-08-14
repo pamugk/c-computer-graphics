@@ -114,6 +114,7 @@ bool initOpenGL() {
     
     glClearColor(1.f, 1.f, 1.f, 1.f);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glDepthFunc(GL_ALWAYS);
     
     return true;
@@ -356,6 +357,7 @@ void initOptics() {
 void updateTrackPool() {
     ALuint finishedTrack = g_trackPool[0];
     g_trackPool[0] = g_trackPool[1];
+    srand(time(NULL));
     g_trackPool[1] = alureCreateBufferFromFile(g_musicFiles[rand() % g_tracksCount]);
     alSourcei(g_musicPlayer, AL_BUFFER, g_trackPool[0]);
     alDeleteBuffers(1, &finishedTrack);
