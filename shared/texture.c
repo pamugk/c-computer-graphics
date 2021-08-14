@@ -249,13 +249,14 @@ struct texture loadTexture(
         }
         case GL_TEXTURE_CUBE_MAP: {
             printf("Loading cube map...\n");
+            glTextureStorage2D(result.id, 1, GL_RGBA8, width, height);
             for (int i = 0; i < layersCount; i += 1) {
                 struct image textureImage = readImage(filePaths[i], GL_RGBA, GL_FALSE);
                 if (textureImage.contents == NULL) {
                     printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
                     continue;
                 }
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, textureImage.width, textureImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+                glTextureSubImage3D(result.id, 0, 0, 0, i, textureImage.width, textureImage.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
                 freeImage(&textureImage);
             }
             break;

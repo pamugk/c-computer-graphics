@@ -27,7 +27,7 @@ programs: 2
         ../shaders/lab4/vsh.glsl GL_VERTEX_SHADER
         ../shaders/lab4/fsh.glsl GL_FRAGMENT_SHADER
     textures: 1
-        u_surfaceMap GL_TEXTURE_2D_ARRAY 1
+        u_surfaceMap GL_TEXTURE_2D_ARRAY 0
         5 512 512
             ../textures/512/sandTexture.jpg
             ../textures/512/seaTexture.jpg
