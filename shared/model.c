@@ -73,9 +73,10 @@ bool initModel(struct model *out_model) {
     }
     
     unsigned int attributeShift = 0;
+    unsigned long stride = out_model->body.vertexSize * sizeof(GLfloat);
     for (int i = 0; i < out_model->attributesCount; i += 1) {
         glEnableVertexAttribArray(i);
-        glVertexAttribPointer(i, out_model->attributes[i].size, out_model->attributes[i].type, out_model->attributes[i].normalized, out_model->body.vertexSize * sizeof(GLfloat), (const GLvoid *)(attributeShift * sizeof(GLfloat)));
+        glVertexAttribPointer(i, out_model->attributes[i].size, out_model->attributes[i].type, out_model->attributes[i].normalized, stride, (const GLvoid *)(attributeShift * sizeof(GLfloat)));
         attributeShift += out_model->attributes[i].size;
     }
     printf("Bound model attributes\n");

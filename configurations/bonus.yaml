@@ -5,12 +5,12 @@ programs: 2
     textures: 1
         u_map GL_TEXTURE_CUBE_MAP 0 
         6 2048 2048
-            ../textures/skybox/right.jpg
-            ../textures/skybox/left.jpg
-            ../textures/skybox/top.jpg
-            ../textures/skybox/bottom.jpg
-            ../textures/skybox/front.jpg
-            ../textures/skybox/back.jpg
+            ../textures/skybox/example/right.jpg
+            ../textures/skybox/example/left.jpg
+            ../textures/skybox/example/top.jpg
+            ../textures/skybox/example/bottom.jpg
+            ../textures/skybox/example/front.jpg
+            ../textures/skybox/example/back.jpg
         5
             GL_TEXTURE_MAG_FILTER GL_LINEAR
             GL_TEXTURE_MIN_FILTER GL_LINEAR
@@ -28,9 +28,12 @@ programs: 2
         ../shaders/lab4/fsh.glsl GL_FRAGMENT_SHADER
     textures: 1
         u_surfaceMap GL_TEXTURE_2D_ARRAY 1
-        2 2048 2048
-            ../textures/seaTexture.jpg
-            ../textures/sandTexture.jpg
+        5 512 512
+            ../textures/512/sandTexture.jpg
+            ../textures/512/seaTexture.jpg
+            ../textures/512/steppe.jpg
+            ../textures/512/warmMoistPlains.jpg
+            ../textures/512/coldMountainForest.jpg
         4
             GL_TEXTURE_MAG_FILTER GL_LINEAR
             GL_TEXTURE_MIN_FILTER GL_LINEAR_MIPMAP_LINEAR
@@ -57,11 +60,17 @@ models: 2
         
     END
         
-    9 heightmap ../heightmaps/australia.jpg 0.1
+    9 heightmap ../australia/AustraliaHeight.jpg 0.1
     attributes: 4
         3 GL_FLOAT 0 coordinates: predefined
         2 GL_FLOAT 0 texCoordinates: same
-        1 GL_INT 0 texLayer: stub
+        1 GL_FLOAT 0 texLayer: file
+            ../australia/AustraliaTex256.png 5
+            255 255 153
+            0 0 0
+            204 204 102
+            204 204 51
+            51 102 0
         3 GL_FLOAT 0 normals: calculate
     transformations: 3
         move x center

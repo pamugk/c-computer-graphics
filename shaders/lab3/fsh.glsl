@@ -11,7 +11,7 @@ uniform bool u_lie; // Признак использования модели о
 uniform sampler2DArray u_surfaceMap; // Текстуры поверхности
 
 in vec2 v_texCoord; // Текстурные координаты
-flat in int v_texLayer; // Используемая вершиной текстура поверхности
+flat in float v_texNum; // Используемая вершиной текстура поверхности
 in vec3 v_normal; // Нормаль
 in vec3 v_pos; // Позиция вершины
 
@@ -25,6 +25,6 @@ void main()
     vec3 r = reflect(l, v_normal); // Вектор отражения
     vec3 e = normalize(u_oeye - v_pos); // Ось зрения наблюдателя
     float s = max(pow(dot(r, e), u_osfoc), 0.0) * (int(cosa >= 0.0)); // Коэффициент зеркального блика, при cosa < 0 обнуляется для устранения бликов на обратной источнику света стороне
-    vec4 texColor = texture(u_surfaceMap, vec3(v_texCoord, v_texLayer));
+    vec4 texColor = texture(u_surfaceMap, vec3(v_texCoord, v_texNum));
     o_color = int(u_lie) * vec4(u_olcol * (d * texColor.xyz + s), 1.0) + int(!u_lie) * texColor;
 }

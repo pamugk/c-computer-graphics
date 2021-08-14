@@ -11,7 +11,7 @@ uniform bool u_lie; // Признак использования модели о
 uniform sampler2DArray u_surfaceMap; // Текстуры поверхности
 
 in vec2 v_texCoord; // Текстурные координаты
-flat in int v_texLayer; // Используемая вершиной текстура поверхности
+flat in float v_texLayer; // Используемая вершиной текстура поверхности
 in vec3 v_normal; // Нормаль
 in vec3 v_pos; // Позиция вершины
 

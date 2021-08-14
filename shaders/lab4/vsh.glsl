@@ -2,14 +2,14 @@
 
 layout(location = 0) in vec3 a_position;
 layout(location = 1) in vec2 a_texCoord;
-layout(location = 2) in int a_texLayer;
+layout(location = 2) in float a_texLayer;
 layout(location = 3) in vec3 a_normal;
 
 uniform mat4 u_mvp; // MVP-матрица
 uniform mat3 u_n; // Матрица нормалей
 
 out vec2 v_texCoord;
-out flat int v_texLayer;
+out flat float v_texLayer;
 out vec3 v_normal;
 out vec3 v_pos;
 
