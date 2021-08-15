@@ -540,6 +540,38 @@ bool parseModelsConfig(FILE *configurationFile, unsigned *out_modelsCount, struc
     return noErrorsOccured;
 }
 
+bool parseCamerasConfig(FILE *configurationFile,
+    unsigned char *camera, 
+    struct camera_angle *fpc1, struct camera_quat *fpc2,
+    struct third_person_camera *tpc,
+    struct orbital_camera *oc) {
+    
+    bool noErrorsOccured = true;
+    char section[15];
+    while(noErrorsOccured && fscanf(configurationFile, "%s", section) > 0 && strcmp("END", section) != 0) {
+        if (strcmp("current:", section) == 0) {
+            fscanf(configurationFile, "%hhu", camera);
+        } else if (strcmp("camera:", section) == 0) {
+            fscanf(configurationFile, "%s", section);
+            if (strcmp("fps_angle", section) == 0) {
+                fscanf(configurationFile, "%f%f%f%f%f%f%f%f", &fpc1->position.x, &fpc1->position.y, &fpc1->position.z, &fpc1->orientation.yaw, &fpc1->orientation.pitch, &fpc1->orientation.roll, &fpc1->height, &fpc1->speed);
+            } else if (strcmp("fps_quat", section) == 0) {
+                fscanf(configurationFile, "%f%f%f%f%f", &fpc2->position.x, &fpc2->position.y, &fpc2->position.z, &fpc2->height, &fpc2->speed);
+            } else if (strcmp("tps", section) == 0) {
+                fscanf(configurationFile, "%f%f%f%f%f%f%f%f%f", &tpc->e.x, &tpc->e.y, &tpc->e.z, &tpc->c.x, &tpc->c.y, &tpc->c.z, &tpc->u.x, &tpc->u.y, &tpc->u.z);
+            } else {
+                printf("Specified camera kind does not support configuration: %s\n", section);
+                noErrorsOccured = false;
+            }
+        } else {
+            printf("Unknown cameras configuration section: %s\n", section);
+            noErrorsOccured = false;
+        }
+    }
+    
+    return noErrorsOccured;
+}
+
 bool parseMusicConfig(FILE *configurationFile, unsigned char *tracksCount, char ***musicFiles) {
     if (*musicFiles != NULL) {
         for (unsigned char i = 0; i < *tracksCount; i += 1) {
@@ -569,6 +601,10 @@ bool applyConfiguration(
     const char *pathToConfiguration,
     unsigned *out_shaderProgramsCount, struct shader_program **out_programs,
     unsigned *out_modelsCount, struct model **out_models,
+    unsigned char *camera, 
+    struct camera_angle *fpc1, struct camera_quat *fpc2,
+    struct third_person_camera *tpc,
+    struct orbital_camera *oc,
     unsigned char *tracksCount, char ***musicFiles) {
     if (pathToConfiguration == NULL) {
         printf("No path configuration file was provided\n");
@@ -586,12 +622,18 @@ bool applyConfiguration(
     
     char section[10];
     
+    initCameraAngle(fpc1), initCameraQuat(fpc2),
+    initThirdPersonCamera(tpc),
+    initOrbitalCamera(oc);
+    
     bool noErrorsOccured = true;
     while(noErrorsOccured && fscanf(configurationFile, "%s", section) > 0) {
         if (strcmp("programs:", section) == 0) {
             noErrorsOccured = parseShaderProgramsConfig(configurationFile, out_shaderProgramsCount, out_programs);
         } else if (strcmp("models:", section) == 0) {
             noErrorsOccured = parseModelsConfig(configurationFile, out_modelsCount, out_models);
+        } else if (strcmp("cameras:", section) == 0) {
+            parseCamerasConfig(configurationFile, camera, fpc1, fpc2, tpc, oc);
         } else if (strcmp("tracks:", section) == 0) {
             noErrorsOccured = parseMusicConfig(configurationFile, tracksCount, musicFiles);
         } else {

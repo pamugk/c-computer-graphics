@@ -13,10 +13,12 @@ struct camera_angle {
         float pitch;
         float roll;
     } orientation;
+    float height;
+    float speed;
 };
 
 void initCameraAngle(struct camera_angle *camera);
-void moveCameraAngle(struct camera_angle *camera, float delta);
+void moveCameraAngle(struct camera_angle *camera, char direction);
 void strafeCameraAngle(struct camera_angle *camera, float delta);
 void yawCameraAngle(struct camera_angle *camera, float angle);
 void pitchCameraAngle(struct camera_angle *camera, float angle);
@@ -26,10 +28,12 @@ void viewCameraAngle(struct camera_angle *camera, float out_v[MVP_MATRIX_SIZE]);
 struct camera_quat {
     struct vec3f position;
     struct quat orientation;
+    float height;
+    float speed;
 };
 
 void initCameraQuat(struct camera_quat *camera);
-void moveCameraQuat(struct camera_quat *camera, float delta);
+void moveCameraQuat(struct camera_quat *camera, char direction);
 void strafeCameraQuat(struct camera_quat *camera, float delta);
 void yawCameraQuat(struct camera_quat *camera, float angle);
 void pitchCameraQuat(struct camera_quat *camera, float angle);

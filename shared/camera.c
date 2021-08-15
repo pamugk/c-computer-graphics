@@ -24,11 +24,13 @@ float wrap(float a, float min, float max) {
 void initCameraAngle(struct camera_angle *camera) {
     camera->position = (struct vec3f){ 0.0f, 0.0f, 0.0f },
     camera->orientation.yaw = 0.0f, camera->orientation.pitch = 0.0f, camera->orientation.roll = 0.0f;
+    camera->height = 0.0;
+    camera->speed = 0.005;
 }
 
-void moveCameraAngle(struct camera_angle *camera, float delta) {
-    camera->position.x -= sinf(camera->orientation.yaw) * delta;
-    camera->position.z -= cosf(camera->orientation.yaw) * delta;
+void moveCameraAngle(struct camera_angle *camera, char direction) {
+    camera->position.x -= sinf(camera->orientation.yaw) * direction * camera->speed;
+    camera->position.z -= cosf(camera->orientation.yaw) * direction * camera->speed;
 }
 
 void strafeCameraAngle(struct camera_angle *camera, float delta) {
@@ -60,13 +62,15 @@ void viewCameraAngle(struct camera_angle *camera, float out_v[MVP_MATRIX_SIZE]) 
 void initCameraQuat(struct camera_quat *camera) {
     camera->position = (struct vec3f){ 0.0f, 0.0f, 0.0f },
     makeIdenticalQuat(&camera->orientation);
+    camera->height = 0.0;
+    camera->speed = 0.005;
 }
 
-void moveCameraQuat(struct camera_quat *camera, float delta) {
+void moveCameraQuat(struct camera_quat *camera, char direction) {
     struct vec3f dir = { 0.0f, 0.0f, 1.0f };
     struct quat q = { camera->orientation.x, camera->orientation.y, camera->orientation.z, -camera->orientation.w };
     rotateVectorWithQuat(&dir, &q, &dir);
-    camera->position.x -= dir.x * delta, camera->position.z -= dir.z * delta;
+    camera->position.x -= dir.x * direction * camera->speed, camera->position.z -= dir.z * direction * camera->speed;
 }
 
 void strafeCameraQuat(struct camera_quat *camera, float delta) {

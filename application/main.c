@@ -13,15 +13,16 @@ unsigned int g_modelsCount;
 struct model *g_models;
 
 // View
+float v[MVP_MATRIX_SIZE];
 float p[MVP_MATRIX_SIZE];
 
-int camera = 0;
-
 // Cameras
-struct camera_angle fpc1;
-struct camera_quat fpc2;
-struct third_person_camera tpc;
-struct orbital_camera oc;
+unsigned char g_camera = 0;
+
+struct camera_angle g_fpc1;
+struct camera_quat g_fpc2;
+struct third_person_camera g_tpc;
+struct orbital_camera g_oc;
 
 float cameraRotationSpeed;
 
@@ -137,28 +138,32 @@ void reshape(GLFWwindow *window, int width, int height) {
 void draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    float cameraView[MVP_MATRIX_SIZE];
+    float c[MVP_MATRIX_SIZE], mv[MVP_MATRIX_SIZE];
     
-    switch (camera) {
-        case 0: {
-            viewCameraAngle(&fpc1, cameraView);
-            break;
+    if (g_camera != 0) {
+        float cameraView[MVP_MATRIX_SIZE];
+        
+        switch (g_camera) {
+            case 1: {
+                viewCameraAngle(&g_fpc1, cameraView);
+                break;
+            }
+            case 2: {
+                viewCameraQuat(&g_fpc2, cameraView);
+                break;
+            }
+            case 3: {
+                buildThirdPersonCameraView(&g_tpc, cameraView);
+                break;
+            }
+            case 4: {
+                buildOrbitalCameraView(&g_oc, cameraView);
+                break;
+            }
         }
-        case 1: {
-            viewCameraQuat(&fpc2, cameraView);
-            break;
-        }
-        case 2: {
-            buildThirdPersonCameraView(&tpc, cameraView);
-            break;
-        }
-        case 3: {
-            buildOrbitalCameraView(&oc, cameraView);
-            break;
-        }
+        
+        multiplyMatrices(p, cameraView, c);
     }
-    
-    float c[MVP_MATRIX_SIZE]; multiplyMatrices(p, cameraView, c);
     
     for (int i = 0; i < g_programsCount; i += 1) {
         glUseProgram(g_programs[i].id);
@@ -178,7 +183,12 @@ void draw() {
                 matrixWithQuaternion(&g_models[m].q, rotationMatrix);
                 multiplyMatrices(rotationMatrix, g_models[m].m, fullMMatrix);
                 
-                multiplyMatrices(c, fullMMatrix, g_programs[i].variables[0].value.floatMat4Val);
+                if (g_camera == 0) {
+                    multiplyMatrices(v, fullMMatrix, mv);
+                    multiplyMatrices(p, mv, g_programs[i].variables[0].value.floatMat4Val);
+                } else {
+                    multiplyMatrices(c, fullMMatrix, g_programs[i].variables[0].value.floatMat4Val);
+                }
                 
                 if (normalsDefined) {
                     buildNMatrix(g_programs[i].variables[0].value.floatMat4Val, g_programs[i].variables[1].value.floatMat3Val);
@@ -216,82 +226,84 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
     } else if (key == GLFW_KEY_9 && action != GLFW_RELEASE) {
         rotateModelAboutZ(g_models, 1);
     } else if (key == GLFW_KEY_F1) {
-        camera = 0;
+        g_camera = 1;
     } else if (key == GLFW_KEY_F2) {
-        camera = 1;
+        g_camera = 2;
     } else if (key == GLFW_KEY_F3) {
-        camera = 2;
+        g_camera = 3;
     } else if (key == GLFW_KEY_F4) {
-        camera = 3;
+        g_camera = 4;
+    } else if (key == GLFW_KEY_F5) {
+        g_camera = 0;
     } else if (key == GLFW_KEY_UP && action != GLFW_RELEASE) {
-        switch (camera) {
-            case 0: {
-                moveCameraAngle(&fpc1, 0.005);
-                break;
-            }
+        switch (g_camera) {
             case 1: {
-                moveCameraQuat(&fpc2, 0.005);
+                moveCameraAngle(&g_fpc1, 1);
                 break;
             }
             case 2: {
-                tpc.e.z += 0.005;
+                moveCameraQuat(&g_fpc2, 1);
                 break;
             }
             case 3: {
+                g_tpc.e.z += 0.005;
+                break;
+            }
+            case 4: {
                 break;
             }
         }
     } else if (key == GLFW_KEY_DOWN && action != GLFW_RELEASE) {
-        switch (camera) {
-            case 0: {
-                moveCameraAngle(&fpc1, -0.005);
-                break;
-            }
+        switch (g_camera) {
             case 1: {
-                moveCameraQuat(&fpc2, -0.005);
+                moveCameraAngle(&g_fpc1, -1);
                 break;
             }
             case 2: {
-                tpc.e.z -= 0.005;
+                moveCameraQuat(&g_fpc2, -1);
                 break;
             }
             case 3: {
+                g_tpc.e.z -= 0.005;
+                break;
+            }
+            case 4: {
                 break;
             }
         }
     } else if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
-        switch (camera) {
-            case 0: {
-                strafeCameraAngle(&fpc1, -0.005);
-                break;
-            }
+        switch (g_camera) {
             case 1: {
-                strafeCameraQuat(&fpc2, -0.005);
+                strafeCameraAngle(&g_fpc1, -0.005);
                 break;
             }
             case 2: {
-                tpc.e.x -= 0.005;
+                strafeCameraQuat(&g_fpc2, -0.005);
                 break;
             }
             case 3: {
+                g_tpc.e.x -= 0.005;
+                break;
+            }
+            case 4: {
                 break;
             }
         }
     } else if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
-        switch (camera) {
-            case 0: {
-                strafeCameraAngle(&fpc1, 0.005);
-                break;
-            }
+        switch (g_camera) {
             case 1: {
-                strafeCameraQuat(&fpc2, 0.005);
+                strafeCameraAngle(&g_fpc1, 0.005);
                 break;
             }
             case 2: {
-                tpc.e.x += 0.005;
+                strafeCameraQuat(&g_fpc2, 0.005);
                 break;
             }
             case 3: {
+                g_tpc.e.x += 0.005;
+                break;
+            }
+            case 4: {
                 break;
             }
         }
@@ -313,22 +325,22 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
 void onCursorMove(GLFWwindow* window, double x, double y) {
     float dx = prevX - x, dy = prevY - y;
     
-    switch (camera) {
-        case 0: {
-            yawCameraAngle(&fpc1, -dx * cameraRotationSpeed);
-            pitchCameraAngle(&fpc1, -dy * cameraRotationSpeed);
-            break;
-        }
+    switch (g_camera) {
         case 1: {
-            yawCameraQuat(&fpc2, dx * cameraRotationSpeed);
-            pitchCameraQuat(&fpc2, dy * cameraRotationSpeed);
+            yawCameraAngle(&g_fpc1, -dx * cameraRotationSpeed);
+            pitchCameraAngle(&g_fpc1, -dy * cameraRotationSpeed);
             break;
         }
         case 2: {
+            yawCameraQuat(&g_fpc2, dx * cameraRotationSpeed);
+            pitchCameraQuat(&g_fpc2, dy * cameraRotationSpeed);
             break;
         }
         case 3: {
-            buildOrbitalCameraRotation(dx, dy, glfwGetKey(g_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS, &oc);
+            break;
+        }
+        case 4: {
+            buildOrbitalCameraRotation(dx, dy, glfwGetKey(g_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS, &g_oc);
             break;
         }
     }
@@ -337,6 +349,7 @@ void onCursorMove(GLFWwindow* window, double x, double y) {
 }
 
 void initOptics() {
+    getIdentityMatrix(v);
     getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1024.f, 768.f, 45.f, p);
     
     for (int i = 0; i < countOfSpeeds; i++) {
@@ -345,10 +358,6 @@ void initOptics() {
     }
     
     degree = degrees[1];
-    
-    initCameraAngle(&fpc1), initCameraQuat(&fpc2),
-    initThirdPersonCamera(&tpc),
-    initOrbitalCamera(&oc);
     
     cameraRotationSpeed = calculateRotationSpeed(1024, 768);
     glfwGetCursorPos(g_window, &prevX, &prevY); 
@@ -413,7 +422,12 @@ int main(int argc, char** argv) {
         return -1;
     }
 	
-	int isOk = applyConfiguration(pathToConfiguration, &g_programsCount, &g_programs, &g_modelsCount, &g_models, &g_tracksCount, &g_musicFiles);
+	int isOk = applyConfiguration(
+        pathToConfiguration, 
+        &g_programsCount, &g_programs, 
+        &g_modelsCount, &g_models,
+        &g_camera, &g_fpc1, &g_fpc2, &g_tpc, &g_oc,
+        &g_tracksCount, &g_musicFiles);
 	if (isOk) {
         initOptics();
         initMusicPlayer();
