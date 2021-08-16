@@ -29,7 +29,7 @@ programs: 1
     
     END
         
-models: 1
+models: 0 1
     9 heightmap ../australia/AustraliaHeight.jpg 0.2
     attributes: 4
         3 GL_FLOAT 0 coordinates: predefined 

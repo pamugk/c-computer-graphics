@@ -18,8 +18,8 @@ struct camera_angle {
 };
 
 void initCameraAngle(struct camera_angle *camera);
-void moveCameraAngle(struct camera_angle *camera, char direction);
-void strafeCameraAngle(struct camera_angle *camera, float delta);
+void moveCameraAngle(struct camera_angle *camera, char direction, void constrain(struct vec3f *position, float dx, float dz, float height));
+void strafeCameraAngle(struct camera_angle *camera, char direction, void constrain(struct vec3f *position, float dx, float dz, float height));
 void yawCameraAngle(struct camera_angle *camera, float angle);
 void pitchCameraAngle(struct camera_angle *camera, float angle);
 void rollCameraAngle(struct camera_angle *camera, float angle);
@@ -33,8 +33,8 @@ struct camera_quat {
 };
 
 void initCameraQuat(struct camera_quat *camera);
-void moveCameraQuat(struct camera_quat *camera, char direction);
-void strafeCameraQuat(struct camera_quat *camera, float delta);
+void moveCameraQuat(struct camera_quat *camera, char direction, void constrain(struct vec3f *position, float dx, float dz, float height));
+void strafeCameraQuat(struct camera_quat *camera, char direction, void constrain(struct vec3f *position, float dx, float dz, float height));
 void yawCameraQuat(struct camera_quat *camera, float angle);
 void pitchCameraQuat(struct camera_quat *camera, float angle);
 void rollCameraQuat(struct camera_quat *camera, float angle);
@@ -44,6 +44,7 @@ struct third_person_camera {
     struct vec3f e;
     struct vec3f c; 
     struct vec3f u;
+    float speed;
 };
 
 void initThirdPersonCamera(struct third_person_camera *camera);

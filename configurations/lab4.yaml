@@ -53,7 +53,7 @@ programs: 2
     
     END
     
-models: 2
+models: 1 2
     3 file ../models/skybox.ply
     attributes: 1
         3 GL_FLOAT 0 coordinates: predefined
@@ -72,8 +72,9 @@ models: 2
             204 204 51
             51 102 0
         3 GL_FLOAT 0 normals: calculate
-    transformations: 2
+    transformations: 3
         move x center
         move z center
+        scale fit
     
     END

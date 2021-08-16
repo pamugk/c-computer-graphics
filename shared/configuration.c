@@ -434,8 +434,23 @@ bool parseModelTransformations(FILE *configurationFile, struct model *out_model)
         } else if(strcmp("scale", staticBuffer) == 0) {
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("fit", staticBuffer) == 0) {
-                printf("Scaling model for (%f, %f, %f) points\n", 1.f / out_model->body.width, 1.f / out_model->body.height, 1.f / out_model->body.depth);
-                scaleModel(out_model, 1.f / out_model->body.width, 1.f / out_model->body.height, 1.f / out_model->body.depth);
+                scaleModel(out_model, 2.0f / out_model->body.width, 2.0f / out_model->body.height, 2.0f / out_model->body.depth);
+            } else if (strcmp("x", staticBuffer)) {
+                float factor;
+                fscanf(configurationFile, "%f", &factor);
+                scaleModel(out_model, factor, 1.0f, 1.0f);
+            }  else if (strcmp("y", staticBuffer)) {
+                float factor;
+                fscanf(configurationFile, "%f", &factor);
+                scaleModel(out_model, 1.0f, factor, 1.0f);
+            }  else if (strcmp("z", staticBuffer)) {
+                float factor;
+                fscanf(configurationFile, "%f", &factor);
+                scaleModel(out_model, 1.0f, 1.0f, factor);
+            }  else if (strcmp("all", staticBuffer)) {
+                float factor;
+                fscanf(configurationFile, "%f", &factor);
+                scaleModel(out_model, factor, factor, factor);
             } else {
                 printf("Unknown scaling target: %s\n", staticBuffer);
                 return false;
@@ -517,13 +532,15 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
     return noErrorsOccured && initModel(out_model);
 }
 
-bool parseModelsConfig(FILE *configurationFile, unsigned *out_modelsCount, struct model **out_models) {
+bool parseModelsConfig(FILE *configurationFile, unsigned char *terrain, unsigned *out_modelsCount, struct model **out_models) {
     if (*out_models != NULL) {
         for (int i = 0; i < *out_modelsCount; i += 1) {
             freeModel((*out_models) + i);
         }
         free(*out_models);
     }
+    
+    fscanf(configurationFile, "%hhu", terrain);
     
     fscanf(configurationFile, "%ui", out_modelsCount);
     *out_models = calloc(*out_modelsCount, sizeof(struct model));
@@ -547,7 +564,7 @@ bool parseCamerasConfig(FILE *configurationFile,
     struct orbital_camera *oc) {
     
     bool noErrorsOccured = true;
-    char section[15];
+    char section[30];
     while(noErrorsOccured && fscanf(configurationFile, "%s", section) > 0 && strcmp("END", section) != 0) {
         if (strcmp("current:", section) == 0) {
             fscanf(configurationFile, "%hhu", camera);
@@ -558,7 +575,59 @@ bool parseCamerasConfig(FILE *configurationFile,
             } else if (strcmp("fps_quat", section) == 0) {
                 fscanf(configurationFile, "%f%f%f%f%f", &fpc2->position.x, &fpc2->position.y, &fpc2->position.z, &fpc2->height, &fpc2->speed);
             } else if (strcmp("tps", section) == 0) {
-                fscanf(configurationFile, "%f%f%f%f%f%f%f%f%f", &tpc->e.x, &tpc->e.y, &tpc->e.z, &tpc->c.x, &tpc->c.y, &tpc->c.z, &tpc->u.x, &tpc->u.y, &tpc->u.z);
+                fscanf(configurationFile, "%f%f%f%f%f%f%f%f%f%f", &tpc->e.x, &tpc->e.y, &tpc->e.z, &tpc->c.x, &tpc->c.y, &tpc->c.z, &tpc->u.x, &tpc->u.y, &tpc->u.z, &tpc->speed);
+            } else if (strcmp("arcball", section) == 0) {
+                int transformationsCount;
+                
+                getIdentityMatrix(oc->s);
+                getIdentityMatrix(oc->t);
+                while(fscanf(configurationFile, "%s", section) > 0 && strcmp("END", section) != 0) {
+                    if (strcmp("move", section) == 0) {
+                        float prevT[MVP_MATRIX_SIZE];
+                        memccpy(prevT, oc->t, MVP_MATRIX_SIZE, sizeof(float));
+                        
+                        float dx = 0, dy = 0, dz = 0;
+                        fscanf(configurationFile, "%s", section);
+                        if (strcmp("x", section) == 0) {
+                            fscanf(configurationFile, "%f", &dx);
+                        } else if (strcmp("y", section) == 0) {
+                            fscanf(configurationFile, "%f", &dy);
+                        } else if (strcmp("z", section) == 0) {
+                            fscanf(configurationFile, "%f", &dz);
+                        } else {
+                            printf("Unknown movement target: %s\n", section);
+                            noErrorsOccured = false;
+                            break;
+                        }
+                        
+                        move(prevT, dx, dy, dz, oc->t);
+                    } else if(strcmp("scale", section) == 0) {
+                        float prevS[MVP_MATRIX_SIZE];
+                        memccpy(prevS, oc->s, MVP_MATRIX_SIZE, sizeof(float));
+                        float sx = 1.0f, sy = 1.0f, sz = 1.0f;
+                        fscanf(configurationFile, "%s", section);
+                        if (strcmp("x", section)) {
+                            fscanf(configurationFile, "%f", &sx);
+                        }  else if (strcmp("y", section)) {
+                            fscanf(configurationFile, "%f", &sy);
+                        }  else if (strcmp("z", section)) {
+                            fscanf(configurationFile, "%f", &sz);
+                        }  else if (strcmp("all", section)) {
+                            float factor;
+                            fscanf(configurationFile, "%f", &factor);
+                            sx = factor, sy = factor, sz = factor;
+                        } else {
+                            printf("Unknown scaling target: %s\n", section);
+                            noErrorsOccured = false;
+                            break;
+                        }
+                        scale(prevS, sx, sy, sz, oc->s);
+                    } else {
+                        printf("Unknown arcball camera transformation: %s\n", section);
+                        noErrorsOccured = false;
+                        break;
+                    }
+                }
             } else {
                 printf("Specified camera kind does not support configuration: %s\n", section);
                 noErrorsOccured = false;
@@ -600,7 +669,7 @@ bool parseMusicConfig(FILE *configurationFile, unsigned char *tracksCount, char 
 bool applyConfiguration(
     const char *pathToConfiguration,
     unsigned *out_shaderProgramsCount, struct shader_program **out_programs,
-    unsigned *out_modelsCount, struct model **out_models,
+    unsigned char *terrain, unsigned *out_modelsCount, struct model **out_models,
     unsigned char *camera, 
     struct camera_angle *fpc1, struct camera_quat *fpc2,
     struct third_person_camera *tpc,
@@ -631,7 +700,7 @@ bool applyConfiguration(
         if (strcmp("programs:", section) == 0) {
             noErrorsOccured = parseShaderProgramsConfig(configurationFile, out_shaderProgramsCount, out_programs);
         } else if (strcmp("models:", section) == 0) {
-            noErrorsOccured = parseModelsConfig(configurationFile, out_modelsCount, out_models);
+            noErrorsOccured = parseModelsConfig(configurationFile, terrain, out_modelsCount, out_models);
         } else if (strcmp("cameras:", section) == 0) {
             parseCamerasConfig(configurationFile, camera, fpc1, fpc2, tpc, oc);
         } else if (strcmp("tracks:", section) == 0) {

@@ -7,8 +7,11 @@ char *pathToConfiguration;
 // Shader programs
 unsigned int g_programsCount;
 struct shader_program *g_programs;
+int *g_preprocessedVariables;
 
 // Models
+unsigned char g_terrain;
+
 unsigned int g_modelsCount;
 struct model *g_models;
 
@@ -132,31 +135,76 @@ bool initOpenAL() {
 
 void reshape(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
+    getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, width, height, 45.f, p);
     cameraRotationSpeed = calculateRotationSpeed(width, height);
+    g_oc.rotationSpeed = cameraRotationSpeed;
+}
+
+float getY(int x, int z) {
+    if (x < 0 || z < 0 || x > g_models[g_terrain].body.width || z > g_models[g_terrain].body.width) {
+        return 0.0f;
+    }
+    return g_models[g_terrain].body.vertices[z * g_models[g_terrain].body.vertexSize + x * g_models[g_terrain].body.vertexSize + 1];
+}
+
+float calculateY(float x, float z) {
+    int iz = z, ix = x;
+    float fz = z - (float)iz, fx = x - (float)ix;
+    float nfz = 1.0f - fz, nfx = 1.0f - fx;
+    return 
+        (getY(x, z) * nfz + getY(x, z + 1) * fz) * nfx 
+        + (getY(x + 1, z) * nfz + getY(x + 1, z + 1) * fz) * fx;
+}
+
+void constrain(struct vec3f *position, float dx, float dz, float height) {
+    float newX = position->x + dx, newZ = position->z + dz;
+    if (newX < 0.0f) {
+        newX = 0.0f;
+    }
+    if (newX > g_models[g_terrain].body.width) {
+        newX = g_models[g_terrain].body.width;
+    }
+    
+    if (newZ < 0.0f) {
+        newZ = 0.0f;
+    }
+    if (newZ > g_models[g_terrain].body.depth) {
+        newZ = g_models[g_terrain].body.depth;
+    }
+    
+    position->x = newX, position->z = newZ, position->y = height + calculateY(newX, newZ);
 }
 
 void draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     float c[MVP_MATRIX_SIZE], mv[MVP_MATRIX_SIZE];
+    float stubEye[] = { 0.0f, 0.0f, 0.0f };
+    float *e = NULL;
     
-    if (g_camera != 0) {
+    if (g_camera == 0) {
+        e = stubEye;
+    } else {
         float cameraView[MVP_MATRIX_SIZE];
         
         switch (g_camera) {
             case 1: {
+                e = (float *)(&g_fpc1.position);
                 viewCameraAngle(&g_fpc1, cameraView);
                 break;
             }
             case 2: {
+                e = (float *)(&g_fpc2.position);
                 viewCameraQuat(&g_fpc2, cameraView);
                 break;
             }
             case 3: {
+                e = (float *)(&g_tpc.e);
                 buildThirdPersonCameraView(&g_tpc, cameraView);
                 break;
             }
             case 4: {
+                e = stubEye;
                 buildOrbitalCameraView(&g_oc, cameraView);
                 break;
             }
@@ -173,8 +221,12 @@ void draw() {
             glUniform1i(g_programs[i].textures[t].mapLocation, t);
         }
         
-        bool mvpDefined = g_programs[i].variablesCount > 0 && strcmp("u_mvp", g_programs[i].variables[0].name) == 0;
-        bool normalsDefined = mvpDefined && g_programs[i].variablesCount > 1 && strcmp("u_n", g_programs[i].variables[1].name) == 0;
+        bool mvpDefined = g_preprocessedVariables[i * 3] != -1;
+        bool normalsDefined = g_preprocessedVariables[i * 3 + 1] != -1;
+            
+        if (g_preprocessedVariables[i * 3 + 2] != -1) {
+            memccpy(g_programs[i].variables[g_preprocessedVariables[i * 3 + 2]].value.floatVec3Val, e, 3, sizeof(float));
+        }
         for (int j = 0; j < g_programs[i].modelsToRenderCount; j += 1) {
             int m = g_programs[i].modelsToRenderIdx[j];
             
@@ -185,13 +237,13 @@ void draw() {
                 
                 if (g_camera == 0) {
                     multiplyMatrices(v, fullMMatrix, mv);
-                    multiplyMatrices(p, mv, g_programs[i].variables[0].value.floatMat4Val);
+                    multiplyMatrices(p, mv, g_programs[i].variables[g_preprocessedVariables[i * 3]].value.floatMat4Val);
                 } else {
-                    multiplyMatrices(c, fullMMatrix, g_programs[i].variables[0].value.floatMat4Val);
+                    multiplyMatrices(c, fullMMatrix, g_programs[i].variables[g_preprocessedVariables[i * 3]].value.floatMat4Val);
                 }
                 
                 if (normalsDefined) {
-                    buildNMatrix(g_programs[i].variables[0].value.floatMat4Val, g_programs[i].variables[1].value.floatMat3Val);
+                    buildNMatrix(g_programs[i].variables[g_preprocessedVariables[i * 3]].value.floatMat4Val, g_programs[i].variables[g_preprocessedVariables[i * 3 + 1]].value.floatMat3Val);
                 }
             }
             
@@ -238,75 +290,95 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
     } else if (key == GLFW_KEY_UP && action != GLFW_RELEASE) {
         switch (g_camera) {
             case 1: {
-                moveCameraAngle(&g_fpc1, 1);
+                moveCameraAngle(&g_fpc1, 1, constrain);
                 break;
             }
             case 2: {
-                moveCameraQuat(&g_fpc2, 1);
+                moveCameraQuat(&g_fpc2, 1, constrain);
                 break;
             }
             case 3: {
-                g_tpc.e.z += 0.005;
+                g_tpc.e.z += g_tpc.speed;
                 break;
             }
             case 4: {
+                float prevT[MVP_MATRIX_SIZE];
+                memccpy(prevT, g_oc.t, MVP_MATRIX_SIZE, sizeof(float));
+                move(prevT, 0.0f, 0.0f, 0.05f, g_oc.t);
                 break;
             }
         }
     } else if (key == GLFW_KEY_DOWN && action != GLFW_RELEASE) {
         switch (g_camera) {
             case 1: {
-                moveCameraAngle(&g_fpc1, -1);
+                moveCameraAngle(&g_fpc1, -1, constrain);
                 break;
             }
             case 2: {
-                moveCameraQuat(&g_fpc2, -1);
+                moveCameraQuat(&g_fpc2, -1, constrain);
                 break;
             }
             case 3: {
-                g_tpc.e.z -= 0.005;
+                g_tpc.e.z -= g_tpc.speed;
                 break;
             }
             case 4: {
+                float prevT[MVP_MATRIX_SIZE];
+                memccpy(prevT, g_oc.t, MVP_MATRIX_SIZE, sizeof(float));
+                move(prevT, 0.0f, 0.0f,-0.05f, g_oc.t);
                 break;
             }
         }
     } else if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
         switch (g_camera) {
             case 1: {
-                strafeCameraAngle(&g_fpc1, -0.005);
+                strafeCameraAngle(&g_fpc1, -1, constrain);
                 break;
             }
             case 2: {
-                strafeCameraQuat(&g_fpc2, -0.005);
+                strafeCameraQuat(&g_fpc2, -1, constrain);
                 break;
             }
             case 3: {
-                g_tpc.e.x -= 0.005;
+                g_tpc.e.x -= g_tpc.speed;
                 break;
             }
             case 4: {
+                float prevT[MVP_MATRIX_SIZE];
+                memccpy(prevT, g_oc.t, MVP_MATRIX_SIZE, sizeof(float));
+                move(prevT, -0.05f, 0.0f, 0.0f, g_oc.t);
                 break;
             }
         }
     } else if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
         switch (g_camera) {
             case 1: {
-                strafeCameraAngle(&g_fpc1, 0.005);
+                strafeCameraAngle(&g_fpc1, 1, constrain);
                 break;
             }
             case 2: {
-                strafeCameraQuat(&g_fpc2, 0.005);
+                strafeCameraQuat(&g_fpc2, 1, constrain);
                 break;
             }
             case 3: {
-                g_tpc.e.x += 0.005;
+                g_tpc.e.x += g_tpc.speed;
                 break;
             }
             case 4: {
+                float prevT[MVP_MATRIX_SIZE];
+                memccpy(prevT, g_oc.t, MVP_MATRIX_SIZE, sizeof(float));
+                move(prevT, 0.05f, 0.0f, 0.0f, g_oc.t);
                 break;
             }
         }
+    } else if (g_camera == 4 && key == GLFW_KEY_KP_ADD && action == GLFW_RELEASE) { 
+        float prevS[MVP_MATRIX_SIZE];
+        memccpy(prevS, g_oc.s, MVP_MATRIX_SIZE, sizeof(float));
+        scale(prevS, 2.0f, 2.0f, 2.0f, g_oc.t);
+    } else if (g_camera == 4 && key == GLFW_KEY_KP_SUBTRACT && action == GLFW_RELEASE) { 
+        float prevS[MVP_MATRIX_SIZE];
+        memccpy(prevS, g_oc.s, MVP_MATRIX_SIZE, sizeof(float));
+        scale(prevS, 0.5f, 0.5f, 0.5f, g_oc.t);
     } else if (g_musicPlayer != 0 && key == GLFW_KEY_P && action == GLFW_RELEASE) {
         ALint state;
         alGetSourcei(g_musicPlayer, AL_SOURCE_STATE, &state);
@@ -353,14 +425,38 @@ void initOptics() {
     getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1024.f, 768.f, 45.f, p);
     
     for (int i = 0; i < countOfSpeeds; i++) {
-        degrees[i] = (i + 1) * 0.01f;
+        degrees[i] = (i + 1) * 0.01f,
         degreeKeys[i] = GLFW_KEY_1 + i;
     }
     
     degree = degrees[1];
     
+    moveCameraAngle(&g_fpc1, 0, constrain);
+    moveCameraQuat(&g_fpc2, 0, constrain);
+    constrain(&g_tpc.e, 0.0f, 0.0f, 1.0f);
+    
     cameraRotationSpeed = calculateRotationSpeed(1024, 768);
+    g_oc.rotationSpeed = cameraRotationSpeed;
+    
     glfwGetCursorPos(g_window, &prevX, &prevY); 
+}
+
+void preprocessVariables() {
+    g_preprocessedVariables = calloc(g_programsCount * 3, sizeof(int));
+    for (int i = 0; i < g_programsCount; i += 1) {
+        g_preprocessedVariables[i * 3] = -1,
+        g_preprocessedVariables[i * 3 + 1] = -1,
+        g_preprocessedVariables[i * 3 + 2] = -1;
+        for (int j = 0; j < g_programs[i].variablesCount; j += 1) {
+            if (strcmp("u_mvp", g_programs[i].variables[j].name) == 0) {
+                g_preprocessedVariables[i * 3] = j;
+            } else if (strcmp("u_n", g_programs[i].variables[j].name) == 0) {
+                g_preprocessedVariables[i * 3 + 1] = j;
+            } else if (strcmp("u_oeye", g_programs[i].variables[j].name) == 0) {
+                g_preprocessedVariables[i * 3 + 2] = j;
+            }
+        }
+    }
 }
 
 void updateTrackPool() {
@@ -388,6 +484,7 @@ void cleanup() {
         freeProgram(g_programs + i);
     }
     free(g_programs);
+    free(g_preprocessedVariables);
     
     for (int i = 0; i < g_modelsCount; i += 1) {
         freeModel(g_models + i);
@@ -425,10 +522,11 @@ int main(int argc, char** argv) {
 	int isOk = applyConfiguration(
         pathToConfiguration, 
         &g_programsCount, &g_programs, 
-        &g_modelsCount, &g_models,
+        &g_terrain, &g_modelsCount, &g_models,
         &g_camera, &g_fpc1, &g_fpc2, &g_tpc, &g_oc,
         &g_tracksCount, &g_musicFiles);
 	if (isOk) {
+        preprocessVariables();
         initOptics();
         initMusicPlayer();
         if (g_musicPlayer != 0) {

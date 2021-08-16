@@ -9,7 +9,7 @@ programs: 1
     
     END
         
-models: 1
+models: 0 1
     6 heightmap ../heightmaps/australia.jpg 0.1
     attributes: 2
         3 GL_FLOAT 0 coordinates: predefined

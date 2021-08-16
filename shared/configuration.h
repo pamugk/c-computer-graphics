@@ -9,7 +9,7 @@
 bool applyConfiguration(
     const char *pathToConfiguration,
     unsigned int *out_shaderProgramsCount, struct shader_program **out_programs,
-    unsigned int *out_modelsCount, struct model **out_models,
+    unsigned char *terrain, unsigned int *out_modelsCount, struct model **out_models,
     unsigned char *camera, 
     struct camera_angle *fpc1, struct camera_quat *fpc2,
     struct third_person_camera *tpc,
