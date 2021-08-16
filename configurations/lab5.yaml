@@ -15,16 +15,18 @@ programs: 1
         0
     END
 
-models: 1
-    8 file ../models/UFOs/SimpleUFO/ufo.ply
+models: -1 1
+    8 file ../models/UFOs/ARV_Craft/ARV_Craft_Low_Poly.obj
     attributes: 3
         3 GL_FLOAT 0 coordinates: predefined
         3 GL_FLOAT 0 normals: predefined
         2 GL_FLOAT 0 texCoordinates: predefined
-    transformations: 4
-        move x center
-        move y center
-        move z center
-        scale fit
 
+    END
+
+
+cameras:
+    current: 1
+    camera: fps_angle 0.0 1.0 0.0 0.0 0.0 0.0 1.0 0.5
+    
     END

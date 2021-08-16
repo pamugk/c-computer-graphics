@@ -10,7 +10,7 @@ struct shader_program *g_programs;
 int *g_preprocessedVariables;
 
 // Models
-unsigned char g_terrain;
+char g_terrain;
 
 unsigned int g_modelsCount;
 struct model *g_models;
@@ -157,22 +157,27 @@ float calculateY(float x, float z) {
 }
 
 void constrain(struct vec3f *position, float dx, float dz, float height) {
-    float newX = position->x + dx, newZ = position->z + dz;
-    if (newX < 0.0f) {
-        newX = 0.0f;
-    }
-    if (newX > g_models[g_terrain].body.width) {
-        newX = g_models[g_terrain].body.width;
+    float newX = position->x + dx, newZ = position->z + dz, y = 0.0f;
+    
+    if (g_terrain != -1) {
+        if (newX < 0.0f) {
+            newX = 0.0f;
+        }
+        if (newX > g_models[g_terrain].body.width) {
+            newX = g_models[g_terrain].body.width;
+        }
+        
+        if (newZ < 0.0f) {
+            newZ = 0.0f;
+        }
+        if (newZ > g_models[g_terrain].body.depth) {
+            newZ = g_models[g_terrain].body.depth;
+        }
+        
+        y = calculateY(newX, newZ);
     }
     
-    if (newZ < 0.0f) {
-        newZ = 0.0f;
-    }
-    if (newZ > g_models[g_terrain].body.depth) {
-        newZ = g_models[g_terrain].body.depth;
-    }
-    
-    position->x = newX, position->z = newZ, position->y = height + calculateY(newX, newZ);
+    position->x = newX, position->z = newZ, position->y = height + y;
 }
 
 void draw() {
@@ -266,17 +271,17 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
     }
     
     if (key == GLFW_KEY_KP_4 && action != GLFW_RELEASE) {
-        rotateModelAboutY(g_models, -1);
+        rotateModelAboutY(g_models, -0.05, false);
     } else if (key == GLFW_KEY_KP_6 && action != GLFW_RELEASE) {
-        rotateModelAboutY(g_models, 1);
+        rotateModelAboutY(g_models, 0.05, false);
     } else if (key == GLFW_KEY_KP_8 && action != GLFW_RELEASE) {
-        rotateModelAboutX(g_models, 1);
+        rotateModelAboutX(g_models, 0.05, false);
     } else if (key == GLFW_KEY_KP_5 && action != GLFW_RELEASE) {
-        rotateModelAboutX(g_models, -1);
+        rotateModelAboutX(g_models, -0.05, false);
     } else if (key ==GLFW_KEY_KP_7 && action != GLFW_RELEASE) {
-        rotateModelAboutZ(g_models, -1);
+        rotateModelAboutZ(g_models, -0.05, false);
     } else if (key == GLFW_KEY_9 && action != GLFW_RELEASE) {
-        rotateModelAboutZ(g_models, 1);
+        rotateModelAboutZ(g_models, 0.05, false);
     } else if (key == GLFW_KEY_F1) {
         g_camera = 1;
     } else if (key == GLFW_KEY_F2) {

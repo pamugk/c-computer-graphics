@@ -460,17 +460,17 @@ bool parseModelTransformations(FILE *configurationFile, struct model *out_model)
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("x", staticBuffer) == 0) {
                 fscanf(configurationFile, "%f", &degree);
-                rotateModelAboutX(out_model, degree);
+                rotateModelAboutX(out_model, degree, false);
             } else if (strcmp("y", staticBuffer) == 0) {
                 fscanf(configurationFile, "%f", &degree);
-                rotateModelAboutY(out_model, degree);
+                rotateModelAboutY(out_model, degree, false);
             } else if (strcmp("z", staticBuffer) == 0) {
                 fscanf(configurationFile, "%f", &degree);
-                rotateModelAboutZ(out_model, degree);
+                rotateModelAboutZ(out_model, degree, false);
             } else if (strcmp("axis", staticBuffer) == 0) {
                 struct vec3f axis;
                 fscanf(configurationFile, "%f%f%f%f", &axis.x, &axis.y, &axis.z, &degree);
-                rotateModelAboutAxis(out_model, &axis, degree);
+                rotateModelAboutAxis(out_model, &axis, degree, false);
             } else {
                 printf("Unknown rotation target: %s\n", staticBuffer);
                 return false;
@@ -488,12 +488,11 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
     
     out_model->attributes = NULL;
     
-    unsigned char vertexSize = 0;
     char *dynamicBuffer = NULL; char staticBuffer[30];
     
-    fscanf(configurationFile, "%hhi%s", &vertexSize, staticBuffer);
+    fscanf(configurationFile, "%hhi%s", &out_model->body.vertexSize, staticBuffer);
     
-    printf("Loading model of type %s with %hhi elements per vertex\n", staticBuffer, vertexSize);
+    printf("Loading model of type %s with %hhi elements per vertex\n", staticBuffer, out_model->body.vertexSize);
     
     getIdentityMatrix(out_model->m);
     bool noErrorsOccured = true;
@@ -501,7 +500,7 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
         float h;
         fscanf(configurationFile, "%ms%f", &dynamicBuffer, &h);
         printf("Model is defined via heightmap %s with h=%f\n", dynamicBuffer, h);
-        out_model->body = initBodyWithHeightmap(dynamicBuffer, vertexSize, h);
+        out_model->body = initBodyWithHeightmap(dynamicBuffer, out_model->body.vertexSize, h);
         makeIndices(out_model->body, &out_model->indexCount, &out_model->indices);
     } else if (strcmp("file", staticBuffer) == 0) {
         fscanf(configurationFile, "%ms", &dynamicBuffer);
@@ -532,7 +531,7 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
     return noErrorsOccured && initModel(out_model);
 }
 
-bool parseModelsConfig(FILE *configurationFile, unsigned char *terrain, unsigned *out_modelsCount, struct model **out_models) {
+bool parseModelsConfig(FILE *configurationFile, char *terrain, unsigned *out_modelsCount, struct model **out_models) {
     if (*out_models != NULL) {
         for (int i = 0; i < *out_modelsCount; i += 1) {
             freeModel((*out_models) + i);
@@ -567,7 +566,7 @@ bool parseCamerasConfig(FILE *configurationFile,
     char section[30];
     while(noErrorsOccured && fscanf(configurationFile, "%s", section) > 0 && strcmp("END", section) != 0) {
         if (strcmp("current:", section) == 0) {
-            fscanf(configurationFile, "%hhu", camera);
+            fscanf(configurationFile, "%hhi", camera);
         } else if (strcmp("camera:", section) == 0) {
             fscanf(configurationFile, "%s", section);
             if (strcmp("fps_angle", section) == 0) {
@@ -669,7 +668,7 @@ bool parseMusicConfig(FILE *configurationFile, unsigned char *tracksCount, char 
 bool applyConfiguration(
     const char *pathToConfiguration,
     unsigned *out_shaderProgramsCount, struct shader_program **out_programs,
-    unsigned char *terrain, unsigned *out_modelsCount, struct model **out_models,
+    char *terrain, unsigned *out_modelsCount, struct model **out_models,
     unsigned char *camera, 
     struct camera_angle *fpc1, struct camera_quat *fpc2,
     struct third_person_camera *tpc,

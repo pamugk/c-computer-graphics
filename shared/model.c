@@ -137,32 +137,36 @@ void scaleModel(struct model *model, float sx, float sy, float sz) {
     scale(prevM, sx, sy, sz, model->m);
 }
 
-void rotateModelAboutAxis(struct model *model, struct vec3f *axis, float degree) {
+void rotateModelAboutAxis(struct model *model, struct vec3f *axis, float degree, bool useLerp) {
     struct quat rotationQ;
     makeQuatWithRotationAxis(axis, degree, &rotationQ);
     struct quat prevQ = { model->q.x, model->q.y, model->q.z, model->q.w };
-    quatLerp(&prevQ, &rotationQ, 0.5f, &model->q);
-    quatMultyplyByNum(&model->q, 1.f / quatMagnitude(&model->q), &model->q);
+    if (useLerp) {
+        quatLerp(&prevQ, &rotationQ, 0.5f, &model->q);
+    } else {
+        quatSlerp(&prevQ, &rotationQ, 0.5f, &model->q);
+    }
+    normalizeQuat(&model->q);
 }
 
-void rotateModel(struct model *model, float x, float y, float z, float degree) {
+void rotateModel(struct model *model, float x, float y, float z, float degree, bool useLerp) {
     struct vec3f axis = { x, y, z };
-    rotateModelAboutAxis(model, &axis, degree);
+    rotateModelAboutAxis(model, &axis, degree, useLerp);
 }
 
-void rotateModelAboutX(struct model *model, float degree) {
+void rotateModelAboutX(struct model *model, float degree, bool useLerp) {
     struct vec3f axis = { 1.f, 0.f, 0.f };
-    rotateModelAboutAxis(model, &axis, degree);
+    rotateModelAboutAxis(model, &axis, degree, useLerp);
 }
 
-void rotateModelAboutY(struct model *model, float degree) {
+void rotateModelAboutY(struct model *model, float degree, bool useLerp) {
     struct vec3f axis = { 0.f, 1.f, 0.f };
-    rotateModelAboutAxis(model, &axis, degree);
+    rotateModelAboutAxis(model, &axis, degree, useLerp);
 }
 
-void rotateModelAboutZ(struct model *model, float degree) {
+void rotateModelAboutZ(struct model *model, float degree, bool useLerp) {
     struct vec3f axis = { 0.f, 0.f, 1.f };
-    rotateModelAboutAxis(model, &axis, degree);
+    rotateModelAboutAxis(model, &axis, degree, useLerp);
 }
 
 void freeModel(struct model *model) {
