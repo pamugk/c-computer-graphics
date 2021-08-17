@@ -216,6 +216,192 @@ bool isObj(const char *fileExtension) {
     return strcmp(fileExtension, "obj") == 0;
 }
 
+struct material {
+    char *name;
+    
+    float ambientColor[3];
+    float diffuseColor[3];
+    float specularColor[3];
+    float specularExponent;
+    
+    float opaque;
+    float transmissionFilterColor[3];
+    
+    float refractionIndex;
+    unsigned char illum;
+    
+    char *ambientTextureMap;
+    char *diffuseTextureMap;
+    char *specularTextureMap;
+    char *specularHighlightComponent;
+    char *alphaTextureMap;
+    char *bumpMap;
+    char *displacementMap;
+    char *stencilDecalTexture;
+};
+
+void initMaterial(struct material *out_material) {
+    out_material->name = NULL,
+    
+    out_material->ambientColor[0] = 0, out_material->ambientColor[1] = 0, out_material->ambientColor[2] = 0,
+    out_material->diffuseColor[0] = 0, out_material->diffuseColor[1] = 0, out_material->diffuseColor[2] = 0,
+    out_material->specularColor[0] = 0, out_material->specularColor[1] = 0, out_material->specularColor[2] = 0,
+    out_material->specularExponent = 0,
+    
+    out_material->opaque = 1,
+    out_material->transmissionFilterColor[0] = 0, out_material->transmissionFilterColor[1] = 0, out_material->transmissionFilterColor[2] = 0,
+    
+    out_material->refractionIndex = 1,
+    out_material->illum = 0,
+    
+    out_material->ambientTextureMap = NULL,
+    out_material->diffuseTextureMap = NULL,
+    out_material->specularTextureMap = NULL,
+    out_material->specularHighlightComponent = NULL,
+    out_material->alphaTextureMap = NULL,
+    out_material->bumpMap = NULL,
+    out_material->displacementMap = NULL,
+    out_material->stencilDecalTexture = NULL;
+}
+
+void freeMaterial(struct material *out_material) {
+    free(out_material->name);
+    
+    free(out_material->ambientTextureMap);
+    free(out_material->diffuseTextureMap);
+    free(out_material->specularTextureMap);
+    free(out_material->specularHighlightComponent);
+    free(out_material->alphaTextureMap);
+    free(out_material->bumpMap);
+    free(out_material->displacementMap);
+    free(out_material->stencilDecalTexture);
+}
+
+void importMaterials(const char *filePath, int *out_materialsCount, struct material **out_materials) {
+    long materialsOffset = *out_materialsCount - 1;
+    
+    FILE *materialsFile = fopen(filePath, "r");
+    
+    if (materialsFile == NULL) {
+        printf("Material template library file can not be opened: %s\n", filePath);
+        return;
+    }
+    
+    char buffer[10];
+    // First pass, counting materials
+    while(fscanf(materialsFile, "%s", buffer) > 0) {
+        if (strcmp("newmtl", buffer) == 0) {
+            *out_materialsCount += 1;
+        }
+        
+        // Skipping actual contents for now
+        char c = '\n';
+        do { c = getc(materialsFile);} while(c != '\n' && c != EOF);
+    }
+    
+    rewind(materialsFile);
+    struct material *allocatedMaterials = reallocarray(*out_materials, *out_materialsCount, sizeof(struct material));
+    if (allocatedMaterials == NULL) {
+        printf("Some error has occured while reallocating material collection\n");
+        *out_materialsCount = materialsOffset + 1;
+        fclose(materialsFile);
+        return;
+    }
+    *out_materials = allocatedMaterials;
+    
+    printf("Started material template library initialization\n");
+    while(fscanf(materialsFile, "%s", buffer) > 0) {
+        if (strcmp("#", buffer) == 0) {
+            printf("Encountered a comment:");
+            char commentChar = '\n';
+            do {
+                commentChar = getc(materialsFile);
+                putchar(commentChar);
+            } while(commentChar != '\n' && commentChar != EOF);
+            continue;
+        } else if (strcmp("newmtl", buffer) == 0) {
+            materialsOffset += 1;
+            getc(materialsFile);
+            initMaterial((*out_materials) + materialsOffset);
+            fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].name);
+            printf("Initializing material: %s\n", (*out_materials)[materialsOffset].name);
+        } else if (strcmp("Ka", buffer) == 0) {
+            fscanf(materialsFile, "%f%f%f",
+                   (*out_materials)[materialsOffset].ambientColor, 
+                   (*out_materials)[materialsOffset].ambientColor + 1, 
+                   (*out_materials)[materialsOffset].ambientColor + 2);
+        } else if (strcmp("Kd", buffer) == 0) {
+            fscanf(materialsFile, "%f%f%f",
+                   (*out_materials)[materialsOffset].diffuseColor, 
+                   (*out_materials)[materialsOffset].diffuseColor + 1, 
+                   (*out_materials)[materialsOffset].diffuseColor + 2);
+        } else if (strcmp("Ks", buffer) == 0) {
+            fscanf(materialsFile, "%f%f%f",
+                   (*out_materials)[materialsOffset].specularColor, 
+                   (*out_materials)[materialsOffset].specularColor + 1, 
+                   (*out_materials)[materialsOffset].specularColor + 2);
+        } else if (strcmp("Ns", buffer) == 0) {
+            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].specularExponent);
+        } else if (strcmp("d", buffer) == 0) {
+            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].opaque);
+        } else if (strcmp("Tr", buffer) == 0) {
+            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].opaque);
+            (*out_materials)[materialsOffset].opaque = 1.0f - (*out_materials)[materialsOffset].opaque;
+        } else if (strcmp("Tf", buffer) == 0) {
+            // No CIEXYZ or spectral curve support
+            fscanf(materialsFile, "%f%f%f",
+                   (*out_materials)[materialsOffset].transmissionFilterColor, 
+                   (*out_materials)[materialsOffset].transmissionFilterColor + 1, 
+                   (*out_materials)[materialsOffset].transmissionFilterColor + 2);
+        } else if (strcmp("Ni", buffer) == 0) {
+            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].refractionIndex);
+        } else if (strcmp("illum", buffer) == 0) {
+            fscanf(materialsFile, "%hhu", &(*out_materials)[materialsOffset].illum);
+        } else if (strcmp("map_Kd", buffer) == 0) {
+            if ((*out_materials)[materialsOffset].ambientTextureMap != NULL) {
+                free((*out_materials)[materialsOffset].ambientTextureMap);
+            }
+            fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].ambientTextureMap);
+        } else if (strcmp("map_Ks", buffer) == 0) {
+            if ((*out_materials)[materialsOffset].specularTextureMap != NULL) {
+                free((*out_materials)[materialsOffset].specularTextureMap);
+            }
+            fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].specularTextureMap);
+        } else if (strcmp("map_Ns", buffer) == 0) {
+            if ((*out_materials)[materialsOffset].specularHighlightComponent != NULL) {
+                free((*out_materials)[materialsOffset].specularHighlightComponent);
+            }
+            fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].specularHighlightComponent);
+        } else if (strcmp("map_d", buffer) == 0) {
+            if ((*out_materials)[materialsOffset].alphaTextureMap != NULL) {
+                free((*out_materials)[materialsOffset].alphaTextureMap);
+            }
+            fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].alphaTextureMap);
+        } else if (strcmp("bump", buffer) == 0 || strcmp("map_bump", buffer) == 0) {
+            if ((*out_materials)[materialsOffset].bumpMap != NULL) {
+                free((*out_materials)[materialsOffset].bumpMap);
+            }
+            fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].bumpMap);
+        } else if (strcmp("disp", buffer) == 0) {
+            if ((*out_materials)[materialsOffset].displacementMap != NULL) {
+                free((*out_materials)[materialsOffset].displacementMap);
+            }
+            fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].displacementMap);
+        } else if (strcmp("decal", buffer) == 0) {
+            if ((*out_materials)[materialsOffset].stencilDecalTexture != NULL) {
+                free((*out_materials)[materialsOffset].stencilDecalTexture);
+            }
+            fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].stencilDecalTexture);
+        }
+        
+        // Skipping actual contents for everything that can not be processed
+        char c = '\n';
+        do { c = getc(materialsFile);} while(c != '\n' && c != EOF);
+    }
+    
+    fclose(materialsFile);
+}
+
 void importObjModel(const char *filePath, struct model *out_model) {
     FILE *modelFile = fopen(filePath, "r");
 
@@ -224,9 +410,13 @@ void importObjModel(const char *filePath, struct model *out_model) {
         return;
     }
     
+    char *pathToModelDirectory = directoryFromPath(filePath);
+    unsigned long directoryPathLength = strlen(pathToModelDirectory);
     printf("Started parsing obj file: %s\n", filePath);
     
     unsigned long vertexTextureCount = 0, vertexNormalCount = 0;
+    int materialsCount = 0;
+    struct material *materials = NULL;
     
     char buffer[10];
     
@@ -245,6 +435,20 @@ void importObjModel(const char *filePath, struct model *out_model) {
         } else if (strcmp("s", buffer) == 0) {
         } else if (strcmp("o", buffer) == 0) {
         } else if (strcmp("mtllib", buffer) == 0) {
+            char *materialLibraryFilename = NULL;
+            getc(modelFile); // Skipping space
+            fscanf(modelFile, "%ms", &materialLibraryFilename);
+            if (materialLibraryFilename == NULL) {
+                continue;
+            }
+            
+            char *fullMaterialLibraryPath = malloc(directoryPathLength + strlen(materialLibraryFilename) + 1);
+            strcpy(fullMaterialLibraryPath, pathToModelDirectory);
+            strcat(fullMaterialLibraryPath, materialLibraryFilename);
+            free(materialLibraryFilename);
+            
+            importMaterials(fullMaterialLibraryPath, &materialsCount, &materials);
+            free(fullMaterialLibraryPath);
         } else if (strcmp("usemtl", buffer) == 0) {
         } else {
             printf("Unknown model definition section: %s\n", buffer);
@@ -255,40 +459,35 @@ void importObjModel(const char *filePath, struct model *out_model) {
         do { c = getc(modelFile);} while(c != '\n' && c != EOF);
     }
     
-    printf("Prepared model info: vertices - %lu, vertex size - %i, indices - %lu\n", out_model->body.verticeCount, out_model->body.vertexSize, out_model->body.verticeCount * 6);
     rewind(modelFile);
     
     out_model->body.vertices = calloc(out_model->body.verticeCount, out_model->body.vertexSize * sizeof(float));
     
     if (out_model->body.vertices == NULL) {
         printf("Not enough memory to allocate model vertex array\n");
-        fclose(modelFile);
-        return;
+        goto obj_cleanup;
     }
     
     out_model->indexCount = out_model->body.verticeCount * 6, out_model->indices = calloc(out_model->body.verticeCount * 6, sizeof(unsigned int));
     if (out_model->indices == NULL) {
         printf("Not enough memory to allocate model index array\n");
-        fclose(modelFile);
-        return;
+        goto obj_cleanup;
     }
     
     float *vertexTextures = calloc(2 * vertexTextureCount, sizeof(float));
     if (vertexTextureCount > 0 && vertexTextures == NULL) {
         printf("Not enough memory to allocate temporary texture coordinates storage\n");
-        fclose(modelFile);
-        return;
+        goto obj_cleanup;
     }
     
     float *vertexNormals = calloc(3 * vertexNormalCount, sizeof(float));
     if (vertexNormalCount > 0 && vertexNormals == NULL) {
         printf("Not enough memory to allocate temporary normals storage\n");
-        free(vertexTextures);
-        fclose(modelFile);
-        return;
+        goto obj_cleanup;
     }
     
     unsigned long v = 0, vt = 0, vn = 0, idx = 0;
+    unsigned int currentMaterial = materialsCount;
     
     float minX = FLT_MAX, maxX = FLT_MIN, minY = FLT_MAX, maxY = FLT_MIN, minZ = FLT_MAX, maxZ = FLT_MIN;
     printf("Started model initialization\n");
@@ -329,7 +528,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
             v += 1;
             
             if (getc(modelFile) == ' ') {
-                float w; fscanf(modelFile, "%f", &w);
+                fscanf(modelFile, "%*f");
                 getc(modelFile);
                 continue;
             }
@@ -345,7 +544,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
             fscanf(modelFile, "%f", vertexTextures + vt * 2 + 1);
             
             if (getc(modelFile) == ' ') {
-                float w; fscanf(modelFile, "%f", &w);
+                fscanf(modelFile, "%*f");
                 getc(modelFile);
                 continue;
             }
@@ -431,13 +630,17 @@ void importObjModel(const char *filePath, struct model *out_model) {
             } while(commentChar != '\n' && commentChar != EOF);
             continue;
         } else if (strcmp("usemtl", buffer) == 0) {
-            printf("Encountered a material usage:");
-            char commentChar = '\n';
-            do {
-                commentChar = getc(modelFile);
-                putchar(commentChar);
-            } while(commentChar != '\n' && commentChar != EOF);
-            continue;
+            getc(modelFile);
+            char *materialName; fscanf(modelFile, "%ms", &materialName);
+            for (currentMaterial = 0; currentMaterial < materialsCount && strcmp(materials[currentMaterial].name, materialName) != 0; currentMaterial += 1);
+            if (currentMaterial == materialsCount) {
+                printf("Encountered unknown material: %s\n", materialName);
+            } else {
+                printf("Using material: %s\n", materialName);
+            }
+            if (materialName != NULL) {
+                free(materialName);
+            }
         } else {
             printf("Unknown model definition section: %s\n", buffer);
         }
@@ -450,17 +653,32 @@ void importObjModel(const char *filePath, struct model *out_model) {
     out_model->body.depth = maxZ - minZ,
     out_model->body.height = maxY - minY;
     
-    fclose(modelFile);
-    
-    free(vertexTextures), free(vertexNormals);
-    
     if (idx < out_model->indexCount) {
         printf("Resizing an index array to %lu elements\n", idx);
         out_model->indices = (GLuint *)(reallocarray(out_model->indices, idx, sizeof(unsigned int)));
         out_model->indexCount = idx;
     }
 
+    obj_cleanup:
     printf("Completed OBJ model import\n");
+    fclose(modelFile);
+    if (vertexTextures != NULL) {
+        free(vertexTextures);
+    }
+    if (vertexNormals != NULL) {
+        free(vertexNormals);
+    }
+    
+    for (unsigned int i = 0; i < materialsCount; i += 1) {
+        freeMaterial(materials + i);
+    }
+    if (materials != NULL) {
+        free(materials);
+    }
+    
+    if (strcmp("", pathToModelDirectory) != 0) {
+        free(pathToModelDirectory);
+    }
 }
 
 void importModel(const char *filePath, struct model *out_model) {
