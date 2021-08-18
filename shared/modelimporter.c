@@ -461,6 +461,9 @@ void importObjModel(const char *filePath, struct model *out_model) {
     
     rewind(modelFile);
     
+    unsigned long dynamicBufferSize = 512;
+    char *dynamicBuffer = calloc(dynamicBufferSize, sizeof(char));
+    
     out_model->body.vertices = calloc(out_model->body.verticeCount, out_model->body.vertexSize * sizeof(float));
     
     if (out_model->body.vertices == NULL) {
@@ -558,45 +561,52 @@ void importObjModel(const char *filePath, struct model *out_model) {
             continue;
         }  else if (strcmp("vp", buffer) == 0) {
         } else if (strcmp("f", buffer) == 0) {
-            char nextC;
+            int faceSize = 0;
+            long c = -1;
+            bool hasVt = true, hasVn = true;
             do {
+                c += 1;
+                if (c == dynamicBufferSize) {
+                    dynamicBufferSize *= 2;
+                    dynamicBuffer = reallocarray(dynamicBuffer, dynamicBufferSize, sizeof(char));
+                }
+                dynamicBuffer[c] = getc(modelFile);
+                if (dynamicBuffer[c] == ' ') {
+                    faceSize += 1;
+                }
+            } while(dynamicBuffer[c] != '\n' && dynamicBuffer[c] != EOF);
+            for (; c > 0; c -= 1) {
+                if (dynamicBuffer[c] == ' ') {
+                    hasVn = hasVn && dynamicBuffer[c] != '/';
+                }
+                if (dynamicBuffer[c] == '/') {
+                    hasVt = hasVt && dynamicBuffer[c] != '/';
+                }
+                ungetc(dynamicBuffer[c], modelFile);
+            }
+            ungetc(dynamicBuffer[c], modelFile);
+            
+            for (int i = 0; i < faceSize; i += 1) {
                 unsigned long fv = 0, fvt = 0, fvn = 0;
                 fscanf(modelFile, "%lu", &fv);
+                out_model->indices[idx] = fv - 1;
+                idx += 1;
                 getc(modelFile); // Reading the first slash
                 
-                nextC = getc(modelFile);
-                if (nextC >= '0' && nextC <= '9') {
-                    ungetc(nextC, modelFile);
+                if (hasVt) {
                     fscanf(modelFile, "%lu", &fvt);
-                    getc(modelFile); // Reading the second slash
-                }
-                
-                nextC = getc(modelFile);
-                if (nextC >= '0' && nextC <= '9') {
-                    ungetc(nextC, modelFile);
-                    fscanf(modelFile, "%lu", &fvn);
-                } else {
-                    ungetc(nextC, modelFile);
-                }
-                
-                out_model->indices[idx] = fv - 1;
-                
-                if (fvt > 0) {
                     out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 6] = vertexTextures[(fvt - 1) * 2],
                     out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 7] = vertexTextures[(fvt - 1) * 2 + 1];
                 }
+                getc(modelFile); // Reading the second slash
                 
-                if (fvn > 0) {
+                if (hasVn) {
+                    fscanf(modelFile, "%lu", &fvn);
                     out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 3] = vertexNormals[(fvn - 1) * 3],
                     out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 4] = vertexNormals[(fvn - 1) * 3 + 1],
                     out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 5] = vertexNormals[(fvn - 1) * 3 + 2];
                 }
-                
-                idx += 1;
-                
-                nextC = getc(modelFile);
-            } while(nextC == ' ');
-            continue;
+            }
         } else if (strcmp("g", buffer) == 0) {
             printf("Encountered a group:");
             char commentChar = '\n';
@@ -679,6 +689,8 @@ void importObjModel(const char *filePath, struct model *out_model) {
     if (strcmp("", pathToModelDirectory) != 0) {
         free(pathToModelDirectory);
     }
+    
+    free(dynamicBuffer);
 }
 
 void importModel(const char *filePath, struct model *out_model) {
