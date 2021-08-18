@@ -530,8 +530,8 @@ void importObjModel(const char *filePath, struct model *out_model) {
             if (getc(modelFile) == ' ') {
                 fscanf(modelFile, "%*f");
                 getc(modelFile);
-                continue;
             }
+            continue;
         }  else if (strcmp("vt", buffer) == 0) {
             fscanf(modelFile, "%f", vertexTextures + vt * 2);
             vt += 1;
@@ -546,8 +546,8 @@ void importObjModel(const char *filePath, struct model *out_model) {
             if (getc(modelFile) == ' ') {
                 fscanf(modelFile, "%*f");
                 getc(modelFile);
-                continue;
             }
+            continue;
         }  else if (strcmp("vn", buffer) == 0) {
             fscanf(modelFile, "%f %f %f", 
                 vertexNormals + vn * 3, 
