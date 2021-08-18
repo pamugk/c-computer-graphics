@@ -40,7 +40,5 @@ void main()
     vec3 r = reflect(l, v_normal); // Вектор отражения
     vec3 e = normalize(u_oeye - v_pos); // Ось зрения наблюдателя
     float s = max(pow(dot(r, e), u_osfoc), 0.0) * (int(cosa >= 0.0)); // Коэффициент зеркального блика, при cosa < 0 обнуляется для устранения бликов на обратной источнику света стороне
-    vec4 texColor = vec4(materials.length());
-    o_color = int(u_lie) * vec4(u_olcol * (d * texColor.xyz + s), 1.0) + int(!u_lie) * texColor;
-    //o_color = vec4(MaterialBlock.materials[i_material].diffuseColor, MaterialBlock.materials[i_material].opaque);
+    o_color = vec4(materials[i_material].diffuseColor, materials[i_material].opaque);
 }
