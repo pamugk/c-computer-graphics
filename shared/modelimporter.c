@@ -421,6 +421,9 @@ void importObjModel(const char *filePath, struct model *out_model) {
     char buffer[10];
     
     // First pass, counting thingumajigs
+    unsigned long dynamicBufferSize = 512;
+    char *dynamicBuffer = calloc(dynamicBufferSize, sizeof(char));
+    unsigned int maxFaceSize = 0;
     while(fscanf(modelFile, "%s", buffer) > 0) {
         if (strcmp("#", buffer) == 0) {
         } else if (strcmp("v", buffer) == 0) {
@@ -431,6 +434,23 @@ void importObjModel(const char *filePath, struct model *out_model) {
             vertexNormalCount += 1;
         }  else if (strcmp("vp", buffer) == 0) {
         } else if (strcmp("f", buffer) == 0) {
+            unsigned int faceSize = 0;
+            long c = -1;
+            do {
+                c += 1;
+                if (c == dynamicBufferSize) {
+                    dynamicBufferSize *= 2;
+                    dynamicBuffer = reallocarray(dynamicBuffer, dynamicBufferSize, sizeof(char));
+                }
+                dynamicBuffer[c] = getc(modelFile);
+                if (dynamicBuffer[c] == ' ') {
+                    faceSize += 1;
+                }
+            } while(dynamicBuffer[c] != '\n' && dynamicBuffer[c] != EOF);
+            if (maxFaceSize < faceSize) {
+                maxFaceSize = faceSize;
+            }
+            continue;
         } else if (strcmp("g", buffer) == 0) {
         } else if (strcmp("s", buffer) == 0) {
         } else if (strcmp("o", buffer) == 0) {
@@ -461,9 +481,6 @@ void importObjModel(const char *filePath, struct model *out_model) {
     
     rewind(modelFile);
     
-    unsigned long dynamicBufferSize = 512;
-    char *dynamicBuffer = calloc(dynamicBufferSize, sizeof(char));
-    
     out_model->body.vertices = calloc(out_model->body.verticeCount, out_model->body.vertexSize * sizeof(float));
     
     if (out_model->body.vertices == NULL) {
@@ -493,7 +510,9 @@ void importObjModel(const char *filePath, struct model *out_model) {
     unsigned int currentMaterial = materialsCount;
     
     float minX = FLT_MAX, maxX = FLT_MIN, minY = FLT_MAX, maxY = FLT_MIN, minZ = FLT_MAX, maxZ = FLT_MIN;
+    
     printf("Started model initialization\n");
+    unsigned int *indices = calloc(maxFaceSize, sizeof(unsigned int));
     while(fscanf(modelFile, "%s", buffer) > 0) {
         if (strcmp("#", buffer) == 0) {
             printf("Encountered a comment:");
@@ -561,15 +580,11 @@ void importObjModel(const char *filePath, struct model *out_model) {
             continue;
         }  else if (strcmp("vp", buffer) == 0) {
         } else if (strcmp("f", buffer) == 0) {
-            int faceSize = 0;
+            unsigned int faceSize = 0;
             long c = -1;
             bool hasVt = true, hasVn = true;
             do {
                 c += 1;
-                if (c == dynamicBufferSize) {
-                    dynamicBufferSize *= 2;
-                    dynamicBuffer = reallocarray(dynamicBuffer, dynamicBufferSize, sizeof(char));
-                }
                 dynamicBuffer[c] = getc(modelFile);
                 if (dynamicBuffer[c] == ' ') {
                     faceSize += 1;
@@ -586,11 +601,10 @@ void importObjModel(const char *filePath, struct model *out_model) {
             }
             ungetc(dynamicBuffer[c], modelFile);
             
-            for (int i = 0; i < faceSize; i += 1) {
+            for (unsigned int i = 0; i < faceSize; i += 1) {
                 unsigned long fv = 0, fvt = 0, fvn = 0;
                 fscanf(modelFile, "%lu", &fv);
-                out_model->indices[idx] = fv - 1;
-                idx += 1;
+                indices[i] = fv - 1;
                 getc(modelFile); // Reading the first slash
                 
                 if (hasVt) {
@@ -606,6 +620,13 @@ void importObjModel(const char *filePath, struct model *out_model) {
                     out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 4] = vertexNormals[(fvn - 1) * 3 + 1],
                     out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 5] = vertexNormals[(fvn - 1) * 3 + 2];
                 }
+            }
+            
+            for (unsigned int i = 1; i < faceSize; i += 2) {
+                out_model->indices[idx] = indices[0];
+                out_model->indices[idx + 1] = indices[i];
+                out_model->indices[idx + 2] = indices[i + 1];
+                idx += 3;
             }
         } else if (strcmp("g", buffer) == 0) {
             printf("Encountered a group:");
@@ -662,6 +683,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
     out_model->body.width = maxX - minX,
     out_model->body.depth = maxZ - minZ,
     out_model->body.height = maxY - minY;
+    free(indices);
     
     if (idx < out_model->indexCount) {
         printf("Resizing an index array to %lu elements\n", idx);
