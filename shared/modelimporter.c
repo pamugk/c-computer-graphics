@@ -704,7 +704,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
         free(vertexNormals);
     }
     
-    out_model->materials = calloc(out_model->materialsCount + 1, sizeof(struct material));
+    out_model->materials = calloc(out_model->materialsCount, sizeof(struct material));
     for (unsigned int i = 0; i < out_model->materialsCount; i += 1) {
         memccpy(out_model->materials[i].ambientColor, materials[i].ambientColor, 3, sizeof(float)),
         memccpy(out_model->materials[i].diffuseColor, materials[i].diffuseColor, 3, sizeof(float)),
@@ -717,7 +717,6 @@ void importObjModel(const char *filePath, struct model *out_model) {
         out_model->materials[i].refractionIndex = materials[i].refractionIndex,
         out_model->materials[i].illum = materials[i].illum;
     }
-    initMaterial(out_model->materials + out_model->materialsCount);
     
     for (unsigned int i = 0; i < out_model->materialsCount; i += 1) {
         freeMaterial(materials + i);
