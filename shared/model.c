@@ -6,6 +6,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+void initMaterial(struct material *out_material) {
+    out_material->ambientColor[0] = 0, out_material->ambientColor[1] = 0, out_material->ambientColor[2] = 0,
+    out_material->diffuseColor[0] = 0, out_material->diffuseColor[1] = 0, out_material->diffuseColor[2] = 0,
+    out_material->specularColor[0] = 0, out_material->specularColor[1] = 0, out_material->specularColor[2] = 0,
+    out_material->specularExponent = 0,
+    
+    out_material->opaque = 1,
+    out_material->transmissionFilterColor[0] = 0, out_material->transmissionFilterColor[1] = 0, out_material->transmissionFilterColor[2] = 0,
+    
+    out_material->refractionIndex = 1,
+    out_material->illum = 0;
+}
+
 bool makeIndices(struct body physicalBody, GLsizei *out_indexCount, GLuint **out_indices) {
     if (physicalBody.width == 0 || physicalBody.depth == 0) {
         printf("Provided physical body is 0D\n");
@@ -80,8 +93,6 @@ bool initModel(struct model *out_model) {
         attributeShift += out_model->attributes[i].size;
     }
     printf("Bound model attributes\n");
-
-    makeIdenticalQuat(&out_model->q);
 
     printf("Completed model initialization\n");
         
@@ -198,5 +209,9 @@ void freeModel(struct model *model) {
     if (model->attributes != NULL) {
         free(model->attributes);
         model->attributes = NULL;
+    }
+    
+    if (model->materials != NULL) {
+        free(model->materials);
     }
 }

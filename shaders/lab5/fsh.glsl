@@ -1,16 +1,32 @@
 #version 450
 
+struct Material {
+    vec3 ambientColor;
+    vec3 diffuseColor;
+    vec3 specularColor;
+    float specularExponent;
+    
+    float opaque;
+    vec3 transmissionFilterColor;
+    
+    float refractionIndex;
+    int illum;
+};
+
 uniform vec3 u_olpos; // Позиция источника света
 uniform vec3 u_olcol; // Цвет света
 uniform vec3 u_oeye; // Позиция наблюдателя
 uniform float u_odmin; // Минимально допустимый уровень освещённости объекта в точке P
 uniform float u_osfoc;  // сфокусированность зеркального блика на поверхности освещаемого объекта в точке P
+uniform MaterialBlock {
+    Material materials[];
+};
 
 uniform bool u_lie; // Признак использования модели освещения (вкл. / выкл.)
 
-in vec2 v_texCoord; // Текстурные координаты
-in vec3 v_normal; // Нормаль
 in vec3 v_pos; // Позиция вершины
+in vec3 v_normal; // Нормаль
+in vec2 v_texCoord;
 
 layout(location = 0) out vec4 o_color;
 

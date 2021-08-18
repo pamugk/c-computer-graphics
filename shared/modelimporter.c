@@ -216,7 +216,7 @@ bool isObj(const char *fileExtension) {
     return strcmp(fileExtension, "obj") == 0;
 }
 
-struct material {
+struct mtl {
     char *name;
     
     float ambientColor[3];
@@ -240,7 +240,7 @@ struct material {
     char *stencilDecalTexture;
 };
 
-void initMaterial(struct material *out_material) {
+void initMaterialInner(struct mtl *out_material) {
     out_material->name = NULL,
     
     out_material->ambientColor[0] = 0, out_material->ambientColor[1] = 0, out_material->ambientColor[2] = 0,
@@ -264,7 +264,7 @@ void initMaterial(struct material *out_material) {
     out_material->stencilDecalTexture = NULL;
 }
 
-void freeMaterial(struct material *out_material) {
+void freeMaterial(struct mtl *out_material) {
     free(out_material->name);
     
     free(out_material->ambientTextureMap);
@@ -277,7 +277,7 @@ void freeMaterial(struct material *out_material) {
     free(out_material->stencilDecalTexture);
 }
 
-void importMaterials(const char *filePath, int *out_materialsCount, struct material **out_materials) {
+void importMaterials(const char *filePath, int *out_materialsCount, struct mtl **out_materials) {
     long materialsOffset = *out_materialsCount - 1;
     
     FILE *materialsFile = fopen(filePath, "r");
@@ -300,7 +300,7 @@ void importMaterials(const char *filePath, int *out_materialsCount, struct mater
     }
     
     rewind(materialsFile);
-    struct material *allocatedMaterials = reallocarray(*out_materials, *out_materialsCount, sizeof(struct material));
+    struct mtl *allocatedMaterials = reallocarray(*out_materials, *out_materialsCount, sizeof(struct mtl));
     if (allocatedMaterials == NULL) {
         printf("Some error has occured while reallocating material collection\n");
         *out_materialsCount = materialsOffset + 1;
@@ -322,7 +322,7 @@ void importMaterials(const char *filePath, int *out_materialsCount, struct mater
         } else if (strcmp("newmtl", buffer) == 0) {
             materialsOffset += 1;
             getc(materialsFile);
-            initMaterial((*out_materials) + materialsOffset);
+            initMaterialInner((*out_materials) + materialsOffset);
             fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].name);
             printf("Initializing material: %s\n", (*out_materials)[materialsOffset].name);
         } else if (strcmp("Ka", buffer) == 0) {
@@ -415,8 +415,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
     printf("Started parsing obj file: %s\n", filePath);
     
     unsigned long vertexTextureCount = 0, vertexNormalCount = 0, faceCount = 0;
-    int materialsCount = 0;
-    struct material *materials = NULL;
+    struct mtl *materials = NULL;
     
     char buffer[10];
     
@@ -468,7 +467,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
             strcat(fullMaterialLibraryPath, materialLibraryFilename);
             free(materialLibraryFilename);
             
-            importMaterials(fullMaterialLibraryPath, &materialsCount, &materials);
+            importMaterials(fullMaterialLibraryPath, &out_model->materialsCount, &materials);
             free(fullMaterialLibraryPath);
         } else if (strcmp("usemtl", buffer) == 0) {
         } else {
@@ -509,7 +508,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
     }
     
     unsigned long v = 0, vt = 0, vn = 0, idx = 0;
-    unsigned int currentMaterial = materialsCount;
+    unsigned int currentMaterial = out_model->materialsCount;
     
     float minX = FLT_MAX, maxX = FLT_MIN, minY = FLT_MAX, maxY = FLT_MIN, minZ = FLT_MAX, maxZ = FLT_MIN;
     
@@ -665,8 +664,8 @@ void importObjModel(const char *filePath, struct model *out_model) {
         } else if (strcmp("usemtl", buffer) == 0) {
             getc(modelFile);
             char *materialName; fscanf(modelFile, "%ms", &materialName);
-            for (currentMaterial = 0; currentMaterial < materialsCount && strcmp(materials[currentMaterial].name, materialName) != 0; currentMaterial += 1);
-            if (currentMaterial == materialsCount) {
+            for (currentMaterial = 0; currentMaterial < out_model->materialsCount && strcmp(materials[currentMaterial].name, materialName) != 0; currentMaterial += 1);
+            if (currentMaterial == out_model->materialsCount) {
                 printf("Encountered unknown material: %s\n", materialName);
             } else {
                 printf("Using material: %s\n", materialName);
@@ -703,7 +702,22 @@ void importObjModel(const char *filePath, struct model *out_model) {
         free(vertexNormals);
     }
     
-    for (unsigned int i = 0; i < materialsCount; i += 1) {
+    out_model->materials = calloc(out_model->materialsCount + 1, sizeof(struct material));
+    for (unsigned int i = 0; i < out_model->materialsCount; i += 1) {
+        memccpy(out_model->materials[i].ambientColor, materials[i].ambientColor, 3, sizeof(float)),
+        memccpy(out_model->materials[i].diffuseColor, materials[i].diffuseColor, 3, sizeof(float)),
+        memccpy(out_model->materials[i].specularColor, materials[i].specularColor, 3, sizeof(float)),
+        out_model->materials[i].specularExponent = materials[i].specularExponent,
+        
+        out_model->materials[i].opaque = materials[i].opaque,
+        memccpy(out_model->materials[i].transmissionFilterColor, materials[i].transmissionFilterColor, 3, sizeof(float)),
+        
+        out_model->materials[i].refractionIndex = materials[i].refractionIndex,
+        out_model->materials[i].illum = materials[i].illum;
+    }
+    initMaterial(out_model->materials + out_model->materialsCount);
+    
+    for (unsigned int i = 0; i < out_model->materialsCount; i += 1) {
         freeMaterial(materials + i);
     }
     if (materials != NULL) {

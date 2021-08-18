@@ -23,6 +23,19 @@ struct body {
     GLfloat *vertices;
 };
 
+struct material {
+    float ambientColor[3];
+    float diffuseColor[3];
+    float specularColor[3];
+    float specularExponent;
+    
+    float opaque;
+    float transmissionFilterColor[3];
+    
+    float refractionIndex;
+    int illum;
+};
+
 struct model {
     GLuint vbo; //VertexBufferObject - буфер вершин
     struct body body;
@@ -35,11 +48,14 @@ struct model {
     GLsizei attributesCount;
     struct attribute *attributes;
     
+    GLsizei materialsCount;
+    struct material *materials;
+    
     struct quat q;
     float m[16];
 };
 
-void makeSkyModel(struct body *skyBody, GLuint **indices, struct attribute **attributes);
+void initMaterial(struct material *out_material);
 
 bool initModel(struct model *out_model);
 

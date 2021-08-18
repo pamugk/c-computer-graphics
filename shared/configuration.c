@@ -493,8 +493,9 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
     fscanf(configurationFile, "%hhi%s", &out_model->body.vertexSize, staticBuffer);
     
     printf("Loading model of type %s with %hhi elements per vertex\n", staticBuffer, out_model->body.vertexSize);
-    
+    out_model->materialsCount = 0, out_model->materials = NULL;
     getIdentityMatrix(out_model->m);
+    makeIdenticalQuat(&out_model->q);
     bool noErrorsOccured = true;
     if (strcmp("heightmap", staticBuffer) == 0) {
         float h;
