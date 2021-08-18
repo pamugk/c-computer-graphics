@@ -488,7 +488,8 @@ void importObjModel(const char *filePath, struct model *out_model) {
         goto obj_cleanup;
     }
     
-    out_model->indexCount = out_model->body.verticeCount * 6, out_model->indices = calloc(out_model->body.verticeCount * 6, sizeof(unsigned int));
+    out_model->indexCount = out_model->body.verticeCount * (maxFaceSize - 2) * 3;
+    out_model->indices = calloc(out_model->indexCount, sizeof(unsigned int));
     if (out_model->indices == NULL) {
         printf("Not enough memory to allocate model index array\n");
         goto obj_cleanup;
@@ -622,7 +623,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
                 }
             }
             
-            for (unsigned int i = 1; i < faceSize; i += 2) {
+            for (unsigned int i = 1; i + 1 < faceSize; i += 1) {
                 out_model->indices[idx] = indices[0];
                 out_model->indices[idx + 1] = indices[i];
                 out_model->indices[idx + 2] = indices[i + 1];
