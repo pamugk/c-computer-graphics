@@ -414,7 +414,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
     unsigned long directoryPathLength = strlen(pathToModelDirectory);
     printf("Started parsing obj file: %s\n", filePath);
     
-    unsigned long vertexTextureCount = 0, vertexNormalCount = 0;
+    unsigned long vertexTextureCount = 0, vertexNormalCount = 0, faceCount = 0;
     int materialsCount = 0;
     struct material *materials = NULL;
     
@@ -450,6 +450,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
             if (maxFaceSize < faceSize) {
                 maxFaceSize = faceSize;
             }
+            faceCount += 1;
             continue;
         } else if (strcmp("g", buffer) == 0) {
         } else if (strcmp("s", buffer) == 0) {
@@ -488,7 +489,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
         goto obj_cleanup;
     }
     
-    out_model->indexCount = out_model->body.verticeCount * (maxFaceSize - 2) * 3;
+    out_model->indexCount = faceCount * maxFaceSize * 3;
     out_model->indices = calloc(out_model->indexCount, sizeof(unsigned int));
     if (out_model->indices == NULL) {
         printf("Not enough memory to allocate model index array\n");
