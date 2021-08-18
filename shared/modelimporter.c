@@ -610,8 +610,8 @@ void importObjModel(const char *filePath, struct model *out_model) {
                 
                 if (hasVt) {
                     fscanf(modelFile, "%lu", &fvt);
-                    out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 6] = vertexTextures[(fvt - 1) * 2],
-                    out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 7] = vertexTextures[(fvt - 1) * 2 + 1];
+                    out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 7] = vertexTextures[(fvt - 1) * 2],
+                    out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 8] = vertexTextures[(fvt - 1) * 2 + 1];
                 }
                 getc(modelFile); // Reading the second slash
                 
@@ -621,6 +621,8 @@ void importObjModel(const char *filePath, struct model *out_model) {
                     out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 4] = vertexNormals[(fvn - 1) * 3 + 1],
                     out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 5] = vertexNormals[(fvn - 1) * 3 + 2];
                 }
+                
+                out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 6] = currentMaterial;
             }
             
             for (unsigned int i = 1; i + 1 < faceSize; i += 1) {

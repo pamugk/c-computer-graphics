@@ -8,6 +8,7 @@ char *pathToConfiguration;
 unsigned int g_programsCount;
 struct shader_program *g_programs;
 int *g_preprocessedVariables;
+int *g_preprocessedBlocks;
 
 // Models
 char g_terrain;
@@ -226,12 +227,21 @@ void draw() {
             glUniform1i(g_programs[i].textures[t].mapLocation, t);
         }
         
-        bool mvpDefined = g_preprocessedVariables[i * 3] != -1;
-        bool normalsDefined = g_preprocessedVariables[i * 3 + 1] != -1;
+        bool mvpDefined = g_preprocessedVariables[i * 3] != -1,
+        normalsDefined = g_preprocessedVariables[i * 3 + 1] != -1;
+        
+        struct shader_block *boundBlock = NULL;
+        if (g_preprocessedBlocks[i] != -1) {
+            boundBlock = g_programs[i].blocks + g_preprocessedBlocks[i];
+            if (boundBlock->id == 0) {
+                boundBlock = NULL;
+            }
+        }
             
         if (g_preprocessedVariables[i * 3 + 2] != -1) {
             memccpy(g_programs[i].variables[g_preprocessedVariables[i * 3 + 2]].value.floatVec3Val, e, 3, sizeof(float));
         }
+        
         for (int j = 0; j < g_programs[i].modelsToRenderCount; j += 1) {
             int m = g_programs[i].modelsToRenderIdx[j];
             
@@ -250,6 +260,13 @@ void draw() {
                 if (normalsDefined) {
                     buildNMatrix(g_programs[i].variables[g_preprocessedVariables[i * 3]].value.floatMat4Val, g_programs[i].variables[g_preprocessedVariables[i * 3 + 1]].value.floatMat3Val);
                 }
+            }
+            
+            if (boundBlock != NULL) {
+                glBindBuffer(boundBlock->bufferKind, boundBlock->id);
+                glBufferData(boundBlock->bufferKind, sizeof(struct material) * g_models[m].materialsCount, g_models[m].materials, GL_DYNAMIC_DRAW);
+                glBindBufferBase(boundBlock->bufferKind, boundBlock->index, boundBlock->id);
+                glBindBuffer(boundBlock->bufferKind, 0);
             }
             
             glBindVertexArray(g_models[m].vao);
@@ -464,6 +481,18 @@ void preprocessVariables() {
     }
 }
 
+void preprocessBlocks() {
+    g_preprocessedBlocks = calloc(g_programsCount, sizeof(int));
+    for (int i = 0; i < g_programsCount; i += 1) {
+        g_preprocessedBlocks[i] = -1;
+        for (int j = 0; j < g_programs[i].blocksCount; j += 1) {
+            if (strcmp("MaterialBlock", g_programs[i].blocks[j].name) == 0) {
+                g_preprocessedBlocks[i] = j;
+            }
+        }
+    }
+}
+
 void updateTrackPool() {
     ALuint finishedTrack = g_trackPool[0];
     g_trackPool[0] = g_trackPool[1];
@@ -490,6 +519,7 @@ void cleanup() {
     }
     free(g_programs);
     free(g_preprocessedVariables);
+    free(g_preprocessedBlocks);
     
     for (int i = 0; i < g_modelsCount; i += 1) {
         freeModel(g_models + i);
@@ -532,6 +562,8 @@ int main(int argc, char** argv) {
         &g_tracksCount, &g_musicFiles);
 	if (isOk) {
         preprocessVariables();
+        preprocessBlocks();
+        
         initOptics();
         initMusicPlayer();
         if (g_musicPlayer != 0) {

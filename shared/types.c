@@ -47,3 +47,27 @@ GLenum parseTypename(const char *typeName) {
     }
     return 0;
 }
+
+GLenum parseBlockKind(const char *blockKind) {
+    if (strcmp("GL_SHADER_STORAGE_BLOCK", blockKind) == 0) {
+        return GL_SHADER_STORAGE_BLOCK;
+    } else if (strcmp("GL_UNIFORM_BLOCK", blockKind) == 0) {
+        return GL_UNIFORM_BLOCK;
+    } else {
+        printf("Unknown block kind: %s\n", blockKind);
+    }
+    
+    return 0;
+}
+
+GLenum defineBufferKind(GLenum block) {
+    switch (block) {
+        case GL_SHADER_STORAGE_BLOCK: {
+            return GL_SHADER_STORAGE_BUFFER;
+        }
+        case GL_UNIFORM_BLOCK: {
+            return GL_UNIFORM_BUFFER;
+        }
+    }
+    return 0;
+}

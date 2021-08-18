@@ -24,6 +24,17 @@ struct shader_variable {
     } value;
 };
 
+struct shader_block {
+    GLint index;
+    GLuint id;
+    char *name;
+    
+    GLenum kind;
+    GLenum bufferKind;
+    
+    GLvoid *data;
+};
+
 struct shader_program {
     GLuint id;
 
@@ -35,6 +46,9 @@ struct shader_program {
 
     int textureCount;
     struct texture *textures;
+    
+    int blocksCount;
+    struct shader_block *blocks;
     
     int modelsToRenderCount;
     int *modelsToRenderIdx;

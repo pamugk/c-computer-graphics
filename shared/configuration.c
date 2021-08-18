@@ -214,6 +214,21 @@ bool parseShaderProgramConfig(FILE *configurationFile, struct shader_program *ou
                 dynamicBuffer = NULL;
                 parseVariableValue(configurationFile, out_program->variables + i, i >= reservedVariablesCount);
             }
+        } else if (strcmp("blocks:", section) == 0) {
+            fscanf(configurationFile, "%i", &out_program->blocksCount);
+            out_program->blocks = calloc(out_program->blocksCount, sizeof(struct shader_block));
+            
+            if (out_program->blocksCount > 0 && out_program->blocks == NULL) {
+                printf("Not enough memory to allocate blocks definition\n");
+                return false;
+            }
+            
+            for (int i = 0; i < out_program->blocksCount; i += 1) {
+                fscanf(configurationFile, "%ms%s", &dynamicBuffer, staticBuffer);
+                GLenum blockKind = parseBlockKind(staticBuffer);
+                out_program->blocks[i] = (struct shader_block) { -1, 0, dynamicBuffer, blockKind, defineBufferKind(blockKind), NULL };
+                dynamicBuffer = NULL;
+            }
         } else if(strcmp("textures:", section) == 0) {
             fscanf(configurationFile, "%i", &out_program->textureCount);
             out_program->textures = calloc(out_program->textureCount, sizeof(struct texture));
@@ -311,6 +326,11 @@ bool parseModelAttributes(FILE *configurationFile, struct model *out_model) {
             } else {
                 printf("Unknown coordinates attribute source: %s\n", staticBuffer);
                 return false;
+            }
+        } else if (strcmp("material:", staticBuffer) == 0) {
+            fscanf(configurationFile, "%s", staticBuffer);
+            if (strcmp("predefined", staticBuffer) == 0) {
+                // Do nothing, attribute is already set
             }
         } else if (strcmp("color:", staticBuffer) == 0) {
             if (out_model->attributes[i].size != 3) {

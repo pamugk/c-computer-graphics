@@ -50,6 +50,24 @@ bool initShaderProgram(struct shader_program *program) {
         }
     }
     printf("Initialized program №%i variables\n", program->id);
+    
+    
+    if (program->blocksCount > 0 && program->blocks == NULL) {
+        program->blocksCount = 0;
+        printf("No blocks were provided, but block count set to %i\n", program->textureCount);
+    } else {
+        for (int i = 0; i < program->blocksCount; i += 1) {
+            program->blocks[i].index = glGetProgramResourceIndex(program->id, program->blocks[i].kind, program->blocks[i].name);
+            if (program->blocks[i].index == -1) {
+                program->blocks[i].id = 0;
+                printf("Block '%s' not found in program №%i\n", program->blocks[i].name, program->id);
+            } else {
+                glGenBuffers(1, &program->blocks[i].id);
+            }
+            break;
+        }
+    }
+    printf("Initialized program №%i blocks\n", program->id);
 
     if (program->textureCount > 0 && program->textures == NULL) {
         program->textureCount = 0;
@@ -134,6 +152,22 @@ void passVariables(struct shader_program *program) {
 void freeVariable(struct shader_variable *variable) {
     if (variable->name != NULL) {
         free(variable->name);
+        variable->name = NULL;
+    }
+}
+
+void freeBlock(struct shader_block *block) {
+    if (block->name != NULL) {
+        free(block->name);
+        block->name = NULL;
+    }
+    if (block->id != 0) {
+        glDeleteBuffers(1, &block->id);
+        block->id = 0;
+    }
+    if (block->data != NULL) {
+        free(block->data);
+        block->data = NULL;
     }
 }
 
@@ -149,6 +183,7 @@ void freeProgram(struct shader_program *program) {
             freeShader(&program->shaders[i]);
         }
         free(program->shaders);
+        program->shaderCount = 0;
         program->shaders = NULL;
     }
     
@@ -157,7 +192,17 @@ void freeProgram(struct shader_program *program) {
             freeVariable(program->variables + i);
         }
         free(program->variables);
+        program->variablesCount = 0;
         program->variables = NULL;
+    }
+    
+    if (program->blocks != NULL) {
+        for (int i = 0; i < program->blocksCount; i += 1) {
+            freeBlock(program->blocks + i);
+        }
+        free(program->blocks);
+        program->blocksCount = 0;
+        program->blocks = NULL;
     }
     
     
