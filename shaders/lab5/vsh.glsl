@@ -7,6 +7,7 @@ layout(location = 3) in vec2 a_texCoord;
 
 uniform mat4 u_mvp; // MVP-матрица
 uniform mat3 u_n; // Матрица нормалей
+uniform sampler2DArray u_normalMap;
 
 out vec3 v_pos;
 out vec3 v_normal;

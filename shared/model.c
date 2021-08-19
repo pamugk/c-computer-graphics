@@ -214,4 +214,10 @@ void freeModel(struct model *model) {
     if (model->materials != NULL) {
         free(model->materials);
     }
+    
+    struct texture *modelTextures = &model->ambientTextures;
+    for (int i = 0; i < 9; i += 1) {
+        modelTextures[i].mapName = NULL;
+        freeTexture(modelTextures + i);
+    }
 }

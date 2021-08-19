@@ -2,9 +2,22 @@
 #define MODEL
 
 #include "quaternion.h"
+#include "texture.h"
 
 #include <GL/glew.h>
 #include <stdbool.h>
+
+static const char *builtInModelTextures[] = {
+    "u_ambientMap",
+    "u_diffuseMap",
+    "u_specularMap",
+    "u_specularHighlightComponent",
+    "u_alphaMap",
+    "u_bumpMap",
+    "u_displacementMap",
+    "u_stencilDecalMap",
+    "u_normalMap"
+};
 
 struct attribute {
     GLsizei size;
@@ -34,6 +47,16 @@ struct material {
     float transmissionFilterColor[3];
     
     float refractionIndex;
+    
+    int ambientTextureIdx;
+    int diffuseTextureIdx;
+    int specularTextureIdx;
+    int specularHighlightComponentIdx;
+    int alphaTextureIdx;
+    int bumpTextureIdx;
+    int displacementIdx;
+    int stencilDecalTextureIdx;
+    int normalTextureIdx;
 };
 
 struct model {
@@ -50,6 +73,16 @@ struct model {
     
     GLsizei materialsCount;
     struct material *materials;
+    
+    struct texture ambientTextures;
+    struct texture diffuseTextures;
+    struct texture specularTextures;
+    struct texture specularHighlightComponents;
+    struct texture alphaTextures;
+    struct texture bumpTextures;
+    struct texture displacements;
+    struct texture stencilDecalTextures;
+    struct texture normalTextures;
     
     struct quat q;
     float m[16];

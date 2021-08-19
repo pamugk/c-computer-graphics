@@ -516,6 +516,11 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
     out_model->materialsCount = 0, out_model->materials = NULL;
     getIdentityMatrix(out_model->m);
     makeIdenticalQuat(&out_model->q);
+    
+    struct texture *modelTextures = &out_model->ambientTextures;
+    for (int i = 0; i < 9; i += 1) {
+        modelTextures[i] = (struct texture){ 0, 0, (char *)builtInModelTextures[i], GL_TEXTURE_2D_ARRAY };
+    }
     bool noErrorsOccured = true;
     if (strcmp("heightmap", staticBuffer) == 0) {
         float h;

@@ -11,6 +11,16 @@ struct Material {
     vec3 transmissionFilterColor;
     
     float refractionIndex;
+    
+    int ambientTextureIdx;
+    int diffuseTextureIdx;
+    int specularTextureIdx;
+    int specularHighlightComponentIdx;
+    int alphaTextuerIdx;
+    int bumpTextureIdx;
+    int displacementIdx;
+    int stencilDecalTextureIdx;
+    int normalTextureIdx;
 };
 
 uniform vec3 u_olpos; // Позиция источника света
@@ -19,11 +29,20 @@ uniform vec3 u_oeye; // Позиция наблюдателя
 uniform float u_odmin; // Минимально допустимый уровень освещённости объекта в точке P
 uniform float u_osfoc;  // сфокусированность зеркального блика на поверхности освещаемого объекта в точке P
 
-buffer MaterialBlock {
+layout(std430) buffer MaterialBlock {
     Material materials[];
 };
 
 uniform bool u_lie; // Признак использования модели освещения (вкл. / выкл.)
+
+uniform sampler2DArray u_ambientMap;
+uniform sampler2DArray u_diffuseMap;
+uniform sampler2DArray u_specularMap;
+uniform sampler2DArray u_specularHighlightComponent;
+uniform sampler2DArray u_alphaMap;
+uniform sampler2DArray u_bumpMap;
+uniform sampler2DArray u_displacementMap;
+uniform sampler2DArray u_stencilDecalMap;
 
 in vec3 v_pos; // Позиция вершины
 in vec3 v_normal; // Нормаль
