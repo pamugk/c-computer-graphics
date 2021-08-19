@@ -722,8 +722,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
         out_model->materials[i].opaque = materials[i].opaque,
         memccpy(out_model->materials[i].transmissionFilterColor, materials[i].transmissionFilterColor, 3, sizeof(float)),
         
-        out_model->materials[i].refractionIndex = materials[i].refractionIndex,
-        out_model->materials[i].illum = materials[i].illum;
+        out_model->materials[i].refractionIndex = materials[i].refractionIndex;
     }
     
     for (unsigned int i = 0; i < out_model->materialsCount; i += 1) {

@@ -11,7 +11,6 @@ struct Material {
     vec3 transmissionFilterColor;
     
     float refractionIndex;
-    int illum;
 };
 
 uniform vec3 u_olpos; // Позиция источника света
@@ -35,11 +34,14 @@ layout(location = 0) out vec4 o_color;
 
 void main()
 {
+    Material material = materials[i_material];
+    
     vec3 l = normalize(v_pos - u_olpos); // Нормированный вектор падения света
     float cosa = dot(l, v_normal); // Косинус угла падения луча света
     float d = max(cosa, u_odmin); // Коэффициент диффузного освещения
     vec3 r = reflect(l, v_normal); // Вектор отражения
     vec3 e = normalize(u_oeye - v_pos); // Ось зрения наблюдателя
-    float s = max(pow(dot(r, e), u_osfoc), 0.0) * (int(cosa >= 0.0)); // Коэффициент зеркального блика, при cosa < 0 обнуляется для устранения бликов на обратной источнику света стороне
-    o_color = vec4(materials[i_material].diffuseColor, materials[i_material].opaque);
+    float s = max(pow(dot(r, e), material.specularExponent), 0.0) * (int(cosa >= 0.0)); // Коэффициент зеркального блика, при cosa < 0 обнуляется для устранения бликов на обратной источнику света стороне
+    
+    o_color = mix(int(u_lie) * vec4(u_olcol * (material.ambientColor + material.diffuseColor * d + material.specularColor * s) + material.emissiveColor, material.opaque) + int(!u_lie) * vec4(material.ambientColor + material.emissiveColor, material.opaque), vec4(material.transmissionFilterColor, 1.0 - material.opaque), material.opaque);
 }

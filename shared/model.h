@@ -34,7 +34,6 @@ struct material {
     float transmissionFilterColor[3];
     
     float refractionIndex;
-    int illum;
 };
 
 struct model {
