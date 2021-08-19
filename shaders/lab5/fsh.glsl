@@ -7,7 +7,7 @@ struct Material {
     vec3 emissiveColor;
     float specularExponent;
     
-    float opaque;
+    float opacity;
     vec3 transmissionFilterColor;
     
     float refractionIndex;
@@ -60,11 +60,11 @@ void main()
     float d = max(cosa, u_odmin); // Коэффициент диффузного освещения
     vec3 r = reflect(l, v_normal); // Вектор отражения
     vec3 e = normalize(u_oeye - v_pos); // Ось зрения наблюдателя
-    float s = max(pow(dot(r, e), material.specularExponent), 0.0) * (int(cosa >= 0.0)); // Коэффициент зеркального блика, при cosa < 0 обнуляется для устранения бликов на обратной источнику света стороне
+    float s = pow(max(dot(r, e), 0.0), material.specularExponent) * (int(cosa >= 0.0)); // Коэффициент зеркального блика, при cosa < 0 обнуляется для устранения бликов на обратной источнику света стороне
     
     vec3 ambientColor = material.ambientColor + texture(u_ambientMap, vec3(v_texCoord, material.ambientTextureIdx)).rgb;
     vec3 diffuseColor = material.diffuseColor + texture(u_diffuseMap, vec3(v_texCoord, material.diffuseTextureIdx)).rgb;
     vec3 specularColor = material.specularColor + texture(u_specularMap, vec3(v_texCoord, material.specularTextureIdx)).rgb;
     
-    o_color = mix(int(u_lie) * vec4(u_olcol * (ambientColor + diffuseColor * d + specularColor * s) + material.emissiveColor, material.opaque) + int(!u_lie) * vec4(ambientColor + material.emissiveColor, material.opaque), vec4(material.transmissionFilterColor, 1.0 - material.opaque), material.opaque);
+    o_color = mix(int(u_lie) * vec4(u_olcol * (ambientColor + diffuseColor * d + specularColor * s) + material.emissiveColor, material.opacity) + int(!u_lie) * vec4(ambientColor + material.emissiveColor, material.opacity), vec4(material.transmissionFilterColor, 1.0 - material.opacity), material.opacity);
 }

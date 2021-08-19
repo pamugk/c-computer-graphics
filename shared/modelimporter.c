@@ -225,7 +225,7 @@ struct mtl {
     float emissiveColor[3];
     float specularExponent;
     
-    float opaque;
+    float opacity;
     float transmissionFilterColor[3];
     
     float refractionIndex;
@@ -261,7 +261,7 @@ void initMaterialInner(struct mtl *out_material) {
     out_material->emissiveColor[0] = 0, out_material->emissiveColor[1] = 0, out_material->emissiveColor[2] = 0,
     out_material->specularExponent = 0,
     
-    out_material->opaque = 1,
+    out_material->opacity = 1,
     out_material->transmissionFilterColor[0] = 0, out_material->transmissionFilterColor[1] = 0, out_material->transmissionFilterColor[2] = 0,
     
     out_material->refractionIndex = 1,
@@ -378,10 +378,10 @@ void importMaterials(const char *filePath, int *out_materialsCount, struct mtl *
         } else if (strcmp("Ns", buffer) == 0) {
             fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].specularExponent);
         } else if (strcmp("d", buffer) == 0) {
-            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].opaque);
+            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].opacity);
         } else if (strcmp("Tr", buffer) == 0) {
-            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].opaque);
-            (*out_materials)[materialsOffset].opaque = 1.0f - (*out_materials)[materialsOffset].opaque;
+            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].opacity);
+            (*out_materials)[materialsOffset].opacity = 1.0f - (*out_materials)[materialsOffset].opacity;
         } else if (strcmp("Tf", buffer) == 0) {
             // No CIEXYZ or spectral curve support
             fscanf(materialsFile, "%f%f%f",

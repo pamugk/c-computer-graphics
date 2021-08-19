@@ -52,7 +52,7 @@ struct material {
     float emissiveColor[3];
     float specularExponent;
     
-    float opaque;
+    float opacity;
     float transmissionFilterColor[3];
     
     float refractionIndex;

@@ -13,7 +13,7 @@ void initMaterial(struct material *out_material) {
     out_material->emissiveColor[0] = 0, out_material->emissiveColor[1] = 0, out_material->emissiveColor[2] = 0,
     out_material->specularExponent = 0,
     
-    out_material->opaque = 1,
+    out_material->opacity = 1,
     out_material->transmissionFilterColor[0] = 0, out_material->transmissionFilterColor[1] = 0, out_material->transmissionFilterColor[2] = 0,
     
     out_material->refractionIndex = 1;
