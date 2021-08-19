@@ -546,6 +546,21 @@ void importObjModel(const char *filePath, struct model *out_model) {
     rewind(modelFile);
     
     out_model->body.vertices = calloc(out_model->body.verticeCount, out_model->body.vertexSize * sizeof(float));
+    int textureOffsets[9], textureCount = textureCounts[0];
+    textureOffsets[0] = 0;
+    for (int i = 1; i < 9; i += 1) {
+        textureOffsets[i] = textureOffsets[i - 1] + textureCounts[i - 1];
+        textureCount += textureCounts[i];
+    }
+    
+    char **textures = malloc(textureCount);
+    if (textureCount > 0 && textures == NULL) {
+        printf("Not enough memory to allocate model texture filename storage\n");
+        goto obj_cleanup;
+    }
+    for (int i = 0; i < textureCount; i += 1) {
+        textures[i] = NULL;
+    }
     
     if (out_model->body.vertices == NULL) {
         printf("Not enough memory to allocate model vertex array\n");
@@ -757,6 +772,32 @@ void importObjModel(const char *filePath, struct model *out_model) {
         out_model->indices = (GLuint *)(reallocarray(out_model->indices, idx, sizeof(unsigned int)));
         out_model->indexCount = idx;
     }
+    
+    out_model->materials = calloc(out_model->materialsCount, sizeof(struct material));
+    for (unsigned int i = 0; i < out_model->materialsCount; i += 1) {
+        memccpy(out_model->materials[i].ambientColor, materials[i].ambientColor, 18, sizeof(float));
+        
+        int *destTextureIdx = &out_model->materials[i].ambientTextureIdx,
+        *srcTextureIdx = &materials[i].ambientTextureIdx;
+        char **materialTextureNames = &materials[i].ambientTextureMap;
+        for (int j = 0; j < 9; j += 1) {
+            if (materialTextureNames[j] != NULL) {
+                destTextureIdx[j] = srcTextureIdx[j];
+                textures[textureOffsets[j] + srcTextureIdx[j]] = malloc(directoryPathLength + strlen(materialTextureNames[j]) + 1);
+                strcpy(textures[textureOffsets[j] + srcTextureIdx[j]], pathToModelDirectory);
+                strcat(textures[textureOffsets[j] + srcTextureIdx[j]], materialTextureNames[j]);
+            } else {
+                destTextureIdx[j] = textureCounts[j];
+            }
+        }
+    }
+    
+    struct texture *modelTextures = &out_model->ambientTextures;
+    for (int i = 0; i < 9; i += 1) {
+        if (textureCounts[i] > 0) {
+            loadTexture((const char **)(textures + textureOffsets[i]), textureCounts[i], 0, 0, false, 4, (struct texture_parameter *)modelTextureParameters, modelTextures + i);
+        }
+    }
 
     obj_cleanup:
     printf("Completed OBJ model import\n");
@@ -767,16 +808,13 @@ void importObjModel(const char *filePath, struct model *out_model) {
     if (vertexNormals != NULL) {
         free(vertexNormals);
     }
-    
-    out_model->materials = calloc(out_model->materialsCount, sizeof(struct material));
-    for (unsigned int i = 0; i < out_model->materialsCount; i += 1) {
-        memccpy(out_model->materials[i].ambientColor, materials[i].ambientColor, 18, sizeof(float));
-        
-        int *destTextureIdx = &out_model->materials[i].ambientTextureIdx,
-        *srcTextureIdx = &materials[i].ambientTextureIdx;
-        for (int i = 0; i < 9; i += 1) {
-            destTextureIdx[i] = &materials[i].ambientTextureMap + i != NULL ? srcTextureIdx[i] : textureCounts[i];
+    if (textures != NULL) {
+        for (int i = 0; i < textureCount; i += 1) {
+            if (textures[i] != NULL) {
+                free(textures[i]);
+            }
         }
+        free(textures);
     }
     
     for (unsigned int i = 0; i < out_model->materialsCount; i += 1) {

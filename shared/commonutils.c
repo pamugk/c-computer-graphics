@@ -15,7 +15,8 @@ struct body initBodyWithHeightmap(const char *pathToHeightmap, unsigned char ver
         return result;
     }
     
-    struct image image = readImage(pathToHeightmap, GL_LUMINANCE, GL_FALSE);
+    struct image image;
+    readImage(pathToHeightmap, GL_LUMINANCE, GL_FALSE, &image);
     printf("Loaded heightmap image: %ix%i\n", image.width, image.height);
     if (image.contents == NULL || image.width == 0 || image.height == 0) {
         printf("Heightmap was not loaded correctly\n");
@@ -77,7 +78,8 @@ void initBodyTextureMap(struct body *physicalBody, int offset, const char *pathT
     }
     
     printf("Started texture layer calculations for provided model\n");
-    struct image texMap = readImage(pathToTextureMap, GL_RGBA, GL_TRUE);
+    struct image texMap;
+    readImage(pathToTextureMap, GL_RGBA, GL_TRUE, &texMap);
     
     if (texMap.contents == NULL || texMap.colorMap == NULL || texMap.width == 0 || texMap.height == 0) {
         printf("Texture map was not loaded correctly\n");

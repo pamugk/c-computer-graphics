@@ -19,6 +19,13 @@ static const char *builtInModelTextures[] = {
     "u_normalMap"
 };
 
+static const struct texture_parameter modelTextureParameters[] = {
+    (struct texture_parameter) { GL_TEXTURE_MAG_FILTER, GL_LINEAR },
+    (struct texture_parameter) { GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR },
+    (struct texture_parameter) { GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT },
+    (struct texture_parameter) { GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT }
+};
+
 struct attribute {
     GLsizei size;
     GLenum type;

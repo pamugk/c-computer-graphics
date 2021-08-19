@@ -113,7 +113,7 @@ bool parseTexturesDefinition(FILE *configurationFile, int texturesCount, struct 
                     
         fscanf(configurationFile, "%ms%s%i%i%i%i", &mapName, staticBuffer, &enableMipmap, &layersCount, &width, &height);
                                         
-        GLenum textureTarget = parseTextureTarget(staticBuffer);
+        textures[i].target = parseTextureTarget(staticBuffer);
                     
         pathsToTextures = calloc(layersCount, sizeof(char*));
                     
@@ -155,8 +155,8 @@ bool parseTexturesDefinition(FILE *configurationFile, int texturesCount, struct 
                 }
             }
         }
-                    
-        textures[i] = loadTexture((const char**)pathsToTextures, layersCount, width, height, textureTarget, enableMipmap, parametersCount, parameters);
+        
+        loadTexture((const char**)pathsToTextures, layersCount, width, height, enableMipmap, parametersCount, parameters, textures + i);
         textures[i].mapName = mapName;
                     
         if (layersCount > 0) {

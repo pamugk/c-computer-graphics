@@ -30,12 +30,13 @@ int defineTextureParameterType(GLenum parameterName);
 
 GLint parseTextureParameterEnumValue(const char *parameterValue);
 
-struct texture loadTexture(
+void loadTexture(
     const char **filePaths,
-    int layersCount, int width, int height,
-    GLenum target, int generateMipmap,
+    int layersCount, unsigned int width, unsigned int height,
+    int generateMipmap,
     int parametersCount,
-    struct texture_parameter *parameters);
+    struct texture_parameter *parameters,
+    struct texture *out_texture);
 
 void freeTexture(struct texture *texture);
 

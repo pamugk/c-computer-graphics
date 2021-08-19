@@ -232,20 +232,18 @@ void readBmp(const char *filePath, struct image* out_image) {
     return;
 }
 
-struct image readImage(const char *filePath, GLenum format, GLboolean useColorMap) {
-    struct image result = { 0, 0, format, 0U, 0U, NULL, 0U, NULL, 0U };
+void readImage(const char *filePath, GLenum format, GLboolean useColorMap, struct image *out_image) {
+    *out_image = (struct image){ 0, 0, format, 0U, 0U, NULL, 0U, NULL, 0U };
     const char *fileExtension = defineFileExtension(fileNameFromPath(filePath));
     if (isPng(fileExtension)) {
-        readPng(filePath, &result, useColorMap);
+        readPng(filePath, out_image, useColorMap);
     } else if (isJpeg(fileExtension)){
-        readJpeg(filePath, &result, useColorMap);
+        readJpeg(filePath, out_image, useColorMap);
     } else if (isBmp(fileExtension)) {
-        readBmp(filePath, &result);
+        readBmp(filePath, out_image);
     } else {
         printf("Unknown file extension: %s\n", fileExtension);
     }
-
-    return result;
 }
 
 void freeImage(struct image *image) {

@@ -19,7 +19,7 @@ struct image
     GLuint colorMapSize;
 };
 
-struct image readImage(const char *filePath, GLenum format, GLboolean useColorMap);
+void readImage(const char *filePath, GLenum format, GLboolean useColorMap, struct image *out_image);
 void freeImage(struct image *image);
 
 #endif //IMAGE

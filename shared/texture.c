@@ -178,63 +178,95 @@ GLint parseTextureParameterEnumValue(const char *parameterValue) {
     return 0;
 }
 
-struct texture loadTexture(
+void loadTexture(
     const char **filePaths, 
-    int layersCount, int width, int height,
-    GLenum target, int generateMipmap,
+    int layersCount, unsigned int width, unsigned int height,
+    int generateMipmap,
     int parametersCount,
-    struct texture_parameter *parameters) {
+    struct texture_parameter *parameters,
+    struct texture *out_texture) {
     
-    struct texture result = { 0, -1, NULL, target };
-    glCreateTextures(target, 1, &result.id);
+    out_texture->id = 0, out_texture->mapLocation = -1;
+    glCreateTextures(out_texture->target, 1, &out_texture->id);
     
     printf("Started texture initialization\n");
-    switch (target) {
+    switch (out_texture->target) {
         case GL_TEXTURE_1D: {
-            struct image textureImage = readImage(filePaths[0], GL_RGBA, GL_FALSE);
+            struct image textureImage;
+            readImage(filePaths[0], GL_RGBA, GL_FALSE, &textureImage);
             if (textureImage.contents == NULL) {
                 printf("Some error occurred while reading a texture from %s\n", filePaths[0]);
-                return result;
+                return;
             }
-            glTexImage1D(target, 0, GL_RGBA, textureImage.width, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+            glTexImage1D(out_texture->target, 0, GL_RGBA, textureImage.width, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
             freeImage(&textureImage);
             break;
         }
         case GL_TEXTURE_1D_ARRAY: {
-            glTextureStorage2D(result.id, 0, GL_RGBA16, width, layersCount);
+            glTextureStorage2D(out_texture->id, 0, GL_RGBA16, width, layersCount);
             
             for (int i = 0; i < layersCount; i += 1) {
-                struct image textureImage = readImage(filePaths[i], GL_RGBA, GL_FALSE);
+                struct image textureImage;
+                readImage(filePaths[i], GL_RGBA, GL_FALSE, &textureImage);
                 if (textureImage.contents == NULL) {
                     printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
                     continue;
                 }
-                glTextureSubImage2D(result.id, 0, 0, i, textureImage.width, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+                glTextureSubImage2D(out_texture->id, 0, 0, i, textureImage.width, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
                 freeImage(&textureImage);
             }
             break;
         }
         case GL_TEXTURE_2D: {
-            struct image textureImage = readImage(filePaths[0], GL_RGBA, GL_FALSE);
+            struct image textureImage;
+            readImage(filePaths[0], GL_RGBA, GL_FALSE, &textureImage);
             if (textureImage.contents == NULL) {
                 printf("Some error occurred while reading a texture from %s\n", filePaths[0]);
-                return result;
+                return;
             }
-            glTexImage2D(target, 0, GL_RGBA, textureImage.width, textureImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+            glTexImage2D(out_texture->target, 0, GL_RGBA, textureImage.width, textureImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
             freeImage(&textureImage);
             break;
         }
         case GL_TEXTURE_2D_ARRAY: {
-            glTextureStorage3D(result.id, 1, GL_RGBA8, width, height, layersCount);
-            
-            for (int i = 0; i < layersCount; i += 1) {
-                struct image textureImage = readImage(filePaths[i], GL_RGBA, GL_FALSE);
-                if (textureImage.contents == NULL) {
-                    printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
-                    continue;
+            if (width > 0 && height > 0) {
+                glTextureStorage3D(out_texture->id, 1, GL_RGBA8, width, height, layersCount);
+                
+                for (int i = 0; i < layersCount; i += 1) {
+                    struct image textureImage;
+                    readImage(filePaths[i], GL_RGBA, GL_FALSE, &textureImage);
+                    if (textureImage.contents == NULL) {
+                        printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
+                        continue;
+                    }
+                    glTextureSubImage3D(out_texture->id, 0, 0, 0, i, textureImage.width, textureImage.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+                    freeImage(&textureImage);
                 }
-                glTextureSubImage3D(result.id, 0, 0, 0, i, textureImage.width, textureImage.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
-                freeImage(&textureImage);
+            } else {
+                struct image *textureImages = calloc(layersCount, sizeof(struct image));
+                if (textureImages == NULL) {
+                    printf("Temporary texture images storage can not be allocated\n");
+                    return;
+                }
+                for (int i = 0; i < layersCount; i += 1) {
+                    readImage(filePaths[i], GL_RGBA, GL_FALSE, textureImages + i);
+                    if (textureImages[i].contents == NULL) {
+                        printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
+                        continue;
+                    }
+                    if (textureImages[i].width > width) {
+                        width = textureImages[i].width;
+                    }
+                    if (textureImages[i].height > height) {
+                        height = textureImages[i].height;
+                    }
+                }
+                glTextureStorage3D(out_texture->id, 1, GL_RGBA8, width, height, layersCount);
+                for (int i = 0; i < layersCount; i += 1) {
+                    glTextureSubImage3D(out_texture->id, 0, 0, 0, i, textureImages[i].width, textureImages[i].height, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImages[i].contents);
+                    freeImage(textureImages + i);
+                }
+                free(textureImages);
             }
             break;
         }
@@ -249,14 +281,15 @@ struct texture loadTexture(
         }
         case GL_TEXTURE_CUBE_MAP: {
             printf("Loading cube map...\n");
-            glTextureStorage2D(result.id, 1, GL_RGBA8, width, height);
+            glTextureStorage2D(out_texture->id, 1, GL_RGBA8, width, height);
             for (int i = 0; i < layersCount; i += 1) {
-                struct image textureImage = readImage(filePaths[i], GL_RGBA, GL_FALSE);
+                struct image textureImage;
+                readImage(filePaths[i], GL_RGBA, GL_FALSE, &textureImage);
                 if (textureImage.contents == NULL) {
                     printf("Some error occurred while reading a texture from %s\n", filePaths[i]);
                     continue;
                 }
-                glTextureSubImage3D(result.id, 0, 0, 0, i, textureImage.width, textureImage.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
+                glTextureSubImage3D(out_texture->id, 0, 0, 0, i, textureImage.width, textureImage.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, textureImage.contents);
                 freeImage(&textureImage);
             }
             break;
@@ -272,31 +305,29 @@ struct texture loadTexture(
     for (int i = 0; i < parametersCount; i += 1) {
         switch (parameters[i].type) {
             case (0): {
-                glTexParameteri(target, parameters[i].name, parameters[i].value.enumValue);
+                glTexParameteri(out_texture->target, parameters[i].name, parameters[i].value.enumValue);
                 break;
             }
             case (GL_INT): {
-                glTexParameteri(target, parameters[i].name, parameters[i].value.intValue);
+                glTexParameteri(out_texture->target, parameters[i].name, parameters[i].value.intValue);
                 break;
             }
             case (GL_FLOAT): {
-                glTexParameterf(target, parameters[i].name, parameters[i].value.floatValue);
+                glTexParameterf(out_texture->target, parameters[i].name, parameters[i].value.floatValue);
                 break;
             }
             case (GL_FLOAT_VEC3): {
-                glTexParameterfv(target, parameters[i].name, parameters[i].value.floatVec3Value);
+                glTexParameterfv(out_texture->target, parameters[i].name, parameters[i].value.floatVec3Value);
                 break;
             }
         }
     }
 
     if (generateMipmap) {
-        glGenerateMipmap(target);
+        glGenerateMipmap(out_texture->target);
     }
     
     printf("Completed texture initialization\n");
-    
-    return result;
 }
 
 void freeTexture(struct texture *texture) {
