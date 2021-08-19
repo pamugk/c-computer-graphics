@@ -672,10 +672,10 @@ void importObjModel(const char *filePath, struct model *out_model) {
             } while(dynamicBuffer[c] != '\n' && dynamicBuffer[c] != EOF);
             for (; c > 0; c -= 1) {
                 if (dynamicBuffer[c] == ' ') {
-                    hasVn = hasVn && dynamicBuffer[c] != '/';
+                    hasVn = hasVn && dynamicBuffer[c - 1] != '/';
                 }
                 if (dynamicBuffer[c] == '/') {
-                    hasVt = hasVt && dynamicBuffer[c] != '/';
+                    hasVt = hasVt && dynamicBuffer[c - 1] != '/';
                 }
                 ungetc(dynamicBuffer[c], modelFile);
             }
