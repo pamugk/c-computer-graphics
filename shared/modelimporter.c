@@ -636,19 +636,18 @@ void importObjModel(const char *filePath, struct model *out_model) {
             continue;
         }  else if (strcmp("vt", buffer) == 0) {
             fscanf(modelFile, "%f", vertexTextures + vt * 2);
-            vt += 1;
             
             if (getc(modelFile) != ' ') {
                 vertexTextures[vt * 2 + 1] = 0;
-                continue;
+            } else {
+                fscanf(modelFile, "%f", vertexTextures + vt * 2 + 1);
+                
+                if (getc(modelFile) == ' ') {
+                    fscanf(modelFile, "%*f");
+                    getc(modelFile);
+                }
             }
-            
-            fscanf(modelFile, "%f", vertexTextures + vt * 2 + 1);
-            
-            if (getc(modelFile) == ' ') {
-                fscanf(modelFile, "%*f");
-                getc(modelFile);
-            }
+            vt += 1;
             continue;
         }  else if (strcmp("vn", buffer) == 0) {
             fscanf(modelFile, "%f %f %f", 
