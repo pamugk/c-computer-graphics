@@ -231,16 +231,6 @@ struct mtl {
     float refractionIndex;
     unsigned char illum;
     
-    char *ambientTextureMap;
-    char *diffuseTextureMap;
-    char *specularTextureMap;
-    char *specularHighlightComponent;
-    char *alphaTextureMap;
-    char *bumpMap;
-    char *displacementMap;
-    char *stencilDecalTexture;
-    char *normalTextureMap;
-    
     int ambientTextureIdx;
     int diffuseTextureIdx;
     int specularTextureIdx;
@@ -250,6 +240,16 @@ struct mtl {
     int displacementIdx;
     int stencilDecalTextureIdx;
     int normalTextureIdx;
+    
+    char *ambientTextureMap;
+    char *diffuseTextureMap;
+    char *specularTextureMap;
+    char *specularHighlightComponent;
+    char *alphaTextureMap;
+    char *bumpMap;
+    char *displacementMap;
+    char *stencilDecalTexture;
+    char *normalTextureMap;
 };
 
 void initMaterialInner(struct mtl *out_material) {
@@ -300,14 +300,14 @@ void freeMaterial(struct mtl *out_material) {
     
     char **texturePaths = &out_material->ambientTextureMap;
     
-    for (int i = 0; i < 9; i += 1) {
+    for (int i = 0; i < MODEL_BUILTIN_TEXTURE_COUNT; i += 1) {
         if (texturePaths[i] != NULL) {
             free(texturePaths[i]);
         }
     }
 }
 
-void importMaterials(const char *filePath, int *out_materialsCount, struct mtl **out_materials, int textureCounts[9]) {
+void importMaterials(const char *filePath, int *out_materialsCount, struct mtl **out_materials, int textureCounts[MODEL_BUILTIN_TEXTURE_COUNT]) {
     long materialsOffset = *out_materialsCount - 1;
     
     FILE *materialsFile = fopen(filePath, "r");
@@ -546,9 +546,9 @@ void importObjModel(const char *filePath, struct model *out_model) {
     rewind(modelFile);
     
     out_model->body.vertices = calloc(out_model->body.verticeCount, out_model->body.vertexSize * sizeof(float));
-    int textureOffsets[9], textureCount = textureCounts[0];
+    int textureOffsets[MODEL_BUILTIN_TEXTURE_COUNT], textureCount = textureCounts[0];
     textureOffsets[0] = 0;
-    for (int i = 1; i < 9; i += 1) {
+    for (int i = 1; i < MODEL_BUILTIN_TEXTURE_COUNT; i += 1) {
         textureOffsets[i] = textureOffsets[i - 1] + textureCounts[i - 1];
         textureCount += textureCounts[i];
     }
@@ -775,12 +775,12 @@ void importObjModel(const char *filePath, struct model *out_model) {
     
     out_model->materials = calloc(out_model->materialsCount, sizeof(struct material));
     for (unsigned int i = 0; i < out_model->materialsCount; i += 1) {
-        memccpy(out_model->materials[i].ambientColor, materials[i].ambientColor, 18, sizeof(float));
+        memcpy(&out_model->materials[i].ambientColor, &materials[i].ambientColor, 18 * sizeof(float));
         
         int *destTextureIdx = &out_model->materials[i].ambientTextureIdx,
         *srcTextureIdx = &materials[i].ambientTextureIdx;
         char **materialTextureNames = &materials[i].ambientTextureMap;
-        for (int j = 0; j < 9; j += 1) {
+        for (int j = 0; j < MODEL_BUILTIN_TEXTURE_COUNT; j += 1) {
             if (materialTextureNames[j] != NULL) {
                 destTextureIdx[j] = srcTextureIdx[j];
                 textures[textureOffsets[j] + srcTextureIdx[j]] = malloc(directoryPathLength + strlen(materialTextureNames[j]) + 1);
@@ -793,7 +793,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
     }
     
     struct texture *modelTextures = &out_model->ambientTextures;
-    for (int i = 0; i < 9; i += 1) {
+    for (int i = 0; i < MODEL_BUILTIN_TEXTURE_COUNT; i += 1) {
         if (textureCounts[i] > 0) {
             loadTexture((const char **)(textures + textureOffsets[i]), textureCounts[i], 0, 0, false, 4, (struct texture_parameter *)modelTextureParameters, modelTextures + i);
         }

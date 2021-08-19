@@ -609,7 +609,7 @@ bool parseCamerasConfig(FILE *configurationFile,
                 while(fscanf(configurationFile, "%s", section) > 0 && strcmp("END", section) != 0) {
                     if (strcmp("move", section) == 0) {
                         float prevT[MVP_MATRIX_SIZE];
-                        memccpy(prevT, oc->t, MVP_MATRIX_SIZE, sizeof(float));
+                        memcpy(prevT, oc->t, MVP_MATRIX_SIZE * sizeof(float));
                         
                         float dx = 0, dy = 0, dz = 0;
                         fscanf(configurationFile, "%s", section);
@@ -628,7 +628,7 @@ bool parseCamerasConfig(FILE *configurationFile,
                         move(prevT, dx, dy, dz, oc->t);
                     } else if(strcmp("scale", section) == 0) {
                         float prevS[MVP_MATRIX_SIZE];
-                        memccpy(prevS, oc->s, MVP_MATRIX_SIZE, sizeof(float));
+                        memcpy(prevS, oc->s, MVP_MATRIX_SIZE * sizeof(float));
                         float sx = 1.0f, sy = 1.0f, sz = 1.0f;
                         fscanf(configurationFile, "%s", section);
                         if (strcmp("x", section)) {

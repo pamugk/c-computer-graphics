@@ -9,6 +9,7 @@ unsigned int g_programsCount;
 struct shader_program *g_programs;
 int *g_preprocessedVariables;
 int *g_preprocessedBlocks;
+int *g_preprocessedBuiltinTextureUnits;
 
 // Models
 char g_terrain;
@@ -228,7 +229,8 @@ void draw() {
         }
         
         bool mvpDefined = g_preprocessedVariables[i * 3] != -1,
-        normalsDefined = g_preprocessedVariables[i * 3 + 1] != -1;
+        normalsDefined = g_preprocessedVariables[i * 3 + 1] != -1,
+        builtinModelTexturesDefined = g_preprocessedBuiltinTextureUnits[i * (MODEL_BUILTIN_TEXTURE_COUNT + 1) + MODEL_BUILTIN_TEXTURE_COUNT];
         
         struct shader_block *boundBlock = NULL;
         if (g_preprocessedBlocks[i] != -1) {
@@ -239,7 +241,7 @@ void draw() {
         }
             
         if (g_preprocessedVariables[i * 3 + 2] != -1) {
-            memccpy(g_programs[i].variables[g_preprocessedVariables[i * 3 + 2]].value.floatVec3Val, e, 3, sizeof(float));
+            memcpy(g_programs[i].variables[g_preprocessedVariables[i * 3 + 2]].value.floatVec3Val, e, 3 * sizeof(float));
         }
         
         for (int j = 0; j < g_programs[i].modelsToRenderCount; j += 1) {
@@ -267,6 +269,15 @@ void draw() {
                 glBufferData(boundBlock->bufferKind, sizeof(struct material) * g_models[m].materialsCount, g_models[m].materials, GL_DYNAMIC_DRAW);
                 glBindBufferBase(boundBlock->bufferKind, boundBlock->index, boundBlock->id);
                 glBindBuffer(boundBlock->bufferKind, 0);
+            }
+            
+            if (builtinModelTexturesDefined) {
+                struct texture *modelTextures = &g_models[m].ambientTextures;
+                for (int t = g_programs[i].textureCount; t < MODEL_BUILTIN_TEXTURE_COUNT; t += 1) {
+                    glActiveTexture(GL_TEXTURE0 + t);
+                    glBindTexture(modelTextures[t].target, modelTextures[t].id);
+                    glUniform1i(g_preprocessedBuiltinTextureUnits[i * (MODEL_BUILTIN_TEXTURE_COUNT + 1) + t], t);
+                }
             }
             
             glBindVertexArray(g_models[m].vao);
@@ -325,7 +336,7 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
             }
             case 4: {
                 float prevT[MVP_MATRIX_SIZE];
-                memccpy(prevT, g_oc.t, MVP_MATRIX_SIZE, sizeof(float));
+                memcpy(prevT, g_oc.t, MVP_MATRIX_SIZE * sizeof(float));
                 move(prevT, 0.0f, 0.0f, 0.05f, g_oc.t);
                 break;
             }
@@ -346,7 +357,7 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
             }
             case 4: {
                 float prevT[MVP_MATRIX_SIZE];
-                memccpy(prevT, g_oc.t, MVP_MATRIX_SIZE, sizeof(float));
+                memcpy(prevT, g_oc.t, MVP_MATRIX_SIZE * sizeof(float));
                 move(prevT, 0.0f, 0.0f,-0.05f, g_oc.t);
                 break;
             }
@@ -367,7 +378,7 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
             }
             case 4: {
                 float prevT[MVP_MATRIX_SIZE];
-                memccpy(prevT, g_oc.t, MVP_MATRIX_SIZE, sizeof(float));
+                memcpy(prevT, g_oc.t, MVP_MATRIX_SIZE * sizeof(float));
                 move(prevT, -0.05f, 0.0f, 0.0f, g_oc.t);
                 break;
             }
@@ -388,18 +399,18 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
             }
             case 4: {
                 float prevT[MVP_MATRIX_SIZE];
-                memccpy(prevT, g_oc.t, MVP_MATRIX_SIZE, sizeof(float));
+                memcpy(prevT, g_oc.t, MVP_MATRIX_SIZE * sizeof(float));
                 move(prevT, 0.05f, 0.0f, 0.0f, g_oc.t);
                 break;
             }
         }
     } else if (g_camera == 4 && key == GLFW_KEY_KP_ADD && action == GLFW_RELEASE) { 
         float prevS[MVP_MATRIX_SIZE];
-        memccpy(prevS, g_oc.s, MVP_MATRIX_SIZE, sizeof(float));
+        memcpy(prevS, g_oc.s, MVP_MATRIX_SIZE * sizeof(float));
         scale(prevS, 2.0f, 2.0f, 2.0f, g_oc.t);
     } else if (g_camera == 4 && key == GLFW_KEY_KP_SUBTRACT && action == GLFW_RELEASE) { 
         float prevS[MVP_MATRIX_SIZE];
-        memccpy(prevS, g_oc.s, MVP_MATRIX_SIZE, sizeof(float));
+        memcpy(prevS, g_oc.s, MVP_MATRIX_SIZE * sizeof(float));
         scale(prevS, 0.5f, 0.5f, 0.5f, g_oc.t);
     } else if (g_musicPlayer != 0 && key == GLFW_KEY_P && action == GLFW_RELEASE) {
         ALint state;
@@ -479,6 +490,17 @@ void preprocessVariables() {
             }
         }
     }
+    
+    g_preprocessedBuiltinTextureUnits = calloc(g_programsCount * (MODEL_BUILTIN_TEXTURE_COUNT + 1), sizeof(int));
+    for (int i = 0; i < g_programsCount; i += 1) {
+        bool hasBuiltinModelTextures = false;
+        int j;
+        for (j = 0; j < MODEL_BUILTIN_TEXTURE_COUNT; j += 1) {
+            g_preprocessedBuiltinTextureUnits[i * (MODEL_BUILTIN_TEXTURE_COUNT + 1) + j] = glGetUniformLocation(g_programs[i].id, builtInModelTextures[j]);
+            hasBuiltinModelTextures = hasBuiltinModelTextures || g_preprocessedBuiltinTextureUnits[i * (MODEL_BUILTIN_TEXTURE_COUNT + 1) + j] != -1;
+        }
+        g_preprocessedBuiltinTextureUnits[i * (MODEL_BUILTIN_TEXTURE_COUNT + 1) + j] = hasBuiltinModelTextures;
+    }
 }
 
 void preprocessBlocks() {
@@ -519,6 +541,7 @@ void cleanup() {
     }
     free(g_programs);
     free(g_preprocessedVariables);
+    free(g_preprocessedBuiltinTextureUnits);
     free(g_preprocessedBlocks);
     
     for (int i = 0; i < g_modelsCount; i += 1) {

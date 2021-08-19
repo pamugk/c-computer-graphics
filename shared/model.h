@@ -7,7 +7,9 @@
 #include <GL/glew.h>
 #include <stdbool.h>
 
-static const char *builtInModelTextures[] = {
+#define MODEL_BUILTIN_TEXTURE_COUNT 9
+
+static const char *builtInModelTextures[MODEL_BUILTIN_TEXTURE_COUNT] = {
     "u_ambientMap",
     "u_diffuseMap",
     "u_specularMap",

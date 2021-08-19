@@ -17,7 +17,7 @@ programs: 1
     END
 
 models: -1 1
-    9 file ../models/UFOs/ARV_Craft/ARV_Craft_Low_Poly_triangulated.obj
+    9 file ../models/UFOs/UFO2/UFO2.obj
     attributes: 4
         3 GL_FLOAT 0 coordinates: predefined
         3 GL_FLOAT 0 normals: predefined
