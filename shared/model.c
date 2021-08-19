@@ -10,6 +10,7 @@ void initMaterial(struct material *out_material) {
     out_material->ambientColor[0] = 0, out_material->ambientColor[1] = 0, out_material->ambientColor[2] = 0,
     out_material->diffuseColor[0] = 0, out_material->diffuseColor[1] = 0, out_material->diffuseColor[2] = 0,
     out_material->specularColor[0] = 0, out_material->specularColor[1] = 0, out_material->specularColor[2] = 0,
+    out_material->emissiveColor[0] = 0, out_material->emissiveColor[1] = 0, out_material->emissiveColor[2] = 0,
     out_material->specularExponent = 0,
     
     out_material->opaque = 1,

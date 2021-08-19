@@ -4,6 +4,7 @@ struct Material {
     vec3 ambientColor;
     vec3 diffuseColor;
     vec3 specularColor;
+    vec3 emissiveColor;
     float specularExponent;
     
     float opaque;

@@ -222,6 +222,7 @@ struct mtl {
     float ambientColor[3];
     float diffuseColor[3];
     float specularColor[3];
+    float emissiveColor[3];
     float specularExponent;
     
     float opaque;
@@ -246,6 +247,7 @@ void initMaterialInner(struct mtl *out_material) {
     out_material->ambientColor[0] = 0, out_material->ambientColor[1] = 0, out_material->ambientColor[2] = 0,
     out_material->diffuseColor[0] = 0, out_material->diffuseColor[1] = 0, out_material->diffuseColor[2] = 0,
     out_material->specularColor[0] = 0, out_material->specularColor[1] = 0, out_material->specularColor[2] = 0,
+    out_material->emissiveColor[0] = 0, out_material->emissiveColor[1] = 0, out_material->emissiveColor[2] = 0,
     out_material->specularExponent = 0,
     
     out_material->opaque = 1,
@@ -340,6 +342,11 @@ void importMaterials(const char *filePath, int *out_materialsCount, struct mtl *
                    (*out_materials)[materialsOffset].specularColor, 
                    (*out_materials)[materialsOffset].specularColor + 1, 
                    (*out_materials)[materialsOffset].specularColor + 2);
+        } else if (strcmp("Ke", buffer) == 0) {
+            fscanf(materialsFile, "%f%f%f",
+                   (*out_materials)[materialsOffset].emissiveColor, 
+                   (*out_materials)[materialsOffset].emissiveColor + 1, 
+                   (*out_materials)[materialsOffset].emissiveColor + 2);
         } else if (strcmp("Ns", buffer) == 0) {
             fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].specularExponent);
         } else if (strcmp("d", buffer) == 0) {
@@ -622,7 +629,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
                     out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 5] = vertexNormals[(fvn - 1) * 3 + 2];
                 }
                 
-                out_model->body.vertices[(fv - 1) * out_model->body.vertexSize + 6] = currentMaterial;
+                ((int*)out_model->body.vertices)[(fv - 1) * out_model->body.vertexSize + 6] = currentMaterial;
             }
             
             for (unsigned int i = 1; i + 1 < faceSize; i += 1) {
@@ -709,6 +716,7 @@ void importObjModel(const char *filePath, struct model *out_model) {
         memccpy(out_model->materials[i].ambientColor, materials[i].ambientColor, 3, sizeof(float)),
         memccpy(out_model->materials[i].diffuseColor, materials[i].diffuseColor, 3, sizeof(float)),
         memccpy(out_model->materials[i].specularColor, materials[i].specularColor, 3, sizeof(float)),
+        memccpy(out_model->materials[i].emissiveColor, materials[i].emissiveColor, 3, sizeof(float)),
         out_model->materials[i].specularExponent = materials[i].specularExponent,
         
         out_model->materials[i].opaque = materials[i].opaque,

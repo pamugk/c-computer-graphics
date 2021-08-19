@@ -27,6 +27,7 @@ struct material {
     float ambientColor[3];
     float diffuseColor[3];
     float specularColor[3];
+    float emissiveColor[3];
     float specularExponent;
     
     float opaque;
