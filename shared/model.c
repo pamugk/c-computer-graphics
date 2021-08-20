@@ -16,7 +16,16 @@ void initMaterial(struct material *out_material) {
     out_material->opacity = 1,
     out_material->transmissionFilterColor[0] = 0, out_material->transmissionFilterColor[1] = 0, out_material->transmissionFilterColor[2] = 0,
     
-    out_material->refractionIndex = 1;
+    out_material->refractionIndex = 1,
+    out_material->ambientTextureIdx = 0,
+    out_material->diffuseTextureIdx = 0,
+    out_material->specularTextureIdx = 0,
+    out_material->specularHighlightComponentIdx = 0,
+    out_material->alphaTextureIdx = 0,
+    out_material->bumpTextureIdx = 0,
+    out_material->displacementIdx = 0,
+    out_material->stencilDecalTextureIdx = 0,
+    out_material->normalTextureIdx = 0;
 }
 
 bool makeIndices(struct body physicalBody, GLsizei *out_indexCount, GLuint **out_indices) {

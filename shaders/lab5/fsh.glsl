@@ -11,6 +11,7 @@ struct Material {
     vec3 transmissionFilterColor;
     
     float refractionIndex;
+    int illum;
     
     int ambientTextureIdx;
     int diffuseTextureIdx;

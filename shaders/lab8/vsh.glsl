@@ -16,11 +16,11 @@ out vec2 v_texCoord;
 
 void main() {
     vec4 pos = vec4(a position, 1.0);
-    vec3 binormal = normalize(cross(a normal, a tangent));
-    mat3 intbn = inverse(u n ∗ mat3(a tangent, binormal, a_normal));
-    vec3 vPos = intbn ∗ (u mv ∗ pos).xyz;
-    v_ray = normalize(intbn ∗ vec4(u light, 1.0).xyz − vPos);
+    vec3 binormal = normalize(cross(a_normal, a_tangent));
+    mat3 intbn = inverse(u_n * mat3(a tangent, binormal, a_normal));
+    vec3 vPos = intbn * (u_mv * pos).xyz;
+    v_ray = normalize(intbn * vec4(u_light, 1.0).xyz − vPos);
     v_eye = normalize(−vPos);
-    v_texCoord = a texCoord;
-    gl_Position = u mvp ∗ pos;
+    v_texCoord = a_texCoord;
+    gl_Position = u_mvp * pos;
 }

@@ -219,27 +219,7 @@ bool isObj(const char *fileExtension) {
 struct mtl {
     char *name;
     
-    float ambientColor[3];
-    float diffuseColor[3];
-    float specularColor[3];
-    float emissiveColor[3];
-    float specularExponent;
-    
-    float opacity;
-    float transmissionFilterColor[3];
-    
-    float refractionIndex;
-    unsigned char illum;
-    
-    int ambientTextureIdx;
-    int diffuseTextureIdx;
-    int specularTextureIdx;
-    int specularHighlightComponentIdx;
-    int alphaTextureIdx;
-    int bumpTextureIdx;
-    int displacementIdx;
-    int stencilDecalTextureIdx;
-    int normalTextureIdx;
+    struct material material;
     
     char *ambientTextureMap;
     char *diffuseTextureMap;
@@ -255,44 +235,17 @@ struct mtl {
 void initMaterialInner(struct mtl *out_material) {
     out_material->name = NULL,
     
-    out_material->ambientColor[0] = 0, out_material->ambientColor[1] = 0, out_material->ambientColor[2] = 0,
-    out_material->diffuseColor[0] = 0, out_material->diffuseColor[1] = 0, out_material->diffuseColor[2] = 0,
-    out_material->specularColor[0] = 0, out_material->specularColor[1] = 0, out_material->specularColor[2] = 0,
-    out_material->emissiveColor[0] = 0, out_material->emissiveColor[1] = 0, out_material->emissiveColor[2] = 0,
-    out_material->specularExponent = 0,
-    
-    out_material->opacity = 1,
-    out_material->transmissionFilterColor[0] = 0, out_material->transmissionFilterColor[1] = 0, out_material->transmissionFilterColor[2] = 0,
-    
-    out_material->refractionIndex = 1,
-    out_material->illum = 0,
+    initMaterial(&out_material->material),
     
     out_material->ambientTextureMap = NULL,
-    out_material->ambientTextureIdx = 0,
-    
     out_material->diffuseTextureMap = NULL,
-    out_material->diffuseTextureIdx = 0,
-    
     out_material->specularTextureMap = NULL,
-    out_material->specularTextureIdx = 0,
-    
     out_material->specularHighlightComponent = NULL,
-    out_material->specularHighlightComponentIdx = 0,
-    
     out_material->alphaTextureMap = NULL,
-    out_material->alphaTextureIdx = 0,
-    
     out_material->bumpMap = NULL,
-    out_material->bumpTextureIdx = 0,
-    
     out_material->displacementMap = NULL,
-    out_material->displacementIdx = 0,
-    
     out_material->stencilDecalTexture = NULL,
-    out_material->stencilDecalTextureIdx = 0,
-    
-    out_material->normalTextureMap = NULL,
-    out_material->normalTextureIdx = 0;
+    out_material->normalTextureMap = NULL;
 }
 
 void freeMaterial(struct mtl *out_material) {
@@ -357,103 +310,103 @@ void importMaterials(const char *filePath, int *out_materialsCount, struct mtl *
             printf("Initializing material: %s\n", (*out_materials)[materialsOffset].name);
         } else if (strcmp("Ka", buffer) == 0) {
             fscanf(materialsFile, "%f%f%f",
-                   (*out_materials)[materialsOffset].ambientColor, 
-                   (*out_materials)[materialsOffset].ambientColor + 1, 
-                   (*out_materials)[materialsOffset].ambientColor + 2);
+                   (*out_materials)[materialsOffset].material.ambientColor, 
+                   (*out_materials)[materialsOffset].material.ambientColor + 1, 
+                   (*out_materials)[materialsOffset].material.ambientColor + 2);
         } else if (strcmp("Kd", buffer) == 0) {
             fscanf(materialsFile, "%f%f%f",
-                   (*out_materials)[materialsOffset].diffuseColor, 
-                   (*out_materials)[materialsOffset].diffuseColor + 1, 
-                   (*out_materials)[materialsOffset].diffuseColor + 2);
+                   (*out_materials)[materialsOffset].material.diffuseColor, 
+                   (*out_materials)[materialsOffset].material.diffuseColor + 1, 
+                   (*out_materials)[materialsOffset].material.diffuseColor + 2);
         } else if (strcmp("Ks", buffer) == 0) {
             fscanf(materialsFile, "%f%f%f",
-                   (*out_materials)[materialsOffset].specularColor, 
-                   (*out_materials)[materialsOffset].specularColor + 1, 
-                   (*out_materials)[materialsOffset].specularColor + 2);
+                   (*out_materials)[materialsOffset].material.specularColor, 
+                   (*out_materials)[materialsOffset].material.specularColor + 1, 
+                   (*out_materials)[materialsOffset].material.specularColor + 2);
         } else if (strcmp("Ke", buffer) == 0) {
             fscanf(materialsFile, "%f%f%f",
-                   (*out_materials)[materialsOffset].emissiveColor, 
-                   (*out_materials)[materialsOffset].emissiveColor + 1, 
-                   (*out_materials)[materialsOffset].emissiveColor + 2);
+                   (*out_materials)[materialsOffset].material.emissiveColor, 
+                   (*out_materials)[materialsOffset].material.emissiveColor + 1, 
+                   (*out_materials)[materialsOffset].material.emissiveColor + 2);
         } else if (strcmp("Ns", buffer) == 0) {
-            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].specularExponent);
+            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].material.specularExponent);
         } else if (strcmp("d", buffer) == 0) {
-            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].opacity);
+            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].material.opacity);
         } else if (strcmp("Tr", buffer) == 0) {
-            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].opacity);
-            (*out_materials)[materialsOffset].opacity = 1.0f - (*out_materials)[materialsOffset].opacity;
+            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].material.opacity);
+            (*out_materials)[materialsOffset].material.opacity = 1.0f - (*out_materials)[materialsOffset].material.opacity;
         } else if (strcmp("Tf", buffer) == 0) {
             // No CIEXYZ or spectral curve support
             fscanf(materialsFile, "%f%f%f",
-                   (*out_materials)[materialsOffset].transmissionFilterColor, 
-                   (*out_materials)[materialsOffset].transmissionFilterColor + 1, 
-                   (*out_materials)[materialsOffset].transmissionFilterColor + 2);
+                   (*out_materials)[materialsOffset].material.transmissionFilterColor, 
+                   (*out_materials)[materialsOffset].material.transmissionFilterColor + 1, 
+                   (*out_materials)[materialsOffset].material.transmissionFilterColor + 2);
         } else if (strcmp("Ni", buffer) == 0) {
-            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].refractionIndex);
+            fscanf(materialsFile, "%f",  &(*out_materials)[materialsOffset].material.refractionIndex);
         } else if (strcmp("illum", buffer) == 0) {
-            fscanf(materialsFile, "%hhu", &(*out_materials)[materialsOffset].illum);
+            fscanf(materialsFile, "%i", &(*out_materials)[materialsOffset].material.illum);
         } else if (strcmp("map_Ka", buffer) == 0) {
             if ((*out_materials)[materialsOffset].ambientTextureMap != NULL) {
                 free((*out_materials)[materialsOffset].ambientTextureMap);
             }
             fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].ambientTextureMap);
-            (*out_materials)[materialsOffset].ambientTextureIdx = textureCounts[0];
+            (*out_materials)[materialsOffset].material.ambientTextureIdx = textureCounts[0];
             textureCounts[0] += 1;
         }  else if (strcmp("map_Kd", buffer) == 0) {
             if ((*out_materials)[materialsOffset].diffuseTextureMap != NULL) {
                 free((*out_materials)[materialsOffset].diffuseTextureMap);
             }
             fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].diffuseTextureMap);
-            (*out_materials)[materialsOffset].diffuseTextureIdx = textureCounts[1];
+            (*out_materials)[materialsOffset].material.diffuseTextureIdx = textureCounts[1];
             textureCounts[1] += 1;
         } else if (strcmp("map_Ks", buffer) == 0) {
             if ((*out_materials)[materialsOffset].specularTextureMap != NULL) {
                 free((*out_materials)[materialsOffset].specularTextureMap);
             }
             fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].specularTextureMap);
-            (*out_materials)[materialsOffset].specularTextureIdx = textureCounts[2];
+            (*out_materials)[materialsOffset].material.specularTextureIdx = textureCounts[2];
             textureCounts[2] += 1;
         } else if (strcmp("map_Ns", buffer) == 0) {
             if ((*out_materials)[materialsOffset].specularHighlightComponent != NULL) {
                 free((*out_materials)[materialsOffset].specularHighlightComponent);
             }
             fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].specularHighlightComponent);
-            (*out_materials)[materialsOffset].specularHighlightComponentIdx = textureCounts[3];
+            (*out_materials)[materialsOffset].material.specularHighlightComponentIdx = textureCounts[3];
             textureCounts[3] += 1;
         } else if (strcmp("map_d", buffer) == 0) {
             if ((*out_materials)[materialsOffset].alphaTextureMap != NULL) {
                 free((*out_materials)[materialsOffset].alphaTextureMap);
             }
             fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].alphaTextureMap);
-            (*out_materials)[materialsOffset].alphaTextureIdx = textureCounts[4];
+            (*out_materials)[materialsOffset].material.alphaTextureIdx = textureCounts[4];
             textureCounts[4] += 1;
         } else if (strcmp("bump", buffer) == 0 || strcmp("map_bump", buffer) == 0) {
             if ((*out_materials)[materialsOffset].bumpMap != NULL) {
                 free((*out_materials)[materialsOffset].bumpMap);
             }
             fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].bumpMap);
-            (*out_materials)[materialsOffset].bumpTextureIdx = textureCounts[5];
+            (*out_materials)[materialsOffset].material.bumpTextureIdx = textureCounts[5];
             textureCounts[5] += 1;
         } else if (strcmp("disp", buffer) == 0) {
             if ((*out_materials)[materialsOffset].displacementMap != NULL) {
                 free((*out_materials)[materialsOffset].displacementMap);
             }
             fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].displacementMap);
-            (*out_materials)[materialsOffset].displacementIdx = textureCounts[6];
+            (*out_materials)[materialsOffset].material.displacementIdx = textureCounts[6];
             textureCounts[6] += 1;
         } else if (strcmp("decal", buffer) == 0) {
             if ((*out_materials)[materialsOffset].stencilDecalTexture != NULL) {
                 free((*out_materials)[materialsOffset].stencilDecalTexture);
             }
             fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].stencilDecalTexture);
-            (*out_materials)[materialsOffset].stencilDecalTextureIdx = textureCounts[7];
+            (*out_materials)[materialsOffset].material.stencilDecalTextureIdx = textureCounts[7];
             textureCounts[7] += 1;
         } else if (strcmp("norm", buffer) == 0) {
             if ((*out_materials)[materialsOffset].normalTextureMap != NULL) {
                 free((*out_materials)[materialsOffset].normalTextureMap);
             }
             fscanf(materialsFile, "%ms", &(*out_materials)[materialsOffset].normalTextureMap);
-            (*out_materials)[materialsOffset].normalTextureIdx = textureCounts[8];
+            (*out_materials)[materialsOffset].material.normalTextureIdx = textureCounts[8];
             textureCounts[8] += 1;
         }
         
@@ -774,14 +727,13 @@ void importObjModel(const char *filePath, struct model *out_model) {
     
     out_model->materials = calloc(out_model->materialsCount, sizeof(struct material));
     for (unsigned int i = 0; i < out_model->materialsCount; i += 1) {
-        memcpy(&out_model->materials[i].ambientColor, &materials[i].ambientColor, 18 * sizeof(float));
+        memcpy(out_model->materials + i, &materials[i].material, sizeof(struct material));
         
         int *destTextureIdx = &out_model->materials[i].ambientTextureIdx,
-        *srcTextureIdx = &materials[i].ambientTextureIdx;
+        *srcTextureIdx = &materials[i].material.ambientTextureIdx;
         char **materialTextureNames = &materials[i].ambientTextureMap;
         for (int j = 0; j < MODEL_BUILTIN_TEXTURE_COUNT; j += 1) {
             if (materialTextureNames[j] != NULL) {
-                destTextureIdx[j] = srcTextureIdx[j];
                 textures[textureOffsets[j] + srcTextureIdx[j]] = malloc(directoryPathLength + strlen(materialTextureNames[j]) + 1);
                 strcpy(textures[textureOffsets[j] + srcTextureIdx[j]], pathToModelDirectory);
                 strcat(textures[textureOffsets[j] + srcTextureIdx[j]], materialTextureNames[j]);
