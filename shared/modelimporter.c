@@ -179,30 +179,39 @@ void importPlyModel(const char *filePath, struct model *out_model) {
     out_model->body.depth = maxZ - minZ,
     out_model->body.height = maxY - minY;
     
-    out_model->indexCount = out_model->body.verticeCount * 6;
+    long facesPosition = ftell(modelFile);
+    unsigned int maxFaceSize = 0;
+    for (unsigned long i = 0; i < facesCount; i += 1) {
+        // Reading face size and skipping definition
+        unsigned int faceSize = 0;
+        fscanf(modelFile, "%ui", &faceSize);
+        if (faceSize > maxFaceSize) {
+            maxFaceSize = faceSize;
+        }
+        char c = '\n';
+        do {
+            c = getc(modelFile);
+        } while (c != '\n' && c != EOF);
+    }
+    out_model->indexCount = facesCount * maxFaceSize * 3;
     out_model->indices = calloc(out_model->indexCount, sizeof(unsigned int));
+    fseek(modelFile, facesPosition, SEEK_SET);
     
     int idx = 0;
     for (int i = 0; i < facesCount; i += 1) {
-        unsigned char faceSize;
-        fscanf(modelFile, "%hhi", &faceSize);
-        if (faceSize < 3 || faceSize % 3 == 0) {
-            for (unsigned char j = 0; j < faceSize; j += 1) {
-                fscanf(modelFile, "%u", out_model->indices + idx);
-                idx += 1;
-            }
-        } else if (faceSize % 4 == 0) {
-            for (unsigned char j = 0; j < faceSize; j += 4) {
-                fscanf(modelFile, "%u", out_model->indices + idx);
-                fscanf(modelFile, "%u", out_model->indices + idx + 1);
-                fscanf(modelFile, "%u", out_model->indices + idx + 2);
-                fscanf(modelFile, "%u", out_model->indices + idx + 4);
-                
-                out_model->indices[idx + 3] = out_model->indices[idx + 2];
-                out_model->indices[idx + 5] = out_model->indices[idx];
-                
-                idx += 6;
-            }
+        unsigned int faceSize;
+        fscanf(modelFile, "%ui", &faceSize);
+        
+        unsigned int firstVertex = 0, prevVertex = 0;
+        fscanf(modelFile, "%u", &firstVertex);
+        fscanf(modelFile, "%u", &prevVertex);
+        
+        for (unsigned int i = 1; i + 1 < faceSize; i += 1) {
+            out_model->indices[idx] = firstVertex;
+            out_model->indices[idx + 1] = prevVertex;
+            fscanf(modelFile, "%u", &prevVertex);
+            out_model->indices[idx + 2] = prevVertex;
+            idx += 3;
         }
     }
     
