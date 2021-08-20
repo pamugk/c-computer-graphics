@@ -343,7 +343,9 @@ bool parseModelAttributes(FILE *configurationFile, struct model *out_model) {
             } else if (strcmp("generate", staticBuffer) == 0) {
                 setRandomColors(&out_model->body, attributeShift);
             } else if (strcmp("static", staticBuffer) == 0) {
-                // TODO: statically define color value
+                float color[3];
+                fscanf(configurationFile, "%f %f %f", color, color + 1, color + 2);
+                setColor(&out_model->body, attributeShift, color);
             } else {
                 printf("Unknown color attribute source: %s\n", staticBuffer);
                 return false;

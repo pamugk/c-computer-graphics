@@ -11,6 +11,7 @@
 struct body initBodyWithHeightmap(const char *heightmapPath, unsigned char vertexSize, float h);
 
 void setRandomColors(struct body *paintedBody, int offset);
+void setColor(struct body *paintedBody, int offset, float color[3]);
 
 struct shader *loadShaders(const char *pathToShadersDefinition,int *out_shadersCount);
 struct shader_variable *loadShaderVariables(const char *pathToVariablesDefinition, int reservedVarCount, int *out_variablesCount);

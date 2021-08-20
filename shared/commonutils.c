@@ -53,6 +53,15 @@ void setRandomColors(struct body *paintedBody, int offset) {
     }
 }
 
+void setColor(struct body *paintedBody, int offset, float color[3]) {
+    printf("Setting pre-defined model color\n");
+    for (unsigned long i = 0; i < paintedBody->verticeCount * paintedBody->vertexSize; i += paintedBody->vertexSize) {
+        paintedBody->vertices[i  + offset] = 1.0 * rand() / RAND_MAX;
+        paintedBody->vertices[i + offset + 1] = 1.0 * rand() / RAND_MAX;
+        paintedBody->vertices[i + offset + 2] = 1.0 * rand() / RAND_MAX;
+    }
+}
+
 void initBodyTextures(struct body *physicalBody, int offset) {
     if (physicalBody->vertices == NULL) {
         printf("No physical body provided\n");
