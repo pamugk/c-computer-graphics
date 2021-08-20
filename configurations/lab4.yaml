@@ -72,9 +72,8 @@ models: 1 2
             204 204 51
             51 102 0
         3 GL_FLOAT 0 normals: calculate
-    transformations: 3
+    transformations: 2
         move x center
         move z center
-        scale fit
     
     END

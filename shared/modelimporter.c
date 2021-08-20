@@ -49,6 +49,7 @@ void importPlyModel(const char *filePath, struct model *out_model) {
     printf("Parsing ply file with ASCII data v. %s\n", staticBuffer);
     
     int facesCount = 0, xPos = -1, yPos = -1, zPos = -1;
+    unsigned char vertexSize = 0;
     while(fscanf(modelFile, "%s", staticBuffer) && strcmp("end_header", staticBuffer) != 0) {
         if (strcmp("comment", staticBuffer) == 0) {
             printf("Encountered a comment: ");
@@ -96,7 +97,7 @@ void importPlyModel(const char *filePath, struct model *out_model) {
                     zPos = out_model->body.vertexSize;
                 }
                 
-                out_model->body.vertexSize += 1;
+                vertexSize += 1;
             }
         } else if (strcmp("face", staticBuffer) == 0) {
             fscanf(modelFile, "%i", &facesCount);
@@ -132,6 +133,10 @@ void importPlyModel(const char *filePath, struct model *out_model) {
         fpos_t q;
     }
     
+    if (vertexSize > out_model->body.vertexSize) {
+        printf("Overriding predefined vertex size to contain all of the model properties\n");
+        out_model->body.vertexSize = vertexSize;
+    }
     out_model->body.vertices = calloc(out_model->body.verticeCount, sizeof(float) * out_model->body.vertexSize);
     
     if (out_model->body.vertices == NULL) {
@@ -142,7 +147,7 @@ void importPlyModel(const char *filePath, struct model *out_model) {
     
     float minX = FLT_MAX, maxX = FLT_MIN, minY = FLT_MAX, maxY = FLT_MIN, minZ = FLT_MAX, maxZ = FLT_MIN;
     for (int i = 0; i < out_model->body.verticeCount * out_model->body.vertexSize; i += out_model->body.vertexSize) {
-        for (int p = 0; p < out_model->body.vertexSize; p += 1) {
+        for (int p = 0; p < vertexSize; p += 1) {
             fscanf(modelFile, "%f", out_model->body.vertices + i + p);
         }
         if (xPos != -1) {
