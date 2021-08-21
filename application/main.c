@@ -258,13 +258,13 @@ void draw() {
                 if (g_camera == 0) {
                     multiplyMatrices(v, fullMMatrix, mv);
                     if (mvDefined) {
-                        memcpy(g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT] + 3].value.floatMat4Val, mv, MVP_MATRIX_SIZE * sizeof(float));
+                        memcpy(g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 3]].value.floatMat4Val, mv, MVP_MATRIX_SIZE * sizeof(float));
                     }
                     multiplyMatrices(p, mv, g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT]].value.floatMat4Val);
                 } else {
                     multiplyMatrices(c, fullMMatrix, g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT]].value.floatMat4Val);
                     if (mvDefined) {
-                        memcpy(g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT] + 3].value.floatMat4Val, fullMMatrix, MVP_MATRIX_SIZE * sizeof(float));
+                        memcpy(g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 3]].value.floatMat4Val, fullMMatrix, MVP_MATRIX_SIZE * sizeof(float));
                     }
                 }
                 
