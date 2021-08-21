@@ -480,19 +480,19 @@ bool parseModelTransformations(FILE *configurationFile, struct model *out_model)
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("fit", staticBuffer) == 0) {
                 scaleModel(out_model, 2.0f / out_model->body.width, 2.0f / out_model->body.height, 2.0f / out_model->body.depth);
-            } else if (strcmp("x", staticBuffer)) {
+            } else if (strcmp("x", staticBuffer) == 0) {
                 float factor;
                 fscanf(configurationFile, "%f", &factor);
                 scaleModel(out_model, factor, 1.0f, 1.0f);
-            }  else if (strcmp("y", staticBuffer)) {
+            }  else if (strcmp("y", staticBuffer) == 0) {
                 float factor;
                 fscanf(configurationFile, "%f", &factor);
                 scaleModel(out_model, 1.0f, factor, 1.0f);
-            }  else if (strcmp("z", staticBuffer)) {
+            }  else if (strcmp("z", staticBuffer) == 0) {
                 float factor;
                 fscanf(configurationFile, "%f", &factor);
                 scaleModel(out_model, 1.0f, 1.0f, factor);
-            }  else if (strcmp("all", staticBuffer)) {
+            }  else if (strcmp("all", staticBuffer) == 0) {
                 float factor;
                 fscanf(configurationFile, "%f", &factor);
                 scaleModel(out_model, factor, factor, factor);
