@@ -842,6 +842,9 @@ bool applyConfiguration(
             fscanf(configurationFile, "%s", section);
             if (strcmp("rotation:", section) == 0) {
                 fscanf(configurationFile, "%hhu", rotationKind);
+            } else {
+                printf("Unknown utility config section: %s\n", section);
+                noErrorsOccured = false;
             }
         } else {
             printf("Unknown configuration section: %s\n", section);

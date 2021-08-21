@@ -28,7 +28,8 @@ uniform vec3 u_olpos; // Позиция источника света
 uniform vec3 u_olcol; // Цвет света
 uniform vec3 u_oeye; // Позиция наблюдателя
 uniform float u_odmin; // Минимально допустимый уровень освещённости объекта в точке P
-uniform float u_osfoc;  // сфокусированность зеркального блика на поверхности освещаемого объекта в точке P
+uniform float u_osfoc;  // Сфокусированность зеркального блика на поверхности освещаемого объекта в точке P
+uniform float u_alstr; // Сила окружающего освещения
 
 layout(std430) buffer MaterialBlock {
     Material materials[];
@@ -68,5 +69,5 @@ void main()
     vec3 diffuseColor = material.diffuseColor + texture(u_diffuseMap, vec3(v_texCoord, material.diffuseTextureIdx)).rgb;
     vec3 specularColor = material.specularColor + texture(u_specularMap, vec3(v_texCoord, material.specularTextureIdx)).rgb;
     
-    o_color = mix(int(u_lie) * vec4(u_olcol * (ambientColor + diffuseColor * d + specularColor * s) + material.emissiveColor, material.opacity) + int(!u_lie) * vec4(ambientColor + material.emissiveColor, material.opacity), vec4(material.transmissionFilterColor, 1.0 - material.opacity), material.opacity);
+    o_color = mix(int(u_lie) * vec4(u_olcol * (u_alstr * ambientColor + diffuseColor * d + specularColor * s) + material.emissiveColor, material.opacity) + int(!u_lie) * vec4(u_alstr * ambientColor + material.emissiveColor, material.opacity), vec4(material.transmissionFilterColor, 1.0 - material.opacity), material.opacity);
 }
