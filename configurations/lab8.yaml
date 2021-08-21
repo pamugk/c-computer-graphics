@@ -1,7 +1,7 @@
 programs: 1
     shaders: 2
-        ../shaders/lab8/vsh.glsl GL_VERTEX_SHADER
-        ../shaders/lab8/fsh.glsl GL_FRAGMENT_SHADER
+        ../shaders/lab5/vsh.glsl GL_VERTEX_SHADER
+        ../shaders/lab5/fsh.glsl GL_FRAGMENT_SHADER
     variables: 2 5
         u_mvp GL_FLOAT_MAT4 0
         u_n GL_FLOAT_MAT3 1 
@@ -18,12 +18,12 @@ programs: 1
 
 models: -1 1
     12 file ../models/UFOs/ARV_Craft/ARV_Craft_Low_Poly.obj
-    attributes: 4
-        3 GL_FLOAT 0 coordinates: predefined
-        3 GL_FLOAT 0 normals: predefined
-        1 GL_INT 0 material: predefined
-        2 GL_FLOAT 0 texCoordinates: predefined
-        3 GL_FLOAT 0 tangents: calculated
+    attributes: 5
+        3 GL_FLOAT 0 coordinates: predefined 
+        3 GL_FLOAT 0 normals: predefined 
+        1 GL_INT 0 material: predefined 
+        2 GL_FLOAT 0 texCoordinates: predefined 
+        3 GL_FLOAT 0 tangents: calculate
 
     END
 

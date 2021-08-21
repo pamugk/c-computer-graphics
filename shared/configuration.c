@@ -289,7 +289,7 @@ bool parseShaderProgramsConfig(FILE *configurationFile, unsigned int *out_shader
 }
 
 bool parseModelAttributes(FILE *configurationFile, short int textureShift, struct model *out_model) {
-    char *dynamicBuffer = NULL; char staticBuffer[30];
+    char *dynamicBuffer = NULL, staticBuffer[30];
     unsigned short int attributeShift = 0;
     
     fscanf(configurationFile, "%i", &out_model->attributesCount);
@@ -302,7 +302,7 @@ bool parseModelAttributes(FILE *configurationFile, short int textureShift, struc
     }
     
     for (int i = 0; i < out_model->attributesCount; i += 1) {
-        fscanf(configurationFile, "%i%s%i", &out_model->attributes[i].size, staticBuffer, (int*)&out_model->attributes[i].normalized);
+        fscanf(configurationFile, "%i%s%hhu", &out_model->attributes[i].size, staticBuffer, &out_model->attributes[i].normalized);
         
         if (attributeShift + out_model->attributes[i].size > out_model->body.vertexSize) {
             printf("Combined attributes size overflows model vertex size\n");
@@ -323,6 +323,7 @@ bool parseModelAttributes(FILE *configurationFile, short int textureShift, struc
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("predefined", staticBuffer) == 0) {
                 // Do nothing, attribute is already set
+                printf("Coordinates are predefined\n");
             } else {
                 printf("Unknown coordinates attribute source: %s\n", staticBuffer);
                 return false;
@@ -331,6 +332,7 @@ bool parseModelAttributes(FILE *configurationFile, short int textureShift, struc
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("predefined", staticBuffer) == 0) {
                 // Do nothing, attribute is already set
+                printf("Material is predefined\n");
             }
         } else if (strcmp("color:", staticBuffer) == 0) {
             if (out_model->attributes[i].size != 3) {
@@ -340,6 +342,7 @@ bool parseModelAttributes(FILE *configurationFile, short int textureShift, struc
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("predefined", staticBuffer) == 0) {
                 // Do nothing, attribute is already set
+                printf("Color is predefined\n");
             } else if (strcmp("generate", staticBuffer) == 0) {
                 setRandomColors(&out_model->body, attributeShift);
             } else if (strcmp("static", staticBuffer) == 0) {
@@ -354,6 +357,7 @@ bool parseModelAttributes(FILE *configurationFile, short int textureShift, struc
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("predefined", staticBuffer) == 0) {
                 // Do nothing, attribute is already set
+                printf("Texture coordinates are predefined\n");
             } else if (strcmp("same", staticBuffer) == 0) {
                 initBodyTextures(&out_model->body, attributeShift);
             } else {
@@ -365,6 +369,7 @@ bool parseModelAttributes(FILE *configurationFile, short int textureShift, struc
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("predefined", staticBuffer) == 0) {
                 // Do nothing, attribute is already set
+                printf("Texture layer is predefined\n");
             } else if (strcmp("stub", staticBuffer) == 0) {
                 initBodyStubTextureLayer(&out_model->body, attributeShift);
             } else if (strcmp("file", staticBuffer) == 0) {
@@ -399,13 +404,14 @@ bool parseModelAttributes(FILE *configurationFile, short int textureShift, struc
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("predefined", staticBuffer) == 0) {
                 // Do nothing, attribute is already set
+                printf("Normals are predefined\n");
             } else if (strcmp("calculate", staticBuffer) == 0) {
                 calculateModelNormals(out_model, attributeShift);
             } else {
                 printf("Unknown normals attribute source: %s\n", staticBuffer);
                 return false;
             }
-        } if (strcmp("tangents:", staticBuffer) == 0) {
+        } else if (strcmp("tangents:", staticBuffer) == 0) {
             if (out_model->attributes[i].size != 3) {
                 printf("Model tangents attribute has to have size 3\n");
                 return false;
@@ -413,14 +419,16 @@ bool parseModelAttributes(FILE *configurationFile, short int textureShift, struc
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("predefined", staticBuffer) == 0) {
                 // Do nothing, attribute is already set
+                printf("Tangents are predefined\n");
             } else if (strcmp("calculate", staticBuffer) == 0) {
                 calculateModelTangents(out_model, 0, textureShift, attributeShift);
             } else {
-                printf("Unknown normals attribute source: %s\n", staticBuffer);
+                printf("Unknown tangents attribute source: %s\n", staticBuffer);
                 return false;
             }
         } else {
             printf("Unknown model attribute label: %s\n", staticBuffer);
+            return false;
         }
         attributeShift += out_model->attributes[i].size;
     }

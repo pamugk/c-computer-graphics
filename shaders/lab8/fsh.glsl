@@ -24,9 +24,7 @@ struct Material {
     int normalTextureIdx;
 };
 
-uniform vec3 u_olpos; // Позиция источника света
 uniform vec3 u_olcol; // Цвет света
-uniform vec3 u_oeye; // Позиция наблюдателя
 uniform float u_odmin; // Минимально допустимый уровень освещённости объекта в точке P
 uniform float u_osfoc;  // сфокусированность зеркального блика на поверхности освещаемого объекта в точке P
 
@@ -46,10 +44,10 @@ uniform sampler2DArray u_displacementMap;
 uniform sampler2DArray u_stencilDecalMap;
 uniform sampler2DArray u_normalMap;
 
-in vec3 v_pos; // Позиция вершины
-in vec3 v_normal; // Нормаль
-in flat int i_material;
+in vec3 v_ray;
+in vec3 v_eye;
 in vec2 v_texCoord;
+in flat int i_material;
 
 layout(location = 0) out vec4 o_color;
 
@@ -57,12 +55,11 @@ void main()
 {
     Material material = materials[i_material];
     
-    vec3 l = normalize(v_pos - u_olpos); // Нормированный вектор падения света
-    float cosa = dot(l, v_normal); // Косинус угла падения луча света
+    vec3 v_normal = texture(u_normalMap, vec3(v_texCoord, material.normalTextureIdx));
+    float cosa = dot(v_ray, v_normal); // Косинус угла падения луча света
     float d = max(cosa, u_odmin); // Коэффициент диффузного освещения
-    vec3 r = reflect(l, v_normal); // Вектор отражения
-    vec3 e = normalize(u_oeye - v_pos); // Ось зрения наблюдателя
-    float s = pow(max(dot(r, e), 0.0), material.specularExponent) * (int(cosa >= 0.0)); // Коэффициент зеркального блика, при cosa < 0 обнуляется для устранения бликов на обратной источнику света стороне
+    vec3 r = reflect(v_ray, v_normal); // Вектор отражения
+    float s = pow(max(dot(r, v_eye), 0.0), material.specularExponent) * (int(cosa >= 0.0)); // Коэффициент зеркального блика, при cosa < 0 обнуляется для устранения бликов на обратной источнику света стороне
     
     vec3 ambientColor = material.ambientColor + texture(u_ambientMap, vec3(v_texCoord, material.ambientTextureIdx)).rgb;
     vec3 diffuseColor = material.diffuseColor + texture(u_diffuseMap, vec3(v_texCoord, material.diffuseTextureIdx)).rgb;
