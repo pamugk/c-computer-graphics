@@ -30,7 +30,7 @@ float clamp(float a, float min, float max) {
 void initCameraAngle(struct camera_angle *camera) {
     camera->position = (struct vec3f){ 0.0f, 0.0f, 0.0f },
     camera->orientation.yaw = 0.0f, camera->orientation.pitch = 0.0f, camera->orientation.roll = 0.0f,
-    camera->height = 1.0,
+    camera->height = 0.05f,
     camera->speed = 0.005,
     camera->constrained = false;
 }
