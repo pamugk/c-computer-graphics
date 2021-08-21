@@ -621,12 +621,56 @@ bool parseCamerasConfig(FILE *configurationFile,
             fscanf(configurationFile, "%hhi", camera);
         } else if (strcmp("camera:", section) == 0) {
             fscanf(configurationFile, "%s", section);
+            if (strcmp("kind:", section) != 0) {
+                printf("Camera kind must be specified\n");
+                noErrorsOccured = false;
+                continue;
+            }
+            
+            fscanf(configurationFile, "%s", section);
             if (strcmp("fps_angle", section) == 0) {
-                fscanf(configurationFile, "%f%f%f%f%f%f%f%f", &fpc1->position.x, &fpc1->position.y, &fpc1->position.z, &fpc1->orientation.yaw, &fpc1->orientation.pitch, &fpc1->orientation.roll, &fpc1->height, &fpc1->speed);
+                while (noErrorsOccured && fscanf(configurationFile, "%s", section) > 0 && strcmp("END", section) != 0) {
+                    if (strcmp("position:", section) == 0) {
+                        fscanf(configurationFile, "%f%f%f", &fpc1->position.x, &fpc1->position.y, &fpc1->position.z);
+                    } else if (strcmp("orientation:", section) == 0) {
+                        fscanf(configurationFile, "%f%f%f", &fpc1->orientation.yaw, &fpc1->orientation.pitch, &fpc1->orientation.roll);
+                    } else if (strcmp("height:", section) == 0) {
+                        fscanf(configurationFile, "%f", &fpc1->height);
+                    } else if (strcmp("speed:", section) == 0) {
+                        fscanf(configurationFile, "%f", &fpc1->speed);
+                    } else {
+                        printf("Unknown camera configuration section: %s\n", section);
+                    }
+                }
+                
             } else if (strcmp("fps_quat", section) == 0) {
-                fscanf(configurationFile, "%f%f%f%f%f", &fpc2->position.x, &fpc2->position.y, &fpc2->position.z, &fpc2->height, &fpc2->speed);
+                while (noErrorsOccured && fscanf(configurationFile, "%s", section) > 0 && strcmp("END", section) != 0) {
+                    if (strcmp("position:", section) == 0) {
+                        fscanf(configurationFile, "%f%f%f", &fpc2->position.x, &fpc2->position.y, &fpc2->position.z);
+                    } else if (strcmp("orientation:", section) == 0) {
+                        fscanf(configurationFile, "%f%f%f%f", &fpc2->orientation.x, &fpc2->orientation.y, &fpc2->orientation.z, &fpc2->orientation.w);
+                    } else if (strcmp("height:", section) == 0) {
+                        fscanf(configurationFile, "%f", &fpc2->height);
+                    } else if (strcmp("speed:", section) == 0) {
+                        fscanf(configurationFile, "%f", &fpc2->speed);
+                    } else {
+                        printf("Unknown camera configuration section: %s\n", section);
+                    }
+                }
             } else if (strcmp("tps", section) == 0) {
-                fscanf(configurationFile, "%f%f%f%f%f%f%f%f%f%f", &tpc->e.x, &tpc->e.y, &tpc->e.z, &tpc->c.x, &tpc->c.y, &tpc->c.z, &tpc->u.x, &tpc->u.y, &tpc->u.z, &tpc->speed);
+                while (noErrorsOccured && fscanf(configurationFile, "%s", section) > 0 && strcmp("END", section) != 0) {
+                    if (strcmp("eye:", section) == 0) {
+                        fscanf(configurationFile, "%f%f%f", &tpc->e.x, &tpc->e.y, &tpc->e.z);
+                    } else if (strcmp("center:", section) == 0) {
+                        fscanf(configurationFile, "%f%f%f", &tpc->c.x, &tpc->c.y, &tpc->c.z);
+                    } else if (strcmp("up:", section) == 0) {
+                        fscanf(configurationFile, "%f%f%f", &tpc->u.x, &tpc->u.y, &tpc->u.z);
+                    } else if (strcmp("speed:", section) == 0) {
+                        fscanf(configurationFile, "%f", &tpc->speed);
+                    } else {
+                        printf("Unknown camera configuration section: %s\n", section);
+                    }
+                }
             } else if (strcmp("arcball", section) == 0) {
                 int transformationsCount;
                 
