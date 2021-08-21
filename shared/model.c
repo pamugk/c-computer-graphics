@@ -120,12 +120,11 @@ void calculateModelNormals(struct model *model, int offset) {
     }
     
     printf("Started normals calculation for provided model\n");
-    
-    const float multiplier = -1.f;
+    float multiplier = -1.0f;
     for (int i = 0; i < model->indexCount; i += 3) {
-        int cIdx = model->indices[i] * model->body.vertexSize,
+        int aIdx = model->indices[i] * model->body.vertexSize,
         bIdx = model->indices[i + 1] * model->body.vertexSize,
-        aIdx = model->indices[i + 2] * model->body.vertexSize;
+        cIdx = model->indices[i + 2] * model->body.vertexSize;
         
         struct vec3f normal;
         calculateNormal(
@@ -135,18 +134,15 @@ void calculateModelNormals(struct model *model, int offset) {
             multiplier, &normal);
         normalizeVector(&normal);
         
-        vectorSum((const struct vec3f *)(model->body.vertices + aIdx + offset), &normal, (struct vec3f *)(model->body.vertices + aIdx + offset));
-        normalizeVector((struct vec3f *)(model->body.vertices + aIdx + offset));
-        
-        vectorSum((const struct vec3f *)(model->body.vertices + bIdx + offset), &normal, (struct vec3f *)(model->body.vertices + bIdx + offset));
-        normalizeVector((struct vec3f *)(model->body.vertices + bIdx + offset));
-        
+        vectorSum((const struct vec3f *)(model->body.vertices + aIdx + offset), &normal, (struct vec3f *)(model->body.vertices + aIdx + offset)),
+        vectorSum((const struct vec3f *)(model->body.vertices + bIdx + offset), &normal, (struct vec3f *)(model->body.vertices + bIdx + offset)),
         vectorSum((const struct vec3f *)(model->body.vertices + cIdx + offset), &normal, (struct vec3f *)(model->body.vertices + cIdx + offset));
+        
+        normalizeVector((struct vec3f *)(model->body.vertices + aIdx + offset)),
+        normalizeVector((struct vec3f *)(model->body.vertices + bIdx + offset)),
         normalizeVector((struct vec3f *)(model->body.vertices + cIdx + offset));
-    }
-    
-    for (int i = 0; i < model->body.vertexSize * model->body.verticeCount; i += model->body.vertexSize) {
-        normalizeVector((struct vec3f *)(model->body.vertices + i + offset));
+        
+        multiplier *= -1.0f;
     }
     
     printf("Completed normals calculation for provided model\n");

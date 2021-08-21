@@ -41,11 +41,9 @@ void calculateNormal(
     struct vec3f AC = { pointC->x - pointA->x, pointC->y - pointA->y, pointC->z - pointA->z };
     float lenAC = vectorLength(&AC);
     
-    float cosV = (AB.x * AC.x + AB.y * AC.y + AB.z * AC.z) / lenAB / lenAC;
-    
-    normal->x =  multiplier * cosV * (AB.y * AC.z - AC.y * AB.z);
-    normal->y = multiplier * cosV * (-AB.x * AC.z + AC.x * AB.z);
-    normal->z =  multiplier * cosV * (AB.x * AC.y - AC.x * AB.y);
+    normal->x =  multiplier * (AB.y * AC.z - AC.y * AB.z),
+    normal->y = multiplier * (-AB.x * AC.z + AC.x * AB.z),
+    normal->z =  multiplier  * (AB.x * AC.y - AC.x * AB.y);
 }
 
 // Нормализация

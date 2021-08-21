@@ -269,7 +269,11 @@ void draw() {
                 }
                 
                 if (normalsDefined) {
-                    buildNMatrix(g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT]].value.floatMat4Val, g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 1]].value.floatMat3Val);
+                    if (mvDefined) {
+                        buildNMatrix(g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 3]].value.floatMat4Val, g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 1]].value.floatMat3Val);
+                    } else {
+                        buildNMatrix(g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT]].value.floatMat4Val, g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 1]].value.floatMat3Val);
+                    }
                 }
             }
             
