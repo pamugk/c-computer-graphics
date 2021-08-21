@@ -336,11 +336,11 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
     } else if (key == GLFW_KEY_UP && action != GLFW_RELEASE) {
         switch (g_camera) {
             case 1: {
-                moveCameraAngle(&g_fpc1, 1, constrain);
+                moveCameraAngle(&g_fpc1, -1, constrain);
                 break;
             }
             case 2: {
-                moveCameraQuat(&g_fpc2, 1, constrain);
+                moveCameraQuat(&g_fpc2, -1, constrain);
                 break;
             }
             case 3: {
@@ -357,11 +357,11 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
     } else if (key == GLFW_KEY_DOWN && action != GLFW_RELEASE) {
         switch (g_camera) {
             case 1: {
-                moveCameraAngle(&g_fpc1, -1, constrain);
+                moveCameraAngle(&g_fpc1, 1, constrain);
                 break;
             }
             case 2: {
-                moveCameraQuat(&g_fpc2, -1, constrain);
+                moveCameraQuat(&g_fpc2, 1, constrain);
                 break;
             }
             case 3: {
