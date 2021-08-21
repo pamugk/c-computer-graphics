@@ -145,7 +145,7 @@ void reshape(GLFWwindow *window, int width, int height) {
 }
 
 float getY(int x, int z) {
-    if (x < 0 || z < 0 || x > g_models[g_terrain].body.width || z > g_models[g_terrain].body.width) {
+    if (x < -g_models[g_terrain].body.width / 2.f || z < -g_models[g_terrain].body.depth / 2.f || x > g_models[g_terrain].body.width / 2.f || z > g_models[g_terrain].body.width / 2.f) {
         return 0.0f;
     }
     return g_models[g_terrain].body.vertices[z * g_models[g_terrain].body.vertexSize + x * g_models[g_terrain].body.vertexSize + 1];
@@ -160,22 +160,26 @@ float calculateY(float x, float z) {
         + (getY(x + 1, z) * nfz + getY(x + 1, z + 1) * fz) * fx;
 }
 
-void constrain(struct vec3f *position, float dx, float dz, float height) {
+void constrain(struct vec3f *position, float dx, float dz, float height, bool constrain) {
     float newX = position->x + dx, newZ = position->z + dz, y = 0.0f;
     
     if (g_terrain != -1) {
-        if (newX < 0.0f) {
-            newX = 0.0f;
-        }
-        if (newX > g_models[g_terrain].body.width) {
-            newX = g_models[g_terrain].body.width;
-        }
-        
-        if (newZ < 0.0f) {
-            newZ = 0.0f;
-        }
-        if (newZ > g_models[g_terrain].body.depth) {
-            newZ = g_models[g_terrain].body.depth;
+        if (constrain) {
+            float halfWidth = g_models[g_terrain].body.width / 2.f,
+            halfDepth = g_models[g_terrain].body.depth / 2.f;
+            if (newX < -halfWidth) {
+                newX = -halfWidth;
+            }
+            if (newX > halfWidth) {
+                newX = g_models[g_terrain].body.width;
+            }
+            
+            if (newZ < -halfDepth) {
+                newZ = -halfDepth;
+            }
+            if (newZ > halfDepth) {
+                newZ = halfDepth;
+            }
         }
         
         y = calculateY(newX, newZ);
@@ -344,7 +348,7 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
                 break;
             }
             case 3: {
-                g_tpc.e.z += g_tpc.speed;
+                constrain(&g_tpc.e, 0,  g_tpc.speed, 1.0f, g_tpc.constrained);
                 break;
             }
             case 4: {
@@ -365,7 +369,7 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
                 break;
             }
             case 3: {
-                g_tpc.e.z -= g_tpc.speed;
+                constrain(&g_tpc.e, 0,  -g_tpc.speed, 1.0f, g_tpc.constrained);
                 break;
             }
             case 4: {
@@ -386,7 +390,7 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
                 break;
             }
             case 3: {
-                g_tpc.e.x -= g_tpc.speed;
+                constrain(&g_tpc.e, -g_tpc.speed, 0.f, 1.0f, g_tpc.constrained);
                 break;
             }
             case 4: {
@@ -407,7 +411,7 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
                 break;
             }
             case 3: {
-                g_tpc.e.x += g_tpc.speed;
+                constrain(&g_tpc.e, g_tpc.speed, 0.f, 1.0f, g_tpc.constrained);
                 break;
             }
             case 4: {
@@ -445,8 +449,8 @@ void onCursorMove(GLFWwindow* window, double x, double y) {
     
     switch (g_camera) {
         case 1: {
-            yawCameraAngle(&g_fpc1, -dx * cameraRotationSpeed);
-            pitchCameraAngle(&g_fpc1, -dy * cameraRotationSpeed);
+            yawCameraAngle(&g_fpc1, dx * cameraRotationSpeed);
+            pitchCameraAngle(&g_fpc1, dy * cameraRotationSpeed);
             break;
         }
         case 2: {
@@ -479,7 +483,7 @@ void initOptics() {
     
     moveCameraAngle(&g_fpc1, 0, constrain);
     moveCameraQuat(&g_fpc2, 0, constrain);
-    constrain(&g_tpc.e, 0.0f, 0.0f, 1.0f);
+    constrain(&g_tpc.e, 0.0f, 0.0f, 1.0f, g_tpc.constrained);
     
     cameraRotationSpeed = calculateRotationSpeed(1024, 768);
     g_oc.rotationSpeed = cameraRotationSpeed;

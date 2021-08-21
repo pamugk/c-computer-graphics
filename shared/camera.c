@@ -29,18 +29,19 @@ float clamp(float a, float min, float max) {
 
 void initCameraAngle(struct camera_angle *camera) {
     camera->position = (struct vec3f){ 0.0f, 0.0f, 0.0f },
-    camera->orientation.yaw = 0.0f, camera->orientation.pitch = 0.0f, camera->orientation.roll = 0.0f;
-    camera->height = 0.0;
-    camera->speed = 0.005;
+    camera->orientation.yaw = 0.0f, camera->orientation.pitch = 0.0f, camera->orientation.roll = 0.0f,
+    camera->height = 1.0,
+    camera->speed = 0.005,
+    camera->constrained = false;
 }
 
-void moveCameraAngle(struct camera_angle *camera, char direction, void constrain(struct vec3f *position, float dx, float dz, float height)) {
-    constrain(&camera->position, -sinf(camera->orientation.yaw) * direction * camera->speed, cosf(camera->orientation.yaw) * direction * camera->speed, camera->height);
+void moveCameraAngle(struct camera_angle *camera, char direction, void constrain(struct vec3f *position, float dx, float dz, float height, bool constrain)) {
+    constrain(&camera->position, -sinf(camera->orientation.yaw) * direction * camera->speed, cosf(camera->orientation.yaw) * direction * camera->speed, camera->height, camera->constrained);
 }
 
-void strafeCameraAngle(struct camera_angle *camera, char direction, void constrain(struct vec3f *position, float dx, float dz, float height)) {
+void strafeCameraAngle(struct camera_angle *camera, char direction, void constrain(struct vec3f *position, float dx, float dz, float height, bool constrain)) {
     float a = camera->orientation.yaw - M_PI_2;
-    constrain(&camera->position, -direction * sinf(a) * camera->speed,  -direction * cosf(a) * camera->speed, camera->height);
+    constrain(&camera->position, -direction * sinf(a) * camera->speed,  -direction * cosf(a) * camera->speed, camera->height, camera->constrained);
 }
 
 void yawCameraAngle(struct camera_angle *camera, float angle) {
@@ -48,11 +49,11 @@ void yawCameraAngle(struct camera_angle *camera, float angle) {
 }
 
 void pitchCameraAngle(struct camera_angle *camera, float angle) {
-    camera->orientation.pitch = clamp(camera->orientation.pitch - angle, 0.0f, M_PI_2);
+    camera->orientation.pitch = camera->constrained ? clamp(camera->orientation.pitch - angle, 0, M_PI_4) : camera->orientation.pitch - angle;
 }
 
 void rollCameraAngle(struct camera_angle *camera, float angle) {
-    camera->orientation.roll = clamp(camera->orientation.roll - angle, 0.0f, M_PI_4);
+    camera->orientation.roll = camera->constrained ? clamp(camera->orientation.roll - angle, 0.0f, M_PI_4) : camera->orientation.roll - angle;
 }
 
 void viewCameraAngle(struct camera_angle *camera, float out_v[MVP_MATRIX_SIZE]) {
@@ -65,23 +66,24 @@ void viewCameraAngle(struct camera_angle *camera, float out_v[MVP_MATRIX_SIZE]) 
 
 void initCameraQuat(struct camera_quat *camera) {
     camera->position = (struct vec3f){ 0.0f, 0.0f, 0.0f },
-    makeIdenticalQuat(&camera->orientation);
-    camera->height = 0.0f;
-    camera->speed = 0.005f;
+    makeIdenticalQuat(&camera->orientation),
+    camera->height = 0.05f,
+    camera->speed = 0.005f,
+    camera->constrained = false;
 }
 
-void moveCameraQuat(struct camera_quat *camera, char direction, void constrain(struct vec3f *position, float dx, float dz, float height)) {
+void moveCameraQuat(struct camera_quat *camera, char direction, void constrain(struct vec3f *position, float dx, float dz, float height, bool constrain)) {
     struct vec3f dir = { 0.0f, 0.0f, 1.0f };
     struct quat q = { camera->orientation.x, camera->orientation.y, camera->orientation.z, -camera->orientation.w };
     rotateVectorWithQuat(&dir, &q, &dir);
-    constrain(&camera->position, -dir.x * direction * camera->speed, -dir.z * direction * camera->speed, camera->height);
+    constrain(&camera->position, -dir.x * direction * camera->speed, -dir.z * direction * camera->speed, camera->height, camera->constrained);
 }
 
-void strafeCameraQuat(struct camera_quat *camera, char direction, void constrain(struct vec3f *position, float dx, float dz, float height)) {
+void strafeCameraQuat(struct camera_quat *camera, char direction, void constrain(struct vec3f *position, float dx, float dz, float height, bool constrain)) {
     struct vec3f dir = { -1.0f, 0.0f, 0.0f };
     struct quat q = { camera->orientation.x, camera->orientation.y, camera->orientation.z, -camera->orientation.w };
     rotateVectorWithQuat(&dir, &q, &dir);
-    constrain(&camera->position, -direction * dir.x * camera->speed,  -direction * dir.z * camera->speed, camera->height);
+    constrain(&camera->position, -direction * dir.x * camera->speed,  -direction * dir.z * camera->speed, camera->height, camera->constrained);
 }
 
 void yawCameraQuat(struct camera_quat *camera, float angle) {
@@ -112,10 +114,11 @@ void viewCameraQuat(struct camera_quat *camera, float out_v[MVP_MATRIX_SIZE]) {
 }
 
 void initThirdPersonCamera(struct third_person_camera *camera) {
-    camera->e = (struct vec3f){ 0.0f, 0.0f, -0.5f };
-    camera->c = (struct vec3f){ 0.0f, 0.0f, 0.0f };
-    camera->u = (struct vec3f){ 0.0f, 0.0f, 1.0f };
-    camera->speed = 0.05f;
+    camera->e = (struct vec3f){ 0.0f, 0.0f, -0.5f },
+    camera->c = (struct vec3f){ 0.0f, 0.0f, 0.0f },
+    camera->u = (struct vec3f){ 0.0f, 0.0f, 1.0f },
+    camera->speed = 0.05f,
+    camera->constrained = false;
 }
 
 void buildThirdPersonCameraView(struct third_person_camera *camera, float out_v[MVP_MATRIX_SIZE]) {
@@ -147,10 +150,11 @@ void buildThirdPersonCameraView(struct third_person_camera *camera, float out_v[
 }
 
 void initOrbitalCamera(struct orbital_camera *camera) {
-    getIdentityMatrix(camera->t);
-    getIdentityMatrix(camera->s);
-    getIdentityMatrix(camera->r);
-    camera->rotationSpeed = 0.05f;
+    getIdentityMatrix(camera->t),
+    getIdentityMatrix(camera->s),
+    getIdentityMatrix(camera->r),
+    camera->rotationSpeed = 0.05f,
+    camera->constrained = false;
 }
 
 void buildOrbitalCameraRotation(float dx, float dy, bool rotateAboutZ, struct orbital_camera *camera) {

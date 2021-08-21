@@ -638,6 +638,8 @@ bool parseCamerasConfig(FILE *configurationFile,
                         fscanf(configurationFile, "%f", &fpc1->height);
                     } else if (strcmp("speed:", section) == 0) {
                         fscanf(configurationFile, "%f", &fpc1->speed);
+                    } else if (strcmp("constrained:", section) == 0) {
+                        fscanf(configurationFile, "%hhu", &fpc1->constrained);
                     } else {
                         printf("Unknown camera configuration section: %s\n", section);
                     }
@@ -653,6 +655,8 @@ bool parseCamerasConfig(FILE *configurationFile,
                         fscanf(configurationFile, "%f", &fpc2->height);
                     } else if (strcmp("speed:", section) == 0) {
                         fscanf(configurationFile, "%f", &fpc2->speed);
+                    }  else if (strcmp("constrained:", section) == 0) {
+                        fscanf(configurationFile, "%hhu", &fpc2->constrained);
                     } else {
                         printf("Unknown camera configuration section: %s\n", section);
                     }
@@ -667,6 +671,8 @@ bool parseCamerasConfig(FILE *configurationFile,
                         fscanf(configurationFile, "%f%f%f", &tpc->u.x, &tpc->u.y, &tpc->u.z);
                     } else if (strcmp("speed:", section) == 0) {
                         fscanf(configurationFile, "%f", &tpc->speed);
+                    }  else if (strcmp("constrained:", section) == 0) {
+                        fscanf(configurationFile, "%hhu", &tpc->constrained);
                     } else {
                         printf("Unknown camera configuration section: %s\n", section);
                     }

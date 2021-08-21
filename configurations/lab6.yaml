@@ -88,12 +88,14 @@ cameras:
         orientation: 0.0 0.0 0.0
         height: 1.0
         speed: 0.5
+        constrained: 1
         END
     camera:
         kind: fps_quat
         position: 0.0 5.0 0.0
         height: 1.0
         speed: 0.5
+        constrained: 1
         END
     camera:
         kind: tps
@@ -101,5 +103,6 @@ cameras:
         center: 0.0 2.0 0.0
         up: 0.0 -1.0 0.0
         speed: 0.5
+        constrained: 1
     
     END
