@@ -1,5 +1,6 @@
 #include "model.h"
 #include "matrix.h"
+#include "vector.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -119,23 +120,29 @@ void calculateModelNormals(struct model *model, int offset) {
     }
     
     printf("Started normals calculation for provided model\n");
-    struct vec3f normal;
-    int pointAIdx, pointBIdx, pointCIdx;
+    
     const float multiplier = -1.f;
     for (int i = 0; i < model->indexCount; i += 3) {
-        pointCIdx = model->indices[i] * model->body.vertexSize;
-        pointBIdx = model->indices[i + 1] * model->body.vertexSize;
-        pointAIdx = model->indices[i + 2] * model->body.vertexSize;
+        int cIdx = model->indices[i] * model->body.vertexSize,
+        bIdx = model->indices[i + 1] * model->body.vertexSize,
+        aIdx = model->indices[i + 2] * model->body.vertexSize;
         
+        struct vec3f normal;
         calculateNormal(
-            (const struct vec3f *)(model->body.vertices + pointAIdx),
-            (const struct vec3f *)(model->body.vertices + pointBIdx), 
-            (const struct vec3f *)(model->body.vertices + pointCIdx),
+            (const struct vec3f *)(model->body.vertices + aIdx),
+            (const struct vec3f *)(model->body.vertices + bIdx), 
+            (const struct vec3f *)(model->body.vertices + cIdx),
             multiplier, &normal);
+        normalizeVector(&normal);
         
-        model->body.vertices[pointAIdx + offset] += normal.x; model->body.vertices[pointAIdx + offset + 1] += normal.y; model->body.vertices[pointAIdx + offset + 2] += normal.z;
-        model->body.vertices[pointBIdx + offset] += normal.x; model->body.vertices[pointBIdx + offset + 1] += normal.y; model->body.vertices[pointBIdx + offset + 2] += normal.z;
-        model->body.vertices[pointCIdx + offset] += normal.x; model->body.vertices[pointCIdx + offset + 1] += normal.y; model->body.vertices[pointCIdx + offset + 2] += normal.z;
+        vectorSum((const struct vec3f *)(model->body.vertices + aIdx + offset), &normal, (struct vec3f *)(model->body.vertices + aIdx + offset));
+        normalizeVector((struct vec3f *)(model->body.vertices + aIdx + offset));
+        
+        vectorSum((const struct vec3f *)(model->body.vertices + bIdx + offset), &normal, (struct vec3f *)(model->body.vertices + bIdx + offset));
+        normalizeVector((struct vec3f *)(model->body.vertices + bIdx + offset));
+        
+        vectorSum((const struct vec3f *)(model->body.vertices + cIdx + offset), &normal, (struct vec3f *)(model->body.vertices + cIdx + offset));
+        normalizeVector((struct vec3f *)(model->body.vertices + cIdx + offset));
     }
     
     for (int i = 0; i < model->body.vertexSize * model->body.verticeCount; i += model->body.vertexSize) {
@@ -143,6 +150,66 @@ void calculateModelNormals(struct model *model, int offset) {
     }
     
     printf("Completed normals calculation for provided model\n");
+}
+
+void calculateModelTangents(struct model *model, int vertexOffset, int texOffset, int tangentOffset) {
+    if (model->body.vertices == NULL) {
+        printf("No vertices provided\n");
+        return;
+    }
+    if (model->indices == NULL) {
+        printf("No indices provided\n");
+        return;
+    }
+    if (vertexOffset == -1) {
+        printf("No vertex coordinates attribute defined\n");
+        return;
+    }
+    if (texOffset == -1) {
+        printf("No vertex coordinates attribute defined\n");
+        return;
+    }
+    if (texOffset == -1) {
+        printf("No vertex texture coordinates attribute defined\n");
+        return;
+    }
+    if (texOffset == -1) {
+        printf("No vertex tangent attribute defined\n");
+        return;
+    }
+    
+    printf("Started tangents calculation for provided model\n");
+    
+    for (int i = 0; i < model->indexCount; i += 3) {
+        int aIdx = model->indices[i] * model->body.vertexSize,
+        bIdx = model->indices[i + 1] * model->body.vertexSize,
+        cIdx = model->indices[i + 2] * model->body.vertexSize;
+        
+        struct vec3f eo1 = { model->body.vertices[bIdx + vertexOffset] - model->body.vertices[aIdx + vertexOffset], model->body.vertices[bIdx + vertexOffset + 1] - model->body.vertices[aIdx + vertexOffset + 1], model->body.vertices[bIdx + vertexOffset + 2] - model->body.vertices[aIdx + vertexOffset + 2] },
+        eo2 = { model->body.vertices[cIdx + vertexOffset] - model->body.vertices[aIdx + vertexOffset], model->body.vertices[cIdx + vertexOffset + 1] - model->body.vertices[aIdx + vertexOffset + 1], model->body.vertices[cIdx + vertexOffset + 2] - model->body.vertices[aIdx + vertexOffset + 2] };
+        
+        struct vec2f et1 = { model->body.vertices[bIdx + texOffset] - model->body.vertices[aIdx + texOffset], model->body.vertices[bIdx + texOffset + 1] - model->body.vertices[aIdx + texOffset + 1] },
+        et2 = { model->body.vertices[cIdx + texOffset] - model->body.vertices[aIdx + texOffset], model->body.vertices[cIdx + texOffset + 1] - model->body.vertices[aIdx + texOffset + 1] };
+        
+        float f = 1.0f / (et1.x * et2.y - et1.y * et2.x);
+        struct vec3f tangent = { 
+            f * (et2.y * eo1.x - et1.y * eo2.x),
+            f * (et2.y * eo1.y - et1.y * eo2.y),
+            f * (et2.y * eo1.z - et1.y * eo2.z)
+        };
+        normalizeVector(&tangent);
+        
+        vectorSum((const struct vec3f *)(model->body.vertices + aIdx + tangentOffset), &tangent, (struct vec3f *)(model->body.vertices + aIdx + tangentOffset));
+        normalizeVector((struct vec3f *)(model->body.vertices + aIdx + tangentOffset));
+        
+        vectorSum((const struct vec3f *)(model->body.vertices + bIdx + tangentOffset), &tangent, (struct vec3f *)(model->body.vertices + bIdx + tangentOffset));
+        normalizeVector((struct vec3f *)(model->body.vertices + bIdx + tangentOffset));
+        
+        vectorSum((const struct vec3f *)(model->body.vertices + cIdx + tangentOffset), &tangent, (struct vec3f *)(model->body.vertices + cIdx + tangentOffset));
+        normalizeVector((struct vec3f *)(model->body.vertices + cIdx + tangentOffset));
+    }
+    
+    printf("Completed tangents calculation for provided model\n");
 }
 
 void moveModel(struct model *model, float dx, float dy, float dz) {

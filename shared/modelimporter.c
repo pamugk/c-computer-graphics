@@ -13,7 +13,7 @@ bool isPly(const char *fileExtension) {
     return strcmp(fileExtension, "ply") == 0;
 }
 
-void importPlyModel(const char *filePath, struct model *out_model) {
+void importPlyModel(const char *filePath, short int *textureOffset, struct model *out_model) {
     FILE *modelFile = fopen(filePath, "r");
 
     if (modelFile == NULL) {
@@ -95,6 +95,8 @@ void importPlyModel(const char *filePath, struct model *out_model) {
                     yPos = out_model->body.vertexSize;
                 } else if (zPos == -1 && strcmp("z", staticBuffer) == 0) {
                     zPos = out_model->body.vertexSize;
+                } else if (*textureOffset == -1 && strcmp("s", staticBuffer) == 0) {
+                    *textureOffset = out_model->body.vertexSize;
                 }
                 
                 vertexSize += 1;
@@ -796,12 +798,13 @@ void importObjModel(const char *filePath, struct model *out_model) {
     free(dynamicBuffer);
 }
 
-void importModel(const char *filePath, struct model *out_model) {
+void importModel(const char *filePath, short int *textureShift,struct model *out_model) {
     const char *fileExtension = defineFileExtension(fileNameFromPath(filePath));
     if (isPly(fileExtension)) {
-        importPlyModel(filePath, out_model);
+        importPlyModel(filePath, textureShift, out_model);
     } else if (isObj(fileExtension)) {
         importObjModel(filePath, out_model);
+        *textureShift = 7;
     } else {
         printf("Unknown model file extension: %s\n", fileExtension);
     }

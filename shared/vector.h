@@ -8,11 +8,18 @@ struct vec3f {
     float z;
 };
 
+struct vec2f {
+    float x;
+    float y;
+};
+
 struct vec3ub {
     unsigned char x;
     unsigned char y;
     unsigned char z;
 };
+
+void vectorSum(const struct vec3f *a, const struct vec3f *b, struct vec3f *out_vector);
 
 float scalarMultiplyVec3(const struct vec3f *a, const struct vec3f *b);
 void multiplyVec3ByNumber(const struct vec3f *vector, float multiplier, struct vec3f *out_vector);

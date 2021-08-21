@@ -2,6 +2,12 @@
 
 #include <math.h>
 
+void vectorSum(const struct vec3f *a, const struct vec3f *b, struct vec3f *out_vector) {
+    out_vector->x = a->x + b->x,
+    out_vector->y = a->y + b->y,
+    out_vector->z = a->z + b->z;
+}
+
 float scalarMultiplyVec3(const struct vec3f *a, const struct vec3f *b) {
     return a->x * b->x + a->y * b->y + a->z * b->z;
 }

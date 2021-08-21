@@ -103,7 +103,9 @@ void initMaterial(struct material *out_material);
 bool initModel(struct model *out_model);
 
 bool makeIndices(struct body physicalBody, GLsizei *out_indexCount, GLuint **out_indices);
+
 void calculateModelNormals(struct model *model, int offset);
+void calculateModelTangents(struct model *model, int vertexOffset, int texOffset, int tangentOffset);
 
 void moveModel(struct model *model, float dx, float dy, float dz);
 

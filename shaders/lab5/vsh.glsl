@@ -1,13 +1,12 @@
 #version 450
 
-layout(location = 0) in vec3 a_position;
-layout(location = 1) in vec3 a_normal;
-layout(location = 2) in int a_material;
-layout(location = 3) in vec2 a_texCoord;
+in vec3 a_position;
+in vec3 a_normal;
+in int a_material;
+in vec2 a_texCoord;
 
 uniform mat4 u_mvp; // MVP-матрица
 uniform mat3 u_n; // Матрица нормалей
-uniform sampler2DArray u_normalMap;
 
 out vec3 v_pos;
 out vec3 v_normal;

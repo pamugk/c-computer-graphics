@@ -288,7 +288,7 @@ bool parseShaderProgramsConfig(FILE *configurationFile, unsigned int *out_shader
     return noErrorsOccured;
 }
 
-bool parseModelAttributes(FILE *configurationFile, struct model *out_model) {
+bool parseModelAttributes(FILE *configurationFile, short int textureShift, struct model *out_model) {
     char *dynamicBuffer = NULL; char staticBuffer[30];
     unsigned short int attributeShift = 0;
     
@@ -360,6 +360,7 @@ bool parseModelAttributes(FILE *configurationFile, struct model *out_model) {
                 printf("Unknown texture coordinates attribute source: %s\n", staticBuffer);
                 return false;
             }
+            textureShift = attributeShift;
         } else if (strcmp("texLayer:", staticBuffer) == 0) {
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("predefined", staticBuffer) == 0) {
@@ -400,6 +401,20 @@ bool parseModelAttributes(FILE *configurationFile, struct model *out_model) {
                 // Do nothing, attribute is already set
             } else if (strcmp("calculate", staticBuffer) == 0) {
                 calculateModelNormals(out_model, attributeShift);
+            } else {
+                printf("Unknown normals attribute source: %s\n", staticBuffer);
+                return false;
+            }
+        } if (strcmp("tangents:", staticBuffer) == 0) {
+            if (out_model->attributes[i].size != 3) {
+                printf("Model tangents attribute has to have size 3\n");
+                return false;
+            }
+            fscanf(configurationFile, "%s", staticBuffer);
+            if (strcmp("predefined", staticBuffer) == 0) {
+                // Do nothing, attribute is already set
+            } else if (strcmp("calculate", staticBuffer) == 0) {
+                calculateModelTangents(out_model, 0, textureShift, attributeShift);
             } else {
                 printf("Unknown normals attribute source: %s\n", staticBuffer);
                 return false;
@@ -524,6 +539,7 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
         modelTextures[i] = (struct texture){ 0, 0, (char *)builtInModelTextures[i], GL_TEXTURE_2D_ARRAY };
     }
     bool noErrorsOccured = true;
+    short int textureShift = -1;
     if (strcmp("heightmap", staticBuffer) == 0) {
         float h;
         fscanf(configurationFile, "%ms%f", &dynamicBuffer, &h);
@@ -532,7 +548,7 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
         makeIndices(out_model->body, &out_model->indexCount, &out_model->indices);
     } else if (strcmp("file", staticBuffer) == 0) {
         fscanf(configurationFile, "%ms", &dynamicBuffer);
-        importModel(dynamicBuffer, out_model);
+        importModel(dynamicBuffer, &textureShift, out_model);
     } else {
         printf("Unrecognized model source: %s", staticBuffer);
         noErrorsOccured = false;
@@ -548,7 +564,7 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
             noErrorsOccured = parseModelTransformations(configurationFile, out_model);
         } else if (strcmp("attributes:", section) == 0) {
             printf("Parsing model attributes\n");
-            noErrorsOccured = parseModelAttributes(configurationFile, out_model);
+            noErrorsOccured = parseModelAttributes(configurationFile, textureShift, out_model);
         } else {
             printf("Unknown model configuration section: %s\n", section);
             noErrorsOccured = false;
