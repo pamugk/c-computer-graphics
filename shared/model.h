@@ -111,11 +111,17 @@ void moveModel(struct model *model, float dx, float dy, float dz);
 
 void scaleModel(struct model *model, float sx, float sy, float sz);
 
-void rotateModelAboutAxis(struct model *model, struct vec3f *axis, float degree, bool useLerp);
-void rotateModel(struct model *model, float x, float y, float z, float degree, bool useLerp);
-void rotateModelAboutX(struct model *model, float degree, bool useLerp);
-void rotateModelAboutY(struct model *model, float degree, bool useLerp);
-void rotateModelAboutZ(struct model *model, float degree, bool useLerp);
+void rotateModelAboutAxis(struct model *model, struct vec3f *axis, float degree);
+void rotateModel(struct model *model, float x, float y, float z, float degree);
+void rotateModelAboutX(struct model *model, float degree);
+void rotateModelAboutY(struct model *model, float degree);
+void rotateModelAboutZ(struct model *model, float degree);
+
+void rotateModelAboutAxisQuat(struct model *model, struct vec3f *axis, float degree, bool useLerp);
+void rotateModelQuat(struct model *model, float x, float y, float z, float degree, bool useLerp);
+void rotateModelAboutXQuat(struct model *model, float degree, bool useLerp);
+void rotateModelAboutYQuat(struct model *model, float degree, bool useLerp);
+void rotateModelAboutZQuat(struct model *model, float degree, bool useLerp);
 
 void freeModel(struct model *model);
 

@@ -120,7 +120,7 @@ void calculateModelNormals(struct model *model, int offset) {
     }
     
     printf("Started normals calculation for provided model\n");
-    float multiplier = -1.0f;
+    float multiplier = 1.0f;
     for (int i = 0; i < model->indexCount; i += 3) {
         int aIdx = model->indices[i] * model->body.vertexSize,
         bIdx = model->indices[i + 1] * model->body.vertexSize,
@@ -220,7 +220,7 @@ void scaleModel(struct model *model, float sx, float sy, float sz) {
     scale(prevM, sx, sy, sz, model->m);
 }
 
-void rotateModelAboutAxis(struct model *model, struct vec3f *axis, float degree, bool useLerp) {
+void rotateModelAboutAxisQuat(struct model *model, struct vec3f *axis, float degree, bool useLerp) {
     struct quat rotationQ;
     makeQuatWithRotationAxis(axis, degree, &rotationQ);
     struct quat prevQ = { model->q.x, model->q.y, model->q.z, model->q.w };
@@ -232,24 +232,52 @@ void rotateModelAboutAxis(struct model *model, struct vec3f *axis, float degree,
     normalizeQuat(&model->q);
 }
 
-void rotateModel(struct model *model, float x, float y, float z, float degree, bool useLerp) {
+void rotateModelAboutAxis(struct model *model, struct vec3f *axis, float degree) {
+    rotateModel(model, axis->x, axis->y, axis->z, degree);
+}
+
+void rotateModel(struct model *model, float x, float y, float z, float degree) {
+    float prevM[MVP_MATRIX_SIZE];
+    memcpy(prevM, model->m, MVP_MATRIX_SIZE * sizeof(float));
+    rotateAboutAxis(prevM, x, y, z, degree, model->m);
+}
+
+void rotateModelAboutX(struct model *model, float degree) {
+    float prevM[MVP_MATRIX_SIZE];
+    memcpy(prevM, model->m, MVP_MATRIX_SIZE * sizeof(float));
+    rotateAboutX(prevM, degree, model->m);
+}
+
+void rotateModelAboutY(struct model *model, float degree) {
+    float prevM[MVP_MATRIX_SIZE];
+    memcpy(prevM, model->m, MVP_MATRIX_SIZE * sizeof(float));
+    rotateAboutY(prevM, degree, model->m);
+}
+
+void rotateModelAboutZ(struct model *model, float degree) {
+    float prevM[MVP_MATRIX_SIZE];
+    memcpy(prevM, model->m, MVP_MATRIX_SIZE * sizeof(float));
+    rotateAboutZ(prevM, degree, model->m);
+}
+
+void rotateModelQuat(struct model *model, float x, float y, float z, float degree, bool useLerp) {
     struct vec3f axis = { x, y, z };
-    rotateModelAboutAxis(model, &axis, degree, useLerp);
+    rotateModelAboutAxisQuat(model, &axis, degree, useLerp);
 }
 
-void rotateModelAboutX(struct model *model, float degree, bool useLerp) {
+void rotateModelAboutXQuat(struct model *model, float degree, bool useLerp) {
     struct vec3f axis = { 1.f, 0.f, 0.f };
-    rotateModelAboutAxis(model, &axis, degree, useLerp);
+    rotateModelAboutAxisQuat(model, &axis, degree, useLerp);
 }
 
-void rotateModelAboutY(struct model *model, float degree, bool useLerp) {
+void rotateModelAboutYQuat(struct model *model, float degree, bool useLerp) {
     struct vec3f axis = { 0.f, 1.f, 0.f };
-    rotateModelAboutAxis(model, &axis, degree, useLerp);
+    rotateModelAboutAxisQuat(model, &axis, degree, useLerp);
 }
 
-void rotateModelAboutZ(struct model *model, float degree, bool useLerp) {
+void rotateModelAboutZQuat(struct model *model, float degree, bool useLerp) {
     struct vec3f axis = { 0.f, 0.f, 1.f };
-    rotateModelAboutAxis(model, &axis, degree, useLerp);
+    rotateModelAboutAxisQuat(model, &axis, degree, useLerp);
 }
 
 void freeModel(struct model *model) {

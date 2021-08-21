@@ -33,6 +33,8 @@ struct orbital_camera g_oc;
 
 float cameraRotationSpeed;
 
+unsigned char rotationKind = 0;
+
 double prevX, prevY;
 
 // Rotation settings
@@ -256,8 +258,13 @@ void draw() {
             
             if (mvpDefined) {
                 float rotationMatrix[MVP_MATRIX_SIZE], fullMMatrix[MVP_MATRIX_SIZE];
-                matrixWithQuaternion(&g_models[m].q, rotationMatrix);
-                multiplyMatrices(rotationMatrix, g_models[m].m, fullMMatrix);
+                
+                if (rotationKind > 0) {
+                    matrixWithQuaternion(&g_models[m].q, rotationMatrix);
+                    multiplyMatrices(rotationMatrix, g_models[m].m, fullMMatrix);
+                } else {
+                    memcpy(fullMMatrix, g_models[m].m, MVP_MATRIX_SIZE * sizeof(float));
+                }
                 
                 if (g_camera == 0) {
                     multiplyMatrices(v, fullMMatrix, mv);
@@ -316,17 +323,41 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
     }
     
     if (key == GLFW_KEY_KP_4 && action != GLFW_RELEASE) {
-        rotateModelAboutY(g_models, -0.05, false);
+        if (rotationKind > 0) {
+            rotateModelAboutYQuat(g_models, -0.05, rotationKind == 2);
+        } else {
+            rotateModelAboutY(g_models, -0.05);
+        }
     } else if (key == GLFW_KEY_KP_6 && action != GLFW_RELEASE) {
-        rotateModelAboutY(g_models, 0.05, false);
+        if (rotationKind > 0) {
+            rotateModelAboutYQuat(g_models, 0.05, rotationKind == 2);
+        } else {
+            rotateModelAboutY(g_models, 0.05);
+        }
     } else if (key == GLFW_KEY_KP_8 && action != GLFW_RELEASE) {
-        rotateModelAboutX(g_models, 0.05, false);
+        if (rotationKind > 0) {
+            rotateModelAboutXQuat(g_models, 0.05, rotationKind == 2);
+        } else {
+            rotateModelAboutX(g_models, 0.05);
+        }
     } else if (key == GLFW_KEY_KP_5 && action != GLFW_RELEASE) {
-        rotateModelAboutX(g_models, -0.05, false);
+        if (rotationKind > 0) {
+            rotateModelAboutXQuat(g_models, -0.05, rotationKind == 2);
+        } else {
+            rotateModelAboutX(g_models, -0.05);
+        }
     } else if (key ==GLFW_KEY_KP_7 && action != GLFW_RELEASE) {
-        rotateModelAboutZ(g_models, -0.05, false);
+        if (rotationKind > 0) {
+            rotateModelAboutZQuat(g_models, -0.05, rotationKind == 2);
+        } else {
+            rotateModelAboutZ(g_models, -0.05);
+        }
     } else if (key == GLFW_KEY_9 && action != GLFW_RELEASE) {
-        rotateModelAboutZ(g_models, 0.05, false);
+        if (rotationKind > 0) {
+            rotateModelAboutZQuat(g_models, 0.05, rotationKind == 2);
+        } else {
+            rotateModelAboutZ(g_models, 0.05);
+        }
     } else if (key == GLFW_KEY_F1) {
         g_camera = 1;
     } else if (key == GLFW_KEY_F2) {
@@ -601,6 +632,7 @@ int main(int argc, char** argv) {
         pathToConfiguration, 
         &g_programsCount, &g_programs, 
         &g_terrain, &g_modelsCount, &g_models,
+        &rotationKind,
         &g_camera, &g_fpc1, &g_fpc2, &g_tpc, &g_oc,
         &g_tracksCount, &g_musicFiles);
 	if (isOk) {

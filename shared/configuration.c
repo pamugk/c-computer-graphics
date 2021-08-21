@@ -435,7 +435,8 @@ bool parseModelAttributes(FILE *configurationFile, short int textureShift, struc
     return true;
 }
 
-bool parseModelTransformations(FILE *configurationFile, struct model *out_model) {
+bool parseModelTransformations(FILE *configurationFile,
+    unsigned char *rotationKind, struct model *out_model) {
     char staticBuffer[30];
     int transformationsCount;
     
@@ -505,17 +506,33 @@ bool parseModelTransformations(FILE *configurationFile, struct model *out_model)
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("x", staticBuffer) == 0) {
                 fscanf(configurationFile, "%f", &degree);
-                rotateModelAboutX(out_model, degree, false);
+                if (*rotationKind > 0) {
+                    rotateModelAboutXQuat(out_model, degree, *rotationKind == 2);
+                } else {
+                    rotateModelAboutX(out_model, degree);
+                }
             } else if (strcmp("y", staticBuffer) == 0) {
                 fscanf(configurationFile, "%f", &degree);
-                rotateModelAboutY(out_model, degree, false);
+                if (*rotationKind > 0) {
+                    rotateModelAboutYQuat(out_model, degree, *rotationKind == 2);
+                } else {
+                    rotateModelAboutY(out_model, degree);
+                }
             } else if (strcmp("z", staticBuffer) == 0) {
                 fscanf(configurationFile, "%f", &degree);
-                rotateModelAboutZ(out_model, degree, false);
+                if (*rotationKind > 0) {
+                    rotateModelAboutZQuat(out_model, degree, *rotationKind == 2);
+                } else {
+                    rotateModelAboutZ(out_model, degree);
+                }
             } else if (strcmp("axis", staticBuffer) == 0) {
                 struct vec3f axis;
                 fscanf(configurationFile, "%f%f%f%f", &axis.x, &axis.y, &axis.z, &degree);
-                rotateModelAboutAxis(out_model, &axis, degree, false);
+                if (*rotationKind > 0) {
+                    rotateModelAboutAxisQuat(out_model, &axis, degree, *rotationKind == 2);
+                } else {
+                    rotateModelAboutAxis(out_model, &axis, degree);
+                }
             } else {
                 printf("Unknown rotation target: %s\n", staticBuffer);
                 return false;
@@ -528,7 +545,8 @@ bool parseModelTransformations(FILE *configurationFile, struct model *out_model)
     return true;
 }
 
-bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
+bool parseModelConfig(FILE *configurationFile,
+    unsigned char *rotationKind, struct model *out_model) {
     char section[15];
     
     out_model->attributes = NULL;
@@ -569,7 +587,7 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
     while(noErrorsOccured && fscanf(configurationFile, "%s", section) > 0 && strcmp("END", section) != 0) {
         if (strcmp("transformations:", section) == 0) {
             printf("Applying transformations to model\n");
-            noErrorsOccured = parseModelTransformations(configurationFile, out_model);
+            noErrorsOccured = parseModelTransformations(configurationFile, rotationKind, out_model);
         } else if (strcmp("attributes:", section) == 0) {
             printf("Parsing model attributes\n");
             noErrorsOccured = parseModelAttributes(configurationFile, textureShift, out_model);
@@ -583,7 +601,8 @@ bool parseModelConfig(FILE *configurationFile, struct model *out_model) {
     return noErrorsOccured && initModel(out_model);
 }
 
-bool parseModelsConfig(FILE *configurationFile, char *terrain, unsigned *out_modelsCount, struct model **out_models) {
+bool parseModelsConfig(FILE *configurationFile, char *terrain,
+    unsigned char *rotationKind, unsigned *out_modelsCount, struct model **out_models) {
     if (*out_models != NULL) {
         for (int i = 0; i < *out_modelsCount; i += 1) {
             freeModel((*out_models) + i);
@@ -603,7 +622,7 @@ bool parseModelsConfig(FILE *configurationFile, char *terrain, unsigned *out_mod
     
     bool noErrorsOccured = true;
     for (int i = 0; i < *out_modelsCount && noErrorsOccured; i += 1) {
-        noErrorsOccured = parseModelConfig(configurationFile, *out_models + i);
+        noErrorsOccured = parseModelConfig(configurationFile, rotationKind, *out_models + i);
     }
     return noErrorsOccured;
 }
@@ -771,6 +790,7 @@ bool applyConfiguration(
     const char *pathToConfiguration,
     unsigned *out_shaderProgramsCount, struct shader_program **out_programs,
     char *terrain, unsigned *out_modelsCount, struct model **out_models,
+    unsigned char *rotationKind,
     unsigned char *camera, 
     struct camera_angle *fpc1, struct camera_quat *fpc2,
     struct third_person_camera *tpc,
@@ -801,11 +821,16 @@ bool applyConfiguration(
         if (strcmp("programs:", section) == 0) {
             noErrorsOccured = parseShaderProgramsConfig(configurationFile, out_shaderProgramsCount, out_programs);
         } else if (strcmp("models:", section) == 0) {
-            noErrorsOccured = parseModelsConfig(configurationFile, terrain, out_modelsCount, out_models);
+            noErrorsOccured = parseModelsConfig(configurationFile, terrain, rotationKind, out_modelsCount, out_models);
         } else if (strcmp("cameras:", section) == 0) {
             parseCamerasConfig(configurationFile, camera, fpc1, fpc2, tpc, oc);
         } else if (strcmp("tracks:", section) == 0) {
             noErrorsOccured = parseMusicConfig(configurationFile, tracksCount, musicFiles);
+        } else if (strcmp("utils:", section) == 0) {
+            fscanf(configurationFile, "%s", section);
+            if (strcmp("rotation:", section) == 0) {
+                fscanf(configurationFile, "%hhu", rotationKind);
+            }
         } else {
             printf("Unknown configuration section: %s\n", section);
             noErrorsOccured = false;
