@@ -25,57 +25,66 @@ void parseVariableValue(FILE *configurationFile, struct shader_variable *variabl
     switch (variable->type) {
         case GL_BOOL: {
             if (readValue) {
-                fscanf(configurationFile, "%i", &variable->value.intVal);
+                variable->value = malloc(sizeof(GLboolean));
+                fscanf(configurationFile, "%hhu", (GLboolean *)variable->value);
             }
             break;
         }
                             
         case GL_INT: {
             if (readValue) {
-                fscanf(configurationFile, "%i", &variable->value.intVal);
+                variable->value = malloc(sizeof(GLint));
+                fscanf(configurationFile, "%i", (int *)variable->value);
             }
             break;
         }
         case GL_INT_VEC2: {
             if (readValue) {
-                loadIntVector(configurationFile, 2, variable->value.intVec2Val);
+                variable->value = calloc(2, sizeof(GLint));
+                loadIntVector(configurationFile, 2, variable->value);
             }
             break;
         }
         case GL_INT_VEC3: {
             if (readValue) {
-                loadIntVector(configurationFile, 3, variable->value.intVec3Val);
+                variable->value = calloc(3, sizeof(GLint));
+                loadIntVector(configurationFile, 3, variable->value);
             }
             break;
         }
         case GL_INT_VEC4: {
             if (readValue) {
-                loadIntVector(configurationFile, 4, variable->value.intVec4Val);
+                variable->value = calloc(4, sizeof(GLint));
+                loadIntVector(configurationFile, 4, variable->value);
             }
             break;
         }
                             
         case GL_FLOAT: {
             if (readValue) {
-                fscanf(configurationFile, "%f", &variable->value.floatVal);
+                variable->value = malloc(sizeof(GLfloat));
+                fscanf(configurationFile, "%f", (float *)variable->value);
             }
             break;
         }
         case GL_FLOAT_VEC2: {
             if (readValue) {
-                loadFloatVector(configurationFile, 2, variable->value.floatVec2Val);
+                variable->value = calloc(2, sizeof(GLfloat));
+                loadFloatVector(configurationFile, 2, variable->value);
             }
             break;
         }
         case GL_FLOAT_VEC3: {
             if (readValue) {
-                loadFloatVector(configurationFile, 3, variable->value.floatVec3Val);
+                variable->value = calloc(3, sizeof(GLfloat));
+                loadFloatVector(configurationFile, 3, variable->value);
             }
             break;
         }
         case GL_FLOAT_VEC4: {
             if (readValue) {
-                loadFloatVector(configurationFile, 4, variable->value.floatVec4Val);
+                variable->value = calloc(4, sizeof(GLfloat));
+                loadFloatVector(configurationFile, 4, variable->value);
             }
             break;
         }
@@ -83,21 +92,24 @@ void parseVariableValue(FILE *configurationFile, struct shader_variable *variabl
         case GL_FLOAT_MAT2: {
             fscanf(configurationFile, "%i", (int*)&variable->transpose);
             if (readValue) {
-                loadFloatVector(configurationFile, 4, variable->value.floatVec4Val);
+                variable->value = calloc(4, sizeof(GLfloat));
+                loadFloatVector(configurationFile, 4, variable->value);
             }
             break;
         }
         case GL_FLOAT_MAT3: {
             fscanf(configurationFile, "%i", (int*)&variable->transpose);
             if (readValue) {
-                loadFloatVector(configurationFile, 9, variable->value.floatMat3Val);
+                variable->value = calloc(9, sizeof(GLfloat));
+                loadFloatVector(configurationFile, 9, variable->value);
             }
             break;
         }
         case GL_FLOAT_MAT4: {
             fscanf(configurationFile, "%i", (int*)&variable->transpose);
             if (readValue) {
-                loadFloatVector(configurationFile, 16, variable->value.floatVec4Val);
+                variable->value = calloc(16, sizeof(GLfloat));
+                loadFloatVector(configurationFile, 16, variable->value);
             }
             break;
         }

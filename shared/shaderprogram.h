@@ -11,17 +11,7 @@ struct shader_variable {
     char *name;
     GLenum type;
     GLboolean transpose;
-    
-    union {
-        GLint intVal; GLfloat floatVal;
-        
-        GLint intVec2Val[2]; GLfloat floatVec2Val[2];
-        GLint intVec3Val[3]; GLfloat floatVec3Val[3];
-        GLint intVec4Val[4]; GLfloat floatVec4Val[4];
-        
-        GLfloat floatMat3Val[9];
-        GLfloat floatMat4Val[16];
-    } value;
+    GLvoid *value;
 };
 
 struct shader_block {
