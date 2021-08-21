@@ -1,5 +1,7 @@
 #include "main.h"
 
+#define PREDEFINED_UNIFORMS_COUNT 4
+
 GLFWwindow *g_window;
 
 char *pathToConfiguration;
@@ -228,8 +230,9 @@ void draw() {
             glUniform1i(g_programs[i].textures[t].mapLocation, t);
         }
         
-        bool mvpDefined = g_preprocessedVariables[i * 3] != -1,
-        normalsDefined = g_preprocessedVariables[i * 3 + 1] != -1,
+        bool mvpDefined = g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT] != -1,
+        normalsDefined = g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 1] != -1,
+        mvDefined = g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 3] != -1,
         builtinModelTexturesDefined = g_preprocessedBuiltinTextureUnits[i * (MODEL_BUILTIN_TEXTURE_COUNT + 1) + MODEL_BUILTIN_TEXTURE_COUNT];
         
         struct shader_block *boundBlock = NULL;
@@ -240,8 +243,8 @@ void draw() {
             }
         }
             
-        if (g_preprocessedVariables[i * 3 + 2] != -1) {
-            memcpy(g_programs[i].variables[g_preprocessedVariables[i * 3 + 2]].value.floatVec3Val, e, 3 * sizeof(float));
+        if (g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 2] != -1) {
+            memcpy(g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 2]].value.floatVec3Val, e, 3 * sizeof(float));
         }
         
         for (int j = 0; j < g_programs[i].modelsToRenderCount; j += 1) {
@@ -254,13 +257,19 @@ void draw() {
                 
                 if (g_camera == 0) {
                     multiplyMatrices(v, fullMMatrix, mv);
-                    multiplyMatrices(p, mv, g_programs[i].variables[g_preprocessedVariables[i * 3]].value.floatMat4Val);
+                    if (mvDefined) {
+                        memcpy(g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT] + 3].value.floatMat4Val, mv, MVP_MATRIX_SIZE * sizeof(float));
+                    }
+                    multiplyMatrices(p, mv, g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT]].value.floatMat4Val);
                 } else {
-                    multiplyMatrices(c, fullMMatrix, g_programs[i].variables[g_preprocessedVariables[i * 3]].value.floatMat4Val);
+                    multiplyMatrices(c, fullMMatrix, g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT]].value.floatMat4Val);
+                    if (mvDefined) {
+                        memcpy(g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT] + 3].value.floatMat4Val, fullMMatrix, MVP_MATRIX_SIZE * sizeof(float));
+                    }
                 }
                 
                 if (normalsDefined) {
-                    buildNMatrix(g_programs[i].variables[g_preprocessedVariables[i * 3]].value.floatMat4Val, g_programs[i].variables[g_preprocessedVariables[i * 3 + 1]].value.floatMat3Val);
+                    buildNMatrix(g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT]].value.floatMat4Val, g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 1]].value.floatMat3Val);
                 }
             }
             
@@ -475,18 +484,21 @@ void initOptics() {
 }
 
 void preprocessVariables() {
-    g_preprocessedVariables = calloc(g_programsCount * 3, sizeof(int));
+    g_preprocessedVariables = calloc(g_programsCount * PREDEFINED_UNIFORMS_COUNT, sizeof(int));
     for (int i = 0; i < g_programsCount; i += 1) {
-        g_preprocessedVariables[i * 3] = -1,
-        g_preprocessedVariables[i * 3 + 1] = -1,
-        g_preprocessedVariables[i * 3 + 2] = -1;
+        g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT] = -1,
+        g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 1] = -1,
+        g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 2] = -1,
+        g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 3] = -1;
         for (int j = 0; j < g_programs[i].variablesCount; j += 1) {
             if (strcmp("u_mvp", g_programs[i].variables[j].name) == 0) {
-                g_preprocessedVariables[i * 3] = j;
+                g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT] = j;
             } else if (strcmp("u_n", g_programs[i].variables[j].name) == 0) {
-                g_preprocessedVariables[i * 3 + 1] = j;
+                g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 1] = j;
             } else if (strcmp("u_oeye", g_programs[i].variables[j].name) == 0) {
-                g_preprocessedVariables[i * 3 + 2] = j;
+                g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 2] = j;
+            } else if (strcmp("u_mv", g_programs[i].variables[j].name) == 0) {
+                g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 3] = j;
             }
         }
     }
