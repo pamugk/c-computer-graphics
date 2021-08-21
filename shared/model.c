@@ -220,18 +220,6 @@ void scaleModel(struct model *model, float sx, float sy, float sz) {
     scale(prevM, sx, sy, sz, model->m);
 }
 
-void rotateModelAboutAxisQuat(struct model *model, struct vec3f *axis, float degree, bool useLerp) {
-    struct quat rotationQ;
-    makeQuatWithRotationAxis(axis, degree, &rotationQ);
-    struct quat prevQ = { model->q.x, model->q.y, model->q.z, model->q.w };
-    if (useLerp) {
-        quatLerp(&prevQ, &rotationQ, 0.5f, &model->q);
-    } else {
-        quatSlerp(&prevQ, &rotationQ, 0.5f, &model->q);
-    }
-    normalizeQuat(&model->q);
-}
-
 void rotateModelAboutAxis(struct model *model, struct vec3f *axis, float degree) {
     rotateModel(model, axis->x, axis->y, axis->z, degree);
 }
@@ -260,24 +248,32 @@ void rotateModelAboutZ(struct model *model, float degree) {
     rotateAboutZ(prevM, degree, model->m);
 }
 
-void rotateModelQuat(struct model *model, float x, float y, float z, float degree, bool useLerp) {
+void rotateModelAboutAxisQuat(struct model *model, struct vec3f *axis, float degree) {
+    struct quat rotationQ;
+    makeQuatWithRotationAxis(axis, degree, &rotationQ);
+    struct quat prevQ = { model->q.x, model->q.y, model->q.z, model->q.w };
+    model->q = multiplyQuat(&prevQ, &rotationQ);
+    normalizeQuat(&model->q);
+}
+
+void rotateModelQuat(struct model *model, float x, float y, float z, float degree) {
     struct vec3f axis = { x, y, z };
-    rotateModelAboutAxisQuat(model, &axis, degree, useLerp);
+    rotateModelAboutAxisQuat(model, &axis, degree);
 }
 
-void rotateModelAboutXQuat(struct model *model, float degree, bool useLerp) {
+void rotateModelAboutXQuat(struct model *model, float degree) {
     struct vec3f axis = { 1.f, 0.f, 0.f };
-    rotateModelAboutAxisQuat(model, &axis, degree, useLerp);
+    rotateModelAboutAxisQuat(model, &axis, degree);
 }
 
-void rotateModelAboutYQuat(struct model *model, float degree, bool useLerp) {
+void rotateModelAboutYQuat(struct model *model, float degree) {
     struct vec3f axis = { 0.f, 1.f, 0.f };
-    rotateModelAboutAxisQuat(model, &axis, degree, useLerp);
+    rotateModelAboutAxisQuat(model, &axis, degree);
 }
 
-void rotateModelAboutZQuat(struct model *model, float degree, bool useLerp) {
+void rotateModelAboutZQuat(struct model *model, float degree) {
     struct vec3f axis = { 0.f, 0.f, 1.f };
-    rotateModelAboutAxisQuat(model, &axis, degree, useLerp);
+    rotateModelAboutAxisQuat(model, &axis, degree);
 }
 
 void freeModel(struct model *model) {

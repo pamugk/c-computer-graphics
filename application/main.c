@@ -260,7 +260,7 @@ void draw() {
             if (mvpDefined) {
                 float rotationMatrix[MVP_MATRIX_SIZE], fullMMatrix[MVP_MATRIX_SIZE];
                 
-                if (rotationKind > 0) {
+                if (rotationKind == 1) {
                     matrixWithQuaternion(&g_models[m].q, rotationMatrix);
                     multiplyMatrices(rotationMatrix, g_models[m].m, fullMMatrix);
                 } else {
@@ -339,38 +339,38 @@ void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
     }
     
     if (key == GLFW_KEY_KP_4 && action != GLFW_RELEASE) {
-        if (rotationKind > 0) {
-            rotateModelAboutYQuat(g_models, -0.05, rotationKind == 2);
+        if (rotationKind == 1) {
+            rotateModelAboutYQuat(g_models, -0.05);
         } else {
             rotateModelAboutY(g_models, -0.05);
         }
     } else if (key == GLFW_KEY_KP_6 && action != GLFW_RELEASE) {
-        if (rotationKind > 0) {
-            rotateModelAboutYQuat(g_models, 0.05, rotationKind == 2);
+        if (rotationKind == 1) {
+            rotateModelAboutYQuat(g_models, 0.05);
         } else {
             rotateModelAboutY(g_models, 0.05);
         }
     } else if (key == GLFW_KEY_KP_8 && action != GLFW_RELEASE) {
-        if (rotationKind > 0) {
-            rotateModelAboutXQuat(g_models, 0.05, rotationKind == 2);
+        if (rotationKind == 1) {
+            rotateModelAboutXQuat(g_models, 0.05);
         } else {
             rotateModelAboutX(g_models, 0.05);
         }
     } else if (key == GLFW_KEY_KP_5 && action != GLFW_RELEASE) {
-        if (rotationKind > 0) {
-            rotateModelAboutXQuat(g_models, -0.05, rotationKind == 2);
+        if (rotationKind == 1) {
+            rotateModelAboutXQuat(g_models, -0.05);
         } else {
             rotateModelAboutX(g_models, -0.05);
         }
     } else if (key ==GLFW_KEY_KP_7 && action != GLFW_RELEASE) {
-        if (rotationKind > 0) {
-            rotateModelAboutZQuat(g_models, -0.05, rotationKind == 2);
+        if (rotationKind == 1) {
+            rotateModelAboutZQuat(g_models, -0.05);
         } else {
             rotateModelAboutZ(g_models, -0.05);
         }
-    } else if (key == GLFW_KEY_9 && action != GLFW_RELEASE) {
-        if (rotationKind > 0) {
-            rotateModelAboutZQuat(g_models, 0.05, rotationKind == 2);
+    } else if (key == GLFW_KEY_KP_9 && action != GLFW_RELEASE) {
+        if (rotationKind == 1) {
+            rotateModelAboutZQuat(g_models, 0.05);
         } else {
             rotateModelAboutZ(g_models, 0.05);
         }

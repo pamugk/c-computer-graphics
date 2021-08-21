@@ -518,30 +518,30 @@ bool parseModelTransformations(FILE *configurationFile,
             fscanf(configurationFile, "%s", staticBuffer);
             if (strcmp("x", staticBuffer) == 0) {
                 fscanf(configurationFile, "%f", &degree);
-                if (*rotationKind > 0) {
-                    rotateModelAboutXQuat(out_model, degree, *rotationKind == 2);
+                if (*rotationKind == 1) {
+                    rotateModelAboutXQuat(out_model, degree);
                 } else {
                     rotateModelAboutX(out_model, degree);
                 }
             } else if (strcmp("y", staticBuffer) == 0) {
                 fscanf(configurationFile, "%f", &degree);
-                if (*rotationKind > 0) {
-                    rotateModelAboutYQuat(out_model, degree, *rotationKind == 2);
+                if (*rotationKind == 1) {
+                    rotateModelAboutYQuat(out_model, degree);
                 } else {
                     rotateModelAboutY(out_model, degree);
                 }
             } else if (strcmp("z", staticBuffer) == 0) {
                 fscanf(configurationFile, "%f", &degree);
-                if (*rotationKind > 0) {
-                    rotateModelAboutZQuat(out_model, degree, *rotationKind == 2);
+                if (*rotationKind == 1) {
+                    rotateModelAboutZQuat(out_model, degree);
                 } else {
                     rotateModelAboutZ(out_model, degree);
                 }
             } else if (strcmp("axis", staticBuffer) == 0) {
                 struct vec3f axis;
                 fscanf(configurationFile, "%f%f%f%f", &axis.x, &axis.y, &axis.z, &degree);
-                if (*rotationKind > 0) {
-                    rotateModelAboutAxisQuat(out_model, &axis, degree, *rotationKind == 2);
+                if (*rotationKind == 1) {
+                    rotateModelAboutAxisQuat(out_model, &axis, degree);
                 } else {
                     rotateModelAboutAxis(out_model, &axis, degree);
                 }
