@@ -269,10 +269,10 @@ void draw() {
                 }
                 
                 if (normalsDefined) {
-                    if (mvDefined) {
-                        buildNMatrix(g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 3]].value.floatMat4Val, g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 1]].value.floatMat3Val);
+                    if (g_camera == 0) {
+                        buildNMatrix(mv, g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 1]].value.floatMat3Val);
                     } else {
-                        buildNMatrix(g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT]].value.floatMat4Val, g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 1]].value.floatMat3Val);
+                        buildNMatrix(fullMMatrix, g_programs[i].variables[g_preprocessedVariables[i * PREDEFINED_UNIFORMS_COUNT + 1]].value.floatMat3Val);
                     }
                 }
             }

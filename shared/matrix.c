@@ -29,16 +29,16 @@ void buildNMatrix(float matrix[MVP_MATRIX_SIZE], float out_matrix[N_MATRIX_SIZE]
     float det = m[0] * m[4] * m[8] + m[3] * m[7] * m[2] + m[1] * m[5] * m[6] - 
                 m[6] * m[4] * m[2] - m[1] * m[3] * m[8] - m[5] * m[7] * m[0];
                 
-    out_matrix[0] = (m[4] * m[8] - m[5] * m[7]) / det;
-    out_matrix[1] = (m[7] * m[2] - m[1] * m[8]) / det;
-    out_matrix[2] = (m[1] * m[5] - m[4] * m[2]) / det;
+    out_matrix[0] = (m[4] * m[8] - m[5] * m[7]) / det,
+    out_matrix[1] = (m[7] * m[2] - m[1] * m[8]) / det,
+    out_matrix[2] = (m[1] * m[5] - m[4] * m[2]) / det,
     
-    out_matrix[3] = (m[6] * m[5] - m[3] * m[8]) / det;
-    out_matrix[4] = (m[0] * m[8] - m[2] * m[6]) / det;
-    out_matrix[5] = (m[3] * m[2] - m[0] * m[5]) / det;
+    out_matrix[3] = (m[6] * m[5] - m[3] * m[8]) / det,
+    out_matrix[4] = (m[0] * m[8] - m[2] * m[6]) / det,
+    out_matrix[5] = (m[3] * m[2] - m[0] * m[5]) / det,
     
-    out_matrix[6] = (m[3] * m[7] - m[6] * m[4]) / det;
-    out_matrix[7] = (m[1] * m[6] - m[0] * m[7]) / det;
+    out_matrix[6] = (m[3] * m[7] - m[6] * m[4]) / det,
+    out_matrix[7] = (m[1] * m[6] - m[0] * m[7]) / det,
     out_matrix[8] = (m[0] * m[4] - m[3] * m[1]) / det;
 }
 
