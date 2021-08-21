@@ -123,9 +123,9 @@ bool initOpenGL() {
     glDebugMessageCallback(glDebugCallback, NULL);
     
     glClearColor(1.f, 1.f, 1.f, 1.f);
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-    glDepthFunc(GL_ALWAYS);
+    //glDepthFunc(GL_ALWAYS);
     
     return true;
 }

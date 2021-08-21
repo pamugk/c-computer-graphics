@@ -56,7 +56,7 @@ void main()
 {
     Material material = materials[i_material];
     
-    vec3 v_normal = texture(u_normalMap, vec3(v_texCoord, material.normalTextureIdx));
+    vec3 v_normal = texture(u_normalMap, vec3(v_texCoord, material.normalTextureIdx)).rgb;
     float cosa = dot(v_ray, v_normal); // Косинус угла падения луча света
     float d = max(cosa, u_odmin); // Коэффициент диффузного освещения
     vec3 r = reflect(v_ray, v_normal); // Вектор отражения

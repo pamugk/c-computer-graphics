@@ -19,12 +19,12 @@ out vec2 v_texCoord;
 flat out int i_material; // Индекс материала вершины
 
 void main() {
-    vec4 pos = vec4(a position, 1.0);
+    vec4 pos = vec4(a_position, 1.0);
     vec3 binormal = normalize(cross(a_normal, a_tangent));
     mat3 intbn = inverse(u_n * mat3(a_tangent, binormal, a_normal));
     vec3 vPos = intbn * (u_mv * pos).xyz;
-    v_ray = normalize(intbn * vec4(u_olpos, 1.0).xyz − vPos);
-    v_eye = normalize(intbn * vec4(u_oeye, 1.0).xyz − vPos);
+    v_ray = normalize(intbn * u_olpos - vPos);
+    v_eye = normalize(intbn * u_oeye - vPos);
     v_texCoord = a_texCoord;
     i_material = a_material;
     gl_Position = u_mvp * pos;
