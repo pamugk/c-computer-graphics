@@ -171,7 +171,7 @@ void constrain(struct vec3f *position, float dx, float dz, float height, bool co
                 newX = -halfWidth;
             }
             if (newX > halfWidth) {
-                newX = g_models[g_terrain].body.width;
+                newX = halfWidth;
             }
             
             if (newZ < -halfDepth) {
