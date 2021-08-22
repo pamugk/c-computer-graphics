@@ -1,3 +1,4 @@
+#include "../shared/action.h"
 #include "../shared/camera.h"
 #include "../shared/configuration.h"
 #include "../shared/error.h"

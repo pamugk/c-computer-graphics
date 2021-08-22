@@ -798,6 +798,40 @@ bool parseMusicConfig(FILE *configurationFile, unsigned char *tracksCount, char 
     return true;
 }
 
+bool parseActionsConfig(FILE *configurationFile, unsigned char *controlsCount, struct action **actions) {
+    if (actions != NULL) {
+        free(*actions);
+        *controlsCount = 0;
+    }
+    fscanf(configurationFile, "%hhu", controlsCount);
+    
+    *actions = calloc(*controlsCount, sizeof(struct action));
+    if (*actions == NULL) {
+        printf("Controls storage cannot be allocated\n");
+        *controlsCount = 0;
+        return false;
+    }
+    
+    char staticBuffer[30];
+    for (unsigned char i = 0; i < *controlsCount; i += 1) {
+        fscanf(configurationFile, "%s", staticBuffer);
+        (*actions)[i].key = parseGlfwKey(staticBuffer);
+        
+        fscanf(configurationFile, "%s", staticBuffer);
+        (*actions)[i].target = parseActionTarget(staticBuffer);
+        
+        fscanf(configurationFile, "%i", &(*actions)[i].idx);
+        
+        fscanf(configurationFile, "%s", staticBuffer);
+        (*actions)[i].kind = parseActionKind(staticBuffer);
+        
+        fscanf(configurationFile, "%s", staticBuffer);
+        (*actions)[i].additionalInfo = parseActionAdditionalInfo(staticBuffer);
+    }
+    
+    return true;
+}
+
 bool applyConfiguration(
     const char *pathToConfiguration,
     unsigned *out_shaderProgramsCount, struct shader_program **out_programs,
@@ -807,7 +841,9 @@ bool applyConfiguration(
     struct camera_angle *fpc1, struct camera_quat *fpc2,
     struct third_person_camera *tpc,
     struct orbital_camera *oc,
-    unsigned char *tracksCount, char ***musicFiles) {
+    unsigned char *tracksCount, char ***musicFiles,
+    unsigned char *controlsCount, struct action **actions
+) {
     if (pathToConfiguration == NULL) {
         printf("No path configuration file was provided\n");
         return false;
@@ -846,6 +882,8 @@ bool applyConfiguration(
                 printf("Unknown utility config section: %s\n", section);
                 noErrorsOccured = false;
             }
+        } else if (strcmp("actions:", section) == 0) {
+            noErrorsOccured = parseActionsConfig(configurationFile, controlsCount, actions);
         } else {
             printf("Unknown configuration section: %s\n", section);
             noErrorsOccured = false;

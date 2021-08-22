@@ -90,3 +90,7 @@ tracks: 50
     ../music/track36.ogg ../music/track37.mp3 ../music/track38.mp3 ../music/track39.mp3 ../music/track40.mp3
     ../music/track41.mp3 ../music/track42.mp3 ../music/track43.mp3 ../music/track44.mp3 ../music/track45.mp3
     ../music/track46.mp3 ../music/track47.mp3 ../music/track48.mp3 ../music/track49.mp3 ../music/track50.mp3
+
+actions: 2
+    GLFW_KEY_P MUSIC_PLAYER -1 PAUSE NOTHING
+    GLFW_KEY_N MUSIC_PLAYER -1 FORWARD NOTHING

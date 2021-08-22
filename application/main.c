@@ -7,8 +7,8 @@ GLFWwindow *g_window;
 char *pathToConfiguration;
 
 // Shader programs
-unsigned int g_programsCount;
-struct shader_program *g_programs;
+unsigned int g_programsCount = 0;
+struct shader_program *g_programs = NULL;
 int *g_preprocessedVariables;
 int *g_preprocessedBlocks;
 int *g_preprocessedBuiltinTextureUnits;
@@ -16,8 +16,8 @@ int *g_preprocessedBuiltinTextureUnits;
 // Models
 char g_terrain;
 
-unsigned int g_modelsCount;
-struct model *g_models;
+unsigned int g_modelsCount = 0;
+struct model *g_models = NULL;
 
 // View
 float v[MVP_MATRIX_SIZE];
@@ -37,12 +37,6 @@ unsigned char rotationKind = 0;
 
 double prevX, prevY;
 
-// Rotation settings
-const int countOfSpeeds = 9;
-float degrees[9];
-int degreeKeys[9];
-float degree;
-
 // Rendering settings
 const double fpsLimit = 1.0 / 60.0;
 bool fixedFrameRate = false;
@@ -53,6 +47,10 @@ ALuint g_trackPool[2];
 
 unsigned char g_tracksCount = 0;
 char **g_musicFiles = NULL;
+
+// Controls
+unsigned char g_actionsCount = 0;
+struct action *g_actions = NULL;
 
 bool handleArguments(int argc, char** argv) {
     for (int i = 0; i < argc; i += 1) {
@@ -332,162 +330,205 @@ void draw() {
 void updateTrackPool();
 
 void onKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    for (int i = 0; i < countOfSpeeds; i++) {
-        if (key == degreeKeys[i] == GLFW_PRESS) {
-            degree = degrees[i];
-        }
+    if (g_actions == NULL) {
+        return;
     }
     
-    if (key == GLFW_KEY_KP_4 && action != GLFW_RELEASE) {
-        if (rotationKind == 1) {
-            rotateModelAboutYQuat(g_models, -0.05);
-        } else {
-            rotateModelAboutY(g_models, -0.05);
+    for (unsigned char i = 0; i < g_actionsCount; i += 1) {
+        if (key != g_actions[i].key) {
+            continue;
         }
-    } else if (key == GLFW_KEY_KP_6 && action != GLFW_RELEASE) {
-        if (rotationKind == 1) {
-            rotateModelAboutYQuat(g_models, 0.05);
-        } else {
-            rotateModelAboutY(g_models, 0.05);
+        
+        switch (g_actions[i].target) {
+            case ACTION_TARGET_MODEL: {
+                if (g_models == 0 || g_modelsCount < g_actions[i].idx) {
+                    return;
+                }
+                if (g_actions[i].kind == ACTION_ROTATE && action != GLFW_RELEASE) {
+                    if (g_actions[i].additionalInfo == ACTION_BACKWARD_X) {
+                        if (rotationKind == 1) {
+                            rotateModelAboutXQuat(g_models + g_actions[i].idx, -0.05);
+                        } else {
+                            rotateModelAboutX(g_models + g_actions[i].idx, -0.05);
+                        }
+                    } else if (g_actions[i].additionalInfo == ACTION_FORWARD_X) {
+                        if (rotationKind == 1) {
+                            rotateModelAboutXQuat(g_models + g_actions[i].idx, 0.05);
+                        } else {
+                            rotateModelAboutX(g_models + g_actions[i].idx, 0.05);
+                        }
+                    } else if (g_actions[i].additionalInfo == ACTION_BACKWARD_Y) {
+                        if (rotationKind == 1) {
+                            rotateModelAboutYQuat(g_models + g_actions[i].idx, -0.05);
+                        } else {
+                            rotateModelAboutY(g_models + g_actions[i].idx, -0.05);
+                        }
+                    } else if (g_actions[i].additionalInfo == ACTION_FORWARD_Y) {
+                        if (rotationKind == 1) {
+                            rotateModelAboutYQuat(g_models + g_actions[i].idx + g_actions[i].idx, 0.05);
+                        } else {
+                            rotateModelAboutY(g_models, 0.05);
+                        }
+                    } else if (g_actions[i].additionalInfo == ACTION_BACKWARD_Z) {
+                        if (rotationKind == 1) {
+                            rotateModelAboutZQuat(g_models + g_actions[i].idx, -0.05);
+                        } else {
+                            rotateModelAboutZ(g_models + g_actions[i].idx, -0.05);
+                        }
+                    } else if (g_actions[i].additionalInfo == ACTION_FORWARD_Z) {
+                        if (rotationKind == 1) {
+                            rotateModelAboutZQuat(g_models + g_actions[i].idx, 0.05);
+                        } else {
+                            rotateModelAboutZ(g_models + g_actions[i].idx, 0.05);
+                        }
+                    }
+                } else if (g_actions[i].kind == ACTION_MOVE && action != GLFW_RELEASE) {
+                    float prevM[MVP_MATRIX_SIZE];
+                    memcpy(prevM, g_models[g_actions[i].idx].m, MVP_MATRIX_SIZE * sizeof(float));
+                    
+                    if (g_actions[i].additionalInfo == ACTION_BACKWARD_X) {
+                        move(prevM, -0.05, 0, 0, g_models[g_actions[i].idx].m);
+                    } else if (g_actions[i].additionalInfo == ACTION_FORWARD_X) {
+                        move(prevM, 0.05, 0, 0, g_models[g_actions[i].idx].m);
+                    } else if (g_actions[i].additionalInfo == ACTION_BACKWARD_Y) {
+                        move(prevM, 0, -0.05, 0, g_models[g_actions[i].idx].m);
+                    } else if (g_actions[i].additionalInfo == ACTION_FORWARD_Y) {
+                        move(prevM, 0, 0.05, 0, g_models[g_actions[i].idx].m);
+                    } else if (g_actions[i].additionalInfo == ACTION_BACKWARD_Z) {
+                        move(prevM, 0, 0, -0.05, g_models[g_actions[i].idx].m);
+                    } else if (g_actions[i].additionalInfo == ACTION_FORWARD_Z) {
+                        move(prevM, 0, 0, 0.05, g_models[g_actions[i].idx].m);
+                    }
+                }
+                break;
+            }
+            case ACTION_TARGET_CAMERA: {
+                if (g_actions[i].kind == ACTION_SWITCH && action == GLFW_RELEASE) {
+                    g_camera = g_actions[i].idx;
+                } else if (g_actions[i].kind == ACTION_MOVE && action != GLFW_RELEASE) {
+                    if (g_actions[i].additionalInfo == ACTION_BACKWARD_Z) {
+                        switch (g_camera) {
+                            case 1: {
+                                moveCameraAngle(&g_fpc1, 1, constrain);
+                                break;
+                            }
+                            case 2: {
+                                moveCameraQuat(&g_fpc2, 1, constrain);
+                                break;
+                            }
+                            case 3: {
+                                constrain(&g_tpc.e, 0,  -g_tpc.speed, 1.0f, g_tpc.constrained);
+                                break;
+                            }
+                            case 4: {
+                                float prevT[MVP_MATRIX_SIZE];
+                                memcpy(prevT, g_oc.t, MVP_MATRIX_SIZE * sizeof(float));
+                                move(prevT, 0.0f, 0.0f,-0.05f, g_oc.t);
+                                break;
+                            }
+                        }
+                    } else if (g_actions[i].additionalInfo == ACTION_FORWARD_Z) {
+                        switch (g_camera) {
+                        case 1: {
+                                moveCameraAngle(&g_fpc1, -1, constrain);
+                                break;
+                            }
+                            case 2: {
+                                moveCameraQuat(&g_fpc2, -1, constrain);
+                                break;
+                            }
+                            case 3: {
+                                constrain(&g_tpc.e, 0,  g_tpc.speed, 1.0f, g_tpc.constrained);
+                                break;
+                            }
+                            case 4: {
+                                float prevT[MVP_MATRIX_SIZE];
+                                memcpy(prevT, g_oc.t, MVP_MATRIX_SIZE * sizeof(float));
+                                move(prevT, 0.0f, 0.0f, 0.05f, g_oc.t);
+                                break;
+                            }
+                        }
+                    } else if (g_actions[i].additionalInfo == ACTION_BACKWARD_X) {
+                        switch (g_camera) {
+                            case 1: {
+                                strafeCameraAngle(&g_fpc1, -1, constrain);
+                                break;
+                            }
+                            case 2: {
+                                strafeCameraQuat(&g_fpc2, -1, constrain);
+                                break;
+                            }
+                            case 3: {
+                                constrain(&g_tpc.e, -g_tpc.speed, 0.f, 1.0f, g_tpc.constrained);
+                                break;
+                            }
+                            case 4: {
+                                float prevT[MVP_MATRIX_SIZE];
+                                memcpy(prevT, g_oc.t, MVP_MATRIX_SIZE * sizeof(float));
+                                move(prevT, -0.05f, 0.0f, 0.0f, g_oc.t);
+                                break;
+                            }
+                        }
+                    } else if (g_actions[i].additionalInfo == ACTION_FORWARD_X) {
+                        switch (g_camera) {
+                            case 1: {
+                                strafeCameraAngle(&g_fpc1, 1, constrain);
+                                break;
+                            }
+                            case 2: {
+                                strafeCameraQuat(&g_fpc2, 1, constrain);
+                                break;
+                            }
+                            case 3: {
+                                constrain(&g_tpc.e, g_tpc.speed, 0.f, 1.0f, g_tpc.constrained);
+                                break;
+                            }
+                            case 4: {
+                                float prevT[MVP_MATRIX_SIZE];
+                                memcpy(prevT, g_oc.t, MVP_MATRIX_SIZE * sizeof(float));
+                                move(prevT, 0.05f, 0.0f, 0.0f, g_oc.t);
+                                break;
+                            }
+                        }
+                    }
+                } else if (g_actions[i].kind == ACTION_ZOOM && g_camera == 4 && action != GLFW_RELEASE) {
+                    if (g_actions[i].additionalInfo == ACTION_IN) {
+                        float prevS[MVP_MATRIX_SIZE];
+                        memcpy(prevS, g_oc.s, MVP_MATRIX_SIZE * sizeof(float));
+                        scale(prevS, 2.0f, 2.0f, 2.0f, g_oc.t);
+                    } else if (g_actions[i].additionalInfo == ACTION_OUT) {
+                        float prevS[MVP_MATRIX_SIZE];
+                        memcpy(prevS, g_oc.s, MVP_MATRIX_SIZE * sizeof(float));
+                        scale(prevS, 0.5f, 0.5f, 0.5f, g_oc.t);
+                    }
+                }
+                break;
+            }
+            case ACTION_TARGET_MUSIC: {
+                if (g_musicPlayer == 0 || action != GLFW_RELEASE) {
+                    return;
+                }
+                
+                if (g_actions[i].kind == ACTION_PAUSE) {
+                    ALint state;
+                    alGetSourcei(g_musicPlayer, AL_SOURCE_STATE, &state);
+                    if (state == AL_PLAYING) {
+                        printf("Pausing music player\n");
+                        alurePauseSource(g_musicPlayer);
+                    } else if (state == AL_PAUSED) {
+                        printf("Resuming music player\n");
+                        alureResumeSource(g_musicPlayer);
+                    }
+                } else if (g_actions[i].kind == ACTION_FORWARD) {
+                    alSourceStop(g_musicPlayer);
+                }
+                break;
+            }
+            case ACTION_TARGET_UNKNOWN: {
+                break;
+            }
         }
-    } else if (key == GLFW_KEY_KP_8 && action != GLFW_RELEASE) {
-        if (rotationKind == 1) {
-            rotateModelAboutXQuat(g_models, 0.05);
-        } else {
-            rotateModelAboutX(g_models, 0.05);
-        }
-    } else if (key == GLFW_KEY_KP_5 && action != GLFW_RELEASE) {
-        if (rotationKind == 1) {
-            rotateModelAboutXQuat(g_models, -0.05);
-        } else {
-            rotateModelAboutX(g_models, -0.05);
-        }
-    } else if (key ==GLFW_KEY_KP_7 && action != GLFW_RELEASE) {
-        if (rotationKind == 1) {
-            rotateModelAboutZQuat(g_models, -0.05);
-        } else {
-            rotateModelAboutZ(g_models, -0.05);
-        }
-    } else if (key == GLFW_KEY_KP_9 && action != GLFW_RELEASE) {
-        if (rotationKind == 1) {
-            rotateModelAboutZQuat(g_models, 0.05);
-        } else {
-            rotateModelAboutZ(g_models, 0.05);
-        }
-    } else if (key == GLFW_KEY_F1) {
-        g_camera = 1;
-    } else if (key == GLFW_KEY_F2) {
-        g_camera = 2;
-    } else if (key == GLFW_KEY_F3) {
-        g_camera = 3;
-    } else if (key == GLFW_KEY_F4) {
-        g_camera = 4;
-    } else if (key == GLFW_KEY_F5) {
-        g_camera = 0;
-    } else if (key == GLFW_KEY_UP && action != GLFW_RELEASE) {
-        switch (g_camera) {
-            case 1: {
-                moveCameraAngle(&g_fpc1, -1, constrain);
-                break;
-            }
-            case 2: {
-                moveCameraQuat(&g_fpc2, -1, constrain);
-                break;
-            }
-            case 3: {
-                constrain(&g_tpc.e, 0,  g_tpc.speed, 1.0f, g_tpc.constrained);
-                break;
-            }
-            case 4: {
-                float prevT[MVP_MATRIX_SIZE];
-                memcpy(prevT, g_oc.t, MVP_MATRIX_SIZE * sizeof(float));
-                move(prevT, 0.0f, 0.0f, 0.05f, g_oc.t);
-                break;
-            }
-        }
-    } else if (key == GLFW_KEY_DOWN && action != GLFW_RELEASE) {
-        switch (g_camera) {
-            case 1: {
-                moveCameraAngle(&g_fpc1, 1, constrain);
-                break;
-            }
-            case 2: {
-                moveCameraQuat(&g_fpc2, 1, constrain);
-                break;
-            }
-            case 3: {
-                constrain(&g_tpc.e, 0,  -g_tpc.speed, 1.0f, g_tpc.constrained);
-                break;
-            }
-            case 4: {
-                float prevT[MVP_MATRIX_SIZE];
-                memcpy(prevT, g_oc.t, MVP_MATRIX_SIZE * sizeof(float));
-                move(prevT, 0.0f, 0.0f,-0.05f, g_oc.t);
-                break;
-            }
-        }
-    } else if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
-        switch (g_camera) {
-            case 1: {
-                strafeCameraAngle(&g_fpc1, -1, constrain);
-                break;
-            }
-            case 2: {
-                strafeCameraQuat(&g_fpc2, -1, constrain);
-                break;
-            }
-            case 3: {
-                constrain(&g_tpc.e, -g_tpc.speed, 0.f, 1.0f, g_tpc.constrained);
-                break;
-            }
-            case 4: {
-                float prevT[MVP_MATRIX_SIZE];
-                memcpy(prevT, g_oc.t, MVP_MATRIX_SIZE * sizeof(float));
-                move(prevT, -0.05f, 0.0f, 0.0f, g_oc.t);
-                break;
-            }
-        }
-    } else if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
-        switch (g_camera) {
-            case 1: {
-                strafeCameraAngle(&g_fpc1, 1, constrain);
-                break;
-            }
-            case 2: {
-                strafeCameraQuat(&g_fpc2, 1, constrain);
-                break;
-            }
-            case 3: {
-                constrain(&g_tpc.e, g_tpc.speed, 0.f, 1.0f, g_tpc.constrained);
-                break;
-            }
-            case 4: {
-                float prevT[MVP_MATRIX_SIZE];
-                memcpy(prevT, g_oc.t, MVP_MATRIX_SIZE * sizeof(float));
-                move(prevT, 0.05f, 0.0f, 0.0f, g_oc.t);
-                break;
-            }
-        }
-    } else if (g_camera == 4 && key == GLFW_KEY_KP_ADD && action == GLFW_RELEASE) { 
-        float prevS[MVP_MATRIX_SIZE];
-        memcpy(prevS, g_oc.s, MVP_MATRIX_SIZE * sizeof(float));
-        scale(prevS, 2.0f, 2.0f, 2.0f, g_oc.t);
-    } else if (g_camera == 4 && key == GLFW_KEY_KP_SUBTRACT && action == GLFW_RELEASE) { 
-        float prevS[MVP_MATRIX_SIZE];
-        memcpy(prevS, g_oc.s, MVP_MATRIX_SIZE * sizeof(float));
-        scale(prevS, 0.5f, 0.5f, 0.5f, g_oc.t);
-    } else if (g_musicPlayer != 0 && key == GLFW_KEY_P && action == GLFW_RELEASE) {
-        ALint state;
-        alGetSourcei(g_musicPlayer, AL_SOURCE_STATE, &state);
-        if (state == AL_PLAYING) {
-            printf("Pausing music player\n");
-            alurePauseSource(g_musicPlayer);
-        } else if (state == AL_PAUSED) {
-            printf("Resuming music player\n");
-            alureResumeSource(g_musicPlayer);
-        }
-    } else if (g_musicPlayer != 0 && key == GLFW_KEY_N && action == GLFW_RELEASE) {
-        alSourceStop(g_musicPlayer);
+        return;
     }
 }
 
@@ -520,13 +561,6 @@ void onCursorMove(GLFWwindow* window, double x, double y) {
 void initOptics() {
     getIdentityMatrix(v);
     getPerspectiveProjectionMatrixByAngle(-0.5f, 0.5f, 1024.f, 768.f, 45.f, p);
-    
-    for (int i = 0; i < countOfSpeeds; i++) {
-        degrees[i] = (i + 1) * 0.01f,
-        degreeKeys[i] = GLFW_KEY_1 + i;
-    }
-    
-    degree = degrees[1];
     
     moveCameraAngle(&g_fpc1, 0, constrain);
     moveCameraQuat(&g_fpc2, 0, constrain);
@@ -603,18 +637,26 @@ void initMusicPlayer() {
 }
 
 void cleanup() {
-    for (int i = 0; i < g_programsCount; i += 1) {
-        freeProgram(g_programs + i);
+    if (g_programs != NULL) {
+        for (int i = 0; i < g_programsCount; i += 1) {
+            freeProgram(g_programs + i);
+        }
+        free(g_programs);
     }
-    free(g_programs);
     free(g_preprocessedVariables);
     free(g_preprocessedBuiltinTextureUnits);
     free(g_preprocessedBlocks);
     
-    for (int i = 0; i < g_modelsCount; i += 1) {
-        freeModel(g_models + i);
+    if (g_models != NULL) {
+        for (int i = 0; i < g_modelsCount; i += 1) {
+            freeModel(g_models + i);
+        }
+        free(g_models);
     }
-    free(g_models);
+    
+    if (g_actions != NULL) {
+        free(g_actions);
+    }
     
 	glfwTerminate();
     
@@ -650,7 +692,9 @@ int main(int argc, char** argv) {
         &g_terrain, &g_modelsCount, &g_models,
         &rotationKind,
         &g_camera, &g_fpc1, &g_fpc2, &g_tpc, &g_oc,
-        &g_tracksCount, &g_musicFiles);
+        &g_tracksCount, &g_musicFiles,
+        &g_actionsCount, &g_actions
+    );
 	if (isOk) {
         preprocessVariables();
         preprocessBlocks();
