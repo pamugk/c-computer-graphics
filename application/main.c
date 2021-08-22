@@ -145,14 +145,14 @@ void reshape(GLFWwindow *window, int width, int height) {
 }
 
 float getY(int x, int z) {
-    if (x < -g_models[g_terrain].body.width / 2.f || z < -g_models[g_terrain].body.depth / 2.f || x > g_models[g_terrain].body.width / 2.f || z > g_models[g_terrain].body.width / 2.f) {
+    if (x < 0 || z < 0 || x > g_models[g_terrain].body.width || z > g_models[g_terrain].body.width) {
         return 0.0f;
     }
     return g_models[g_terrain].body.vertices[z * g_models[g_terrain].body.vertexSize + x * g_models[g_terrain].body.vertexSize + 1];
 }
 
 float calculateY(float x, float z) {
-    int iz = z, ix = x;
+    int iz = z + g_models[g_terrain].body.depth / 2.0f, ix = x + g_models[g_terrain].body.width / 2.0f;
     float fz = z - (float)iz, fx = x - (float)ix;
     float nfz = 1.0f - fz, nfx = 1.0f - fx;
     return 
