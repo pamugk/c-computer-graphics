@@ -80,13 +80,13 @@ models: 1 2
     END
 
 tracks: 50
-    ../music/track1.ogg ../music/track2.ogg ../music/track3.ogg ../music/track4.ogg ../music/track5.ogg
-    ../music/track6.ogg ../music/track7.ogg ../music/track8.ogg ../music/track9.ogg ../music/track10.ogg
-    ../music/track11.ogg ../music/track12.ogg ../music/track13.ogg ../music/track14.ogg ../music/track15.ogg
-    ../music/track16.ogg ../music/track17.mp3 ../music/track18.mp3 ../music/track19.ogg ../music/track20.ogg
-    ../music/track21.ogg ../music/track22.ogg ../music/track23.ogg ../music/track24.ogg ../music/track25.ogg
-    ../music/track26.ogg ../music/track27.ogg ../music/track28.ogg ../music/track29.ogg ../music/track30.ogg
-    ../music/track31.ogg ../music/track32.ogg ../music/track33.ogg ../music/track34.ogg ../music/track35.ogg
+    ../music/track1.mp3 ../music/track2.mp3 ../music/track3.ogg ../music/track4.mp3 ../music/track5.mp3
+    ../music/track6.mp3 ../music/track7.mp3 ../music/track8.ogg ../music/track9.mp3 ../music/track10.mp3
+    ../music/track11.mp3 ../music/track12.mp3 ../music/track13.mp3 ../music/track14.ogg ../music/track15.mp3
+    ../music/track16.mp3 ../music/track17.mp3 ../music/track18.mp3 ../music/track19.ogg ../music/track20.mp3
+    ../music/track21.mp3 ../music/track22.mp3 ../music/track23.mp3 ../music/track24.mp3 ../music/track25.ogg
+    ../music/track26.mp3 ../music/track27.mp3 ../music/track28.mp3 ../music/track29.ogg ../music/track30.ogg
+    ../music/track31.mp3 ../music/track32.ogg ../music/track33.ogg ../music/track34.mp3 ../music/track35.ogg
     ../music/track36.ogg ../music/track37.mp3 ../music/track38.mp3 ../music/track39.mp3 ../music/track40.mp3
     ../music/track41.mp3 ../music/track42.mp3 ../music/track43.mp3 ../music/track44.mp3 ../music/track45.mp3
     ../music/track46.mp3 ../music/track47.mp3 ../music/track48.mp3 ../music/track49.mp3 ../music/track50.mp3
