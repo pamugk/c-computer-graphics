@@ -619,7 +619,6 @@ void preprocessBlocks() {
 void updateTrackPool() {
     ALuint finishedTrack = g_trackPool[0];
     g_trackPool[0] = g_trackPool[1];
-    srand(time(NULL));
     g_trackPool[1] = alureCreateBufferFromFile(g_musicFiles[rand() % g_tracksCount]);
     alSourcei(g_musicPlayer, AL_BUFFER, g_trackPool[0]);
     alDeleteBuffers(1, &finishedTrack);
