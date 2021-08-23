@@ -1,4 +1,4 @@
-CFLAGS=-std=c2x -g -march=native
+CFLAGS=-std=c2x -march=native -O1
 LIBS=$(shell pkg-config --libs alure glfw3 glew libpng libjpeg) -lm
 
 all:
