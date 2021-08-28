@@ -104,10 +104,10 @@ bool initOpenGL() {
     glfwMakeContextCurrent(g_window);
     glewExperimental = GL_TRUE;
     errorCode = glewInit();
-    /*if (errorCode != GLEW_OK) {
+    if (errorCode != GLEW_OK) {
 		printf("Failed to initialize GLEW: %s\n", glewGetErrorString(errorCode));
 		return false;
-	}*/
+	}
 
     glfwSetFramebufferSizeCallback(g_window, reshape);
     glfwSetInputMode(g_window, GLFW_STICKY_KEYS, GL_FALSE);
